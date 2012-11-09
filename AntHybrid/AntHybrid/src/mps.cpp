@@ -82,8 +82,8 @@ double MpsProblem::eval_tour(const std::vector<unsigned int> &tour){
     
     // A mini-representation of a core
     struct SmallCore {
-        unsigned int current_task_priority = 0;
-        unsigned int current_task_completion_time = 0;
+        unsigned int current_task_priority;
+        unsigned int current_task_completion_time;
     };
     
     // Method-local representation of core state
@@ -134,14 +134,18 @@ double MpsProblem::eval_tour(const std::vector<unsigned int> &tour){
 }
 
 double MpsProblem::pheromone_update(unsigned int v, double tour_length){
-    return 0;
+    return 1.0 / tour_length;
 }
 
 void MpsProblem::added_vertex_to_tour(unsigned int vertex){
+    unsigned int task, core;
+    get_task_and_core_from_vertex(vertex, task, core);
+    
+    (*tasks_)[task].scheduled_ = true;
 }
 
 bool MpsProblem::is_tour_complete(const std::vector<unsigned int> &tour){
-    return true;
+    return (tour.size() == tasks_->size());
 }
 
 std::vector<unsigned int> MpsProblem::apply_local_search(const std::vector<unsigned int> &tour){
@@ -149,10 +153,10 @@ std::vector<unsigned int> MpsProblem::apply_local_search(const std::vector<unsig
 }
 
 void MpsProblem::cleanup(){
-    next_ready_task_ = 0;
-    
     std::vector<Task>::iterator it;
-    
+    for (it = tasks_->begin(); it < tasks_->end(); it++) {
+        it->scheduled_ = false;
+    }
 }
 
 unsigned int MpsProblem::get_vertex_for(unsigned int core, unsigned int task) {
@@ -168,18 +172,18 @@ void MpsProblem::get_task_and_core_from_vertex(unsigned int vertex_id, unsigned 
     task = vertex_id - (core * 1000000);
 }
 
-std::list<Task> MpsProblem::get_ready_tasks() {
-    int priority = (*tasks_)[next_ready_task_].priority_;
-    
-    std::list<Task> result;
-    for (int i = next_ready_task_ + 1; i < (*tasks_).size(); i++) {
-        if ((*tasks_)[i].priority_ == priority)
-            result.push_front((*tasks_)[i]);
-        else
-            break;
-    }
-    
-    return result;
-}
+//std::list<Task> MpsProblem::get_ready_tasks() {
+//    int priority = (*tasks_)[next_ready_task_].priority_;
+//    
+//    std::list<Task> result;
+//    for (int i = next_ready_task_ + 1; i < (*tasks_).size(); i++) {
+//        if ((*tasks_)[i].priority_ == priority)
+//            result.push_front((*tasks_)[i]);
+//        else
+//            break;
+//    }
+//    
+//    return result;
+//}
 
 

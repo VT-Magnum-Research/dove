@@ -22,30 +22,23 @@ struct Task {
     // 1 is 'highest' priority and will be executed before 2,
     // which is before 3 ... etc
     unsigned int priority_;
-        
-    unsigned int start_time_;
-    
-    unsigned int end_time_;
     
     bool scheduled_;
     
     // TODO temporary, I need to implement the time matrix
     unsigned int execution_time_;
-    
-    // I find it convenient to store the array position of this
-    // Task inside of it
-    unsigned int id_;
 };
 
 struct Core {
-    
-    Task* current_task_ = nullptr;
-    
-    unsigned int id_;
+
 };
 
 
 /// Multiprocessor scheduling using the libaco implemenation.
+//   At the basic level, this does nothing more than allocate
+//   tasks to cores. If you pass all precedence numebrs as 1, it
+//   will schedule tasks with no precedence relationships.
+//   Other details can be removed via similar means
 class MpsProblem : public OptimizationProblem {
 private:
 
@@ -76,12 +69,12 @@ private:
     
     // Index to the next task that should be executed. Note that when
     // next_ready_task_ == tasks_.size() you have completed a tour
-    unsigned int next_ready_task_;
+    //unsigned int next_ready_task_;
     
     unsigned int get_vertex_for(unsigned int processor, unsigned int task);
     
     // Returns all tasks with the same priority as next_ready_task_
-    std::list<Task> get_ready_tasks();
+    //std::list<Task> get_ready_tasks();
     
     void get_task_and_core_from_vertex(unsigned int vertex_id, unsigned int & task, unsigned int & core);
 
