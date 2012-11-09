@@ -17,7 +17,6 @@
 
 #include "ants.h"
 
-
 struct Task {
     // 1 is 'highest' priority and will be executed before 2,
     // which is before 3 ... etc
@@ -30,7 +29,6 @@ struct Task {
 };
 
 struct Core {
-
 };
 
 
@@ -77,9 +75,10 @@ private:
     //std::list<Task> get_ready_tasks();
     
     void get_task_and_core_from_vertex(unsigned int vertex_id, unsigned int & task, unsigned int & core);
+    std::string debug_vertex(unsigned int vertex);
 
 public:
-    MpsProblem(Matrix<unsigned int> *distances);
+    MpsProblem(std::vector<Task>* tasks, std::vector<Core>* cores);
     ~MpsProblem();
     unsigned int get_max_tour_size();
     unsigned int number_of_vertices();
