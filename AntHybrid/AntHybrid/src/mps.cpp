@@ -36,7 +36,7 @@ unsigned int MpsProblem::number_of_vertices(){
 }
 
 std::map<unsigned int,double> MpsProblem::get_feasible_start_vertices(){
-
+    
     // Start on any processor, but you must execute the first task first
     std::map<unsigned int,double> vertices;
     unsigned int start = get_vertex_for(Util::random_number( (int) cores_->size()), 0);
@@ -50,6 +50,8 @@ std::map<unsigned int,double> MpsProblem::get_feasible_neighbours(unsigned int v
 }
 
 double MpsProblem::eval_tour(const std::vector<unsigned int> &tour){
+    // NOTE: This is called *after* cleanup(), so you must be able to
+    // evaluate a tour based upon this vector only
     return 0;
 }
 
@@ -70,9 +72,9 @@ std::vector<unsigned int> MpsProblem::apply_local_search(const std::vector<unsig
 
 void MpsProblem::cleanup(){
     next_ready_task_ = 0;
-
+    
     std::vector<Task>::iterator it;
-
+    
 }
 
 unsigned int MpsProblem::get_vertex_for(unsigned int processor, unsigned int task) {
