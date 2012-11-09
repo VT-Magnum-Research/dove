@@ -27,6 +27,11 @@ struct Task {
     
     unsigned int end_time_;
     
+    bool scheduled_;
+    
+    // TODO temporary, I need to implement the time matrix
+    unsigned int execution_time_;
+    
     // I find it convenient to store the array position of this
     // Task inside of it
     unsigned int id_;
@@ -34,8 +39,7 @@ struct Task {
 
 struct Core {
     
-    // Ordered from first to last
-    std::vector<Task*> tasks_;
+    Task* current_task_ = nullptr;
     
     unsigned int id_;
 };
@@ -78,6 +82,8 @@ private:
     
     // Returns all tasks with the same priority as next_ready_task_
     std::list<Task> get_ready_tasks();
+    
+    void get_task_and_core_from_vertex(unsigned int vertex_id, unsigned int & task, unsigned int & core);
 
 public:
     MpsProblem(Matrix<unsigned int> *distances);
