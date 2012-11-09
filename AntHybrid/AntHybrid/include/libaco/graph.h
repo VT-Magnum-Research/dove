@@ -128,7 +128,7 @@ template <class T> class AdjacencyMap {
     }
 
     unsigned int size() {
-      return values_.size();
+      return (int) values_.size();
     }
 
     std::vector<unsigned int> get_neighbours() {
