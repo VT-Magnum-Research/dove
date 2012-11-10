@@ -10,13 +10,15 @@
 #include <stdexcept>
 #include <sstream>
 
-bool debug = true;
+bool debug = false;
 
+unsigned int MpsProblem::task_size_ = 0;
 MpsProblem::MpsProblem(std::vector<Task>* tasks, std::vector<Core>* cores) {
     if (debug)
         std::cout << "MpsProblem::MpsProblem" << std::endl;
     tasks_ = tasks;
     cores_ = cores;
+    MpsProblem::task_size_ = (int) tasks->size();
         
     cleanup();
     
@@ -72,7 +74,7 @@ std::map<unsigned int,double> MpsProblem::get_feasible_neighbours(unsigned int v
     get_task_and_core_from_vertex(vertex, task, core);
     unsigned int priority = (*tasks_)[task].priority_;
     std::map<unsigned int, double> neighbors;
-    for (unsigned int i = task + 1; i < tasks_->size(); i++) {
+    for (unsigned int i = 0; i < tasks_->size(); i++) {
         Task cur = (*tasks_)[i];
 
         // Unscheduled tasks at this priority?
@@ -99,6 +101,10 @@ std::map<unsigned int,double> MpsProblem::get_feasible_neighbours(unsigned int v
         
         std::cout << std::endl;
     }
+    
+    // Sanity Check
+    if (neighbors.size() == 0)
+        throw "What happened here!?";
     
     return neighbors;
 }
@@ -217,19 +223,6 @@ void MpsProblem::cleanup(){
     }
 }
 
-unsigned int MpsProblem::get_vertex_for(unsigned int core, unsigned int task) {
-    // unsigned: 0 to 4294967295
-    // Assumming that no one will run this with more than 9999 processors, so I'm
-    // reserving the 4 most significant bits for processor ID and all remaining
-    // LSBs for the taskID. If this goes production it should be changed
-    return (core * 1000000) + task;
-}
-
-void MpsProblem::get_task_and_core_from_vertex(unsigned int vertex_id, unsigned int & task, unsigned int & core) {
-    core = vertex_id / 1000000;
-    task = vertex_id - (core * 1000000);
-}
-
 std::string MpsProblem::debug_vertex(unsigned int vertex) {
     unsigned int task, core;
     get_task_and_core_from_vertex(vertex, task, core);
@@ -238,19 +231,4 @@ std::string MpsProblem::debug_vertex(unsigned int vertex) {
     oss << "(C" << core << ",T" << task << ")";
     return oss.str();
 }
-
-//std::list<Task> MpsProblem::get_ready_tasks() {
-//    int priority = (*tasks_)[next_ready_task_].priority_;
-//    
-//    std::list<Task> result;
-//    for (int i = next_ready_task_ + 1; i < (*tasks_).size(); i++) {
-//        if ((*tasks_)[i].priority_ == priority)
-//            result.push_front((*tasks_)[i]);
-//        else
-//            break;
-//    }
-//    
-//    return result;
-//}
-
 

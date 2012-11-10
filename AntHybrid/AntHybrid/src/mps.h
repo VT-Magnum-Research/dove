@@ -69,20 +69,35 @@ private:
     // next_ready_task_ == tasks_.size() you have completed a tour
     //unsigned int next_ready_task_;
     
-    unsigned int get_vertex_for(unsigned int processor, unsigned int task);
+    // Initialized with the number of tasks in this problem
+    // TODO: Eventually replace this, it's hacky
+    static unsigned int task_size_;
     
     // Returns all tasks with the same priority as next_ready_task_
     //std::list<Task> get_ready_tasks();
     
-    void get_task_and_core_from_vertex(unsigned int vertex_id, unsigned int & task, unsigned int & core);
     std::string debug_vertex(unsigned int vertex);
+    
+    static inline unsigned int get_vertex_for(unsigned int core, unsigned int task) {
+        return core * task_size_ + task;
+    }
 
 public:
+
+    static inline void get_task_and_core_from_vertex(unsigned int vertex_id, unsigned int & task, unsigned int & core) {
+        task = vertex_id % task_size_;
+        core = vertex_id / task_size_;
+    }
+
     MpsProblem(std::vector<Task>* tasks, std::vector<Core>* cores);
     ~MpsProblem();
     unsigned int get_max_tour_size();
     unsigned int number_of_vertices();
+    
+    // Vertex ids must be 0...number_of_vertices() - 1
     std::map<unsigned int,double> get_feasible_start_vertices();
+    
+    // Vertex ids must be 0...number_of_vertices() - 1
     std::map<unsigned int,double> get_feasible_neighbours(unsigned int vertex);
     double eval_tour(const std::vector<unsigned int> &tour);
     double pheromone_update(unsigned int v, double tour_length);

@@ -174,7 +174,9 @@ AntColony<Ant> *get_ant_colony(OptimizationProblem *problem) {
 
 void print_tour(std::vector<unsigned int> tour) {
   for(unsigned int i=0;i<tour.size();i++) {
-    std::cout << tour[i] << ((i == (tour.size()-1)) ? "" : ",");
+      unsigned int task, core;
+      MpsProblem::get_task_and_core_from_vertex(tour[i], task, core);
+      std::cout << "(C" << core << ",T" << task << ")" << ((i == (tour.size()-1)) ? "" : ",");
   }
 }
 
@@ -217,13 +219,13 @@ int main(int argc, char *argv[]) {
       std::vector<Task> tasks;
       Task t0;
       t0.priority_ = 1;
-      t0.execution_time_ = 20;
+      t0.execution_time_ = 1;
       Task t1;
       t1.priority_ = 2;
-      t1.execution_time_ = 10;
+      t1.execution_time_ = 3;
       Task t2;
       t2.priority_ = 2;
-      t2.execution_time_ = 1;
+      t2.execution_time_ = 15;
       Task t3;
       t3.priority_ = 3;
       t3.execution_time_ = 1;
