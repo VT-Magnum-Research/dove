@@ -13,6 +13,8 @@
 #include <cstdlib>
 #include <map>
 #include <string>
+#include <stdio.h>
+#include <stdarg.h>
 #include "util.h"
 
 #include "ants.h"
@@ -58,6 +60,14 @@ private:
   
   /// ============= Implementation Variables =====
   
+  // Helper method for the verification
+  // Note: The attribute will likely only work on Mac systems. Feel free
+  // to remove it if it's causing trouble
+  bool _verr(const char *fmt, ...)
+    __attribute__((format (printf, 2, 3)));
+  
+  #define verr(fmt,...) _verr(fmt"\n", ##__VA_ARGS__)
+  
   // Initialized with the number of tasks in this problem
   unsigned int task_size_;
   
@@ -73,8 +83,11 @@ private:
   }
   
 public:
-  
+  void print_schedule(MpSchedule schedule);
   void print_tour(std::vector<unsigned int> tour);
+  bool verify_schedule_passes_constraints(MpSchedule schedule);
+
+  MpSchedule convert_tour_to_schedule(std::vector<unsigned int> tour);
   
   MpsProblem(std::vector<Task>* tasks, std::vector<Core>* cores);
   ~MpsProblem();

@@ -117,54 +117,43 @@ std::map<unsigned int,double> MpsProblem::get_feasible_neighbours(unsigned int v
 // So you must evaluate a tour based upon this vector and iteration-independent
 // variables only
 double MpsProblem::eval_tour(const std::vector<unsigned int> &tour){
+  MpSchedule schedule = convert_tour_to_schedule(tour);
   
-  // Ensure cores are clean
-  for (int i = 0; i < cores_->size(); i++) {
-    cores_->at(i).current_task_priority = 0;
-    cores_->at(i).current_task_completion_time = 0;
-  }
+  double completion_time = schedule.get_completion_time();
+  if (debug)
+    std::cout << "MpsProblem::eval_tour: " << completion_time << std::endl;
+  if (completion_time == 15)
+    convert_tour_to_schedule(tour);
+
+  return completion_time;
+}
+
+MpSchedule MpsProblem::convert_tour_to_schedule(std::vector<unsigned int> tour) {
   
   // Flatten the scheduling order into a real schedule
+  MpSchedule schedule;
   std::vector<unsigned int>::const_iterator it = tour.begin();
   unsigned int task_i, core_i;
-  Task task;
-  Core* core;
+  Task* task;
+
   for (it = tour.begin(); it < tour.end(); it++) {
     get_task_and_core_from_vertex(*it, task_i, core_i);
-    task = (*tasks_)[task_i];
-    core = &(cores_->at(core_i));
+    task = &(*tasks_)[task_i];
     
-    // There are no predecessors, but there may have been some prior level 1
-    // stuff run on this core if we had a small number of cores relative to
-    // the number of priority 1 tasks
-    if (task.priority_ == 1) {
-      core->current_task_priority = task.priority_;
-      core->current_task_completion_time += task.execution_time_;
-    } else {
-      
       // Minimum starting time on this processor
-      unsigned int min_starting_time = core->current_task_completion_time;
+      unsigned int core_completion_time = schedule.get_current_completion_time(core_i);
       
       // Do we need to idle to maintain precedence?
-      unsigned int previous_priority_level = task.priority_ - 1;
-      for (int i = 0; i < cores_->size(); i++)
-        if (cores_->at(i).current_task_priority == previous_priority_level)
-          min_starting_time = std::max(min_starting_time, cores_->at(i).current_task_completion_time);
+      unsigned int pred_end_time = schedule.get_priority_end_time(task->priority_ - 1);
       
-      core->current_task_completion_time = min_starting_time + task.execution_time_;
-      core->current_task_priority = task.priority_;
-    }
-    
+      ScheduleItem si;
+      si.task_ = task;
+      si.start_ = std::max(core_completion_time, pred_end_time);
+      si.end_ = si.start_ + task->execution_time_;
+      schedule.add_task(core_i, si);
   }
-  
-  unsigned int maximum_completion_time = 0;
-  for (int i = 0; i < cores_->size(); i++)
-    maximum_completion_time = std::max(maximum_completion_time, cores_->at(i).current_task_completion_time);
-  
-  if (debug)
-    std::cout << "MpsProblem::eval_tour: " << maximum_completion_time << std::endl;
-  
-  return maximum_completion_time;
+    
+  return schedule;
 }
 
 double MpsProblem::pheromone_update(unsigned int v, double tour_length){
@@ -182,6 +171,67 @@ void MpsProblem::added_vertex_to_tour(unsigned int vertex){
   get_task_and_core_from_vertex(vertex, task, core);
   
   (*tasks_)[task].scheduled_ = true;
+}
+
+bool MpsProblem::_verr(const char *fmt, ...) {
+  va_list arg;
+  va_start(arg, fmt);
+  std::vprintf(fmt, arg);
+  va_end(arg);
+  return false;
+}
+
+
+bool MpsProblem::verify_schedule_passes_constraints(MpSchedule schedule) {
+  
+  // TODO-->Verify 1-1-1 mapping of processor, task, time slot e.g. no dual-processing of tasks
+  
+  // Next steps: make cores and tasks have IDs when I load them in
+  //             train MpsProblem to print the schedule (or the schedule to print itself?)
+  
+  // Y - Verify A.end >= A.start for all tasks
+  // Y - Verify A before B in vector implies A.end <= B.start
+  // Y - Verify the precedence of tasks is maintained on each processor independently
+  for (int i = 0; i < cores_->size(); i++)
+  {
+    std::vector<ScheduleItem> core_sched = *schedule.get_schedule_for_core(i);
+    std::vector<ScheduleItem>::iterator it;
+    ScheduleItem* prior = NULL;
+    for (it = core_sched.begin(); it != core_sched.end(); it++)
+    {
+      ScheduleItem* cur = &(*it);
+      if (cur->end_ < cur->start_)
+        return verr("End time before start time: %s", cur->get_cstr());
+      
+      if (prior == NULL) {
+       prior = cur;
+       continue;
+      }
+      
+      if (cur->start_ < prior->end_)
+        return verr("Two tasks overlapping: %s & %s",
+                    prior->get_cstr(), cur->get_cstr());
+    
+      if (cur->priority() < prior->priority())
+        return verr("Tasks not following priority precedence: %s & %s",
+                    prior->get_cstr(), cur->get_cstr());
+    }
+  }
+  
+  
+  //
+//
+//  // Check priority precedence
+//  unsigned int priority_current = 0;
+//  unsigned int priority_finish_time = 0;
+//  unsigned int task, core;
+//  for(unsigned int i=0;i<tour.size();i++) {
+//    get_task_and_core_from_vertex(tour[i], task, core);
+//    Task t = (*tasks_)[task];
+//    //t.priority_
+//  }
+  
+  return true;
 }
 
 bool MpsProblem::is_tour_complete(const std::vector<unsigned int> &tour){
@@ -215,6 +265,12 @@ void MpsProblem::print_tour(std::vector<unsigned int> tour) {
     get_task_and_core_from_vertex(tour[i], task, core);
     std::cout << "(C" << core << ",T" << task << ")" << ((i == (tour.size()-1)) ? "" : ",");
   }
+}
+
+void MpsProblem::print_schedule(MpSchedule schedule) {
+  
+  unsigned int time = schedule.get_completion_time();
+  
 }
 
 std::string MpsProblem::debug_vertex(unsigned int vertex) {

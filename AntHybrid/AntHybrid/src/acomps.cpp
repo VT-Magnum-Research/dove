@@ -273,6 +273,17 @@ int main(int argc, char *argv[]) {
   std::cout << "best\tordering" << std::endl;
   std::cout << colony->get_best_tour_length() << "\t";
   mpsproblem->print_tour(colony->get_best_tour());
+  
+  MpSchedule schedule = mpsproblem->convert_tour_to_schedule(colony->get_best_tour());
+  bool verify = mpsproblem->verify_schedule_passes_constraints(schedule);
+  
+  schedule.print_schedule_as_page();
+  
   std::cout << std::endl;
   delete colony;
+  
+  if (!verify)
+    exit(EXIT_FAILURE);
+  else
+    exit(EXIT_SUCCESS);
 }
