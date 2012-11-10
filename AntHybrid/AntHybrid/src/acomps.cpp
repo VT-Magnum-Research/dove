@@ -112,7 +112,7 @@ static void parse_options(int argc, char *argv[]) {
   acs_as_flag = acs_as_arg.isSet();
   acs_q0 = acs_q0_arg.getValue();
   acs_xi = acs_xi_arg.getValue();
-
+  
   if(stag_variance_arg.isSet()) {
     stagnation_measure = STAG_VARIATION_COEFFICIENT;
   } else if(stag_lambda_arg.isSet()) {
@@ -137,7 +137,7 @@ static void set_initial_pheromone(OptimizationProblem *problem, AntColonyConfigu
 
 AntColony<Ant> *get_ant_colony(OptimizationProblem *problem) {
   AntColony<Ant> *colony;
-
+  
   if(simple_as_flag) {
     AntColonyConfiguration config;
     set_config(config);
@@ -208,7 +208,7 @@ int main(int argc, char *argv[]) {
     std::cerr << "error: " << e.error() << " for arg " << e.argId() << std::endl;
     exit(EXIT_SUCCESS);
   }
-
+  
   OptimizationProblem *problem;
   
   std::vector<Task> tasks;
@@ -229,19 +229,19 @@ int main(int argc, char *argv[]) {
   tasks.push_back(t1);
   tasks.push_back(t2);
   tasks.push_back(t3);
-    
+  
   std::vector<Core> touse;
   Core c;
   touse.push_back(c);
   Core e;
   touse.push_back(e);
-
+  
   mpsproblem = new MpsProblem(&tasks, &touse);
   problem = mpsproblem;
   
-
+  
   colony = get_ant_colony(problem);
-
+  
   std::cout << "iter\ttime\tbest\tbest_it";
   std::cout << ((stagnation_measure != STAG_NONE) ? "\tstagnation" : "");
   std::cout << (print_tour_flag ? "\tordering" : "");
@@ -253,20 +253,20 @@ int main(int argc, char *argv[]) {
     std::cout << timer() << "\t";
     std::cout << colony->get_best_tour_length() << "\t";
     std::cout << colony->get_best_tour_length_in_iteration() << "\t";
-
+    
     if(stagnation_measure == STAG_VARIATION_COEFFICIENT) {
       std::cout << colony->get_variation_coefficient();
     }
-
+    
     if(stagnation_measure == STAG_LAMBDA_BRANCHING_FACTOR) {
       std::cout << colony->get_lambda_branching_factor();
     }
-
+    
     if(print_tour_flag) {
       std::cout << "\t";
       mpsproblem->print_tour(colony->get_best_tour_in_iteration());
     }
-
+    
     std::cout << std::endl;
   }
   std::cout << std::endl;
