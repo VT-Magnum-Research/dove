@@ -16,26 +16,8 @@
 #include "util.h"
 
 #include "ants.h"
-
-struct Task {
-  // 1 is 'highest' priority and will be executed before 2,
-  // which is before 3 ... etc
-  unsigned int priority_;
-  
-  bool scheduled_;
-  
-  // TODO temporary, I need to implement the time matrix
-  unsigned int execution_time_;
-};
-
-struct IdleTask : Task {
-  IdleTask() {
-    priority_ = 0;
-  }
-};
-
-struct Core {
-};
+#include "data.h"
+#include "MpSchedule.h"
 
 
 /// Multiprocessor scheduling using the libaco implemenation.

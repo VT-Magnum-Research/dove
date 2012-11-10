@@ -9,6 +9,7 @@
 #include "mps.h"
 #include <stdexcept>
 #include <sstream>
+#include <algorithm>
 
 bool debug = false;
 
@@ -117,65 +118,51 @@ std::map<unsigned int,double> MpsProblem::get_feasible_neighbours(unsigned int v
 // variables only
 double MpsProblem::eval_tour(const std::vector<unsigned int> &tour){
   
-  // A mini-representation of a core
-  struct SmallCore {
-    unsigned int current_task_priority;
-    unsigned int current_task_completion_time;
-  };
-  
-  // Method-local representation of core state
-  SmallCore* cores = new SmallCore[cores_->size()];
-  for (int i = 0; i < cores_->size(); i++)
-  {
-    cores[i].current_task_priority = 0;
-    cores[i].current_task_completion_time = 0;
+  // Ensure cores are clean
+  for (int i = 0; i < cores_->size(); i++) {
+    cores_->at(i).current_task_priority = 0;
+    cores_->at(i).current_task_completion_time = 0;
   }
   
-  // For the entire tour, iteratively update the completion time
-  // of each core
+  // Flatten the scheduling order into a real schedule
   std::vector<unsigned int>::const_iterator it = tour.begin();
   unsigned int task_i, core_i;
-  Task* task;
+  Task task;
+  Core* core;
   for (it = tour.begin(); it < tour.end(); it++) {
     get_task_and_core_from_vertex(*it, task_i, core_i);
-    task = &((*tasks_)[task_i]);
+    task = (*tasks_)[task_i];
+    core = &(cores_->at(core_i));
     
     // There are no predecessors, but there may have been some prior level 1
     // stuff run on this core if we had a small number of cores relative to
     // the number of priority 1 tasks
-    if (task->priority_ == 1) {
-      cores[core_i].current_task_priority = task->priority_;
-      cores[core_i].current_task_completion_time += task->execution_time_;
+    if (task.priority_ == 1) {
+      core->current_task_priority = task.priority_;
+      core->current_task_completion_time += task.execution_time_;
     } else {
       
-      // Determine our minimum starting time on this processor, based
-      // upon making sure we don't violate the precedence relation
-      int min_starting_time = cores[core_i].current_task_completion_time;
-      for (int i = 0; i < cores_->size(); i++)
-      {
-        if (cores[i].current_task_priority == task->priority_ - 1)
-        {
-          // We cannot execute until all of these are done
-          if (min_starting_time < cores[i].current_task_completion_time)
-            min_starting_time = cores[i].current_task_completion_time;
-        }
-      }
+      // Minimum starting time on this processor
+      unsigned int min_starting_time = core->current_task_completion_time;
       
-      // Add our execution time to our minimum starting time, and update our
-      // executing core's completion time
-      cores[core_i].current_task_completion_time = min_starting_time + task->execution_time_;
-      cores[core_i].current_task_priority = task->priority_;
+      // Do we need to idle to maintain precedence?
+      unsigned int previous_priority_level = task.priority_ - 1;
+      for (int i = 0; i < cores_->size(); i++)
+        if (cores_->at(i).current_task_priority == previous_priority_level)
+          min_starting_time = std::max(min_starting_time, cores_->at(i).current_task_completion_time);
+      
+      core->current_task_completion_time = min_starting_time + task.execution_time_;
+      core->current_task_priority = task.priority_;
     }
+    
   }
   
-  double maximum_completion_time = 0;
+  unsigned int maximum_completion_time = 0;
   for (int i = 0; i < cores_->size(); i++)
-    if (cores[i].current_task_completion_time > maximum_completion_time)
-      maximum_completion_time =cores[i].current_task_completion_time;
+    maximum_completion_time = std::max(maximum_completion_time, cores_->at(i).current_task_completion_time);
   
   if (debug)
     std::cout << "MpsProblem::eval_tour: " << maximum_completion_time << std::endl;
-  
   
   return maximum_completion_time;
 }
