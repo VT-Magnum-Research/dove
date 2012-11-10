@@ -15,6 +15,11 @@ void MpSchedule::add_task(unsigned int core, ScheduleItem scheduled_task) {
 
 unsigned int MpSchedule::get_priority_end_time(unsigned int priority) {
 
+  // No one ever has to wait for a P0 task to finish, as this indicates
+  // an idle processor
+  if (priority == 0)
+    return 0;
+  
   unsigned int completion_time = 0;
   std::map<unsigned int, std::vector<ScheduleItem> >::iterator it;
   for (it = schedule_.begin(); it != schedule_.end(); it++)
