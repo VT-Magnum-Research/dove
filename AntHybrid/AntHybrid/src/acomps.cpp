@@ -38,6 +38,7 @@ static double acs_q0 = 0.5;
 static double acs_xi = 0.1;
 
 static AntColony<Ant> *colony;
+static MpsProblem* mpsproblem;
 
 static void parse_options(int argc, char *argv[]) {
   TCLAP::CmdLine cmd("Ant Colony Optimization for the Multiprocessor Scheduling Problem", ' ', "0.1");
@@ -172,19 +173,14 @@ AntColony<Ant> *get_ant_colony(OptimizationProblem *problem) {
   return colony;
 }
 
-void print_tour(std::vector<unsigned int> tour) {
-  for(unsigned int i=0;i<tour.size();i++) {
-      unsigned int task, core;
-      MpsProblem::get_task_and_core_from_vertex(tour[i], task, core);
-      std::cout << "(C" << core << ",T" << task << ")" << ((i == (tour.size()-1)) ? "" : ",");
-  }
-}
-
 static void terminate(int signal) {
+  if (mpsproblem == NULL)
+    exit(EXIT_SUCCESS);
+  
   std::cout << std::endl;
   std::cout << "best\tordering" << std::endl;
   std::cout << colony->get_best_tour_length() << "\t";
-  print_tour(colony->get_best_tour());
+  mpsproblem->print_tour(colony->get_best_tour());
   std::cout << std::endl;
   delete colony;
   exit(EXIT_SUCCESS);
@@ -215,34 +211,33 @@ int main(int argc, char *argv[]) {
 
   OptimizationProblem *problem;
   
-      
-      std::vector<Task> tasks;
-      Task t0;
-      t0.priority_ = 1;
-      t0.execution_time_ = 1;
-      Task t1;
-      t1.priority_ = 2;
-      t1.execution_time_ = 3;
-      Task t2;
-      t2.priority_ = 2;
-      t2.execution_time_ = 15;
-      Task t3;
-      t3.priority_ = 3;
-      t3.execution_time_ = 1;
-      
-      tasks.push_back(t0);
-      tasks.push_back(t1);
-      tasks.push_back(t2);
-      tasks.push_back(t3);
+  std::vector<Task> tasks;
+  Task t0;
+  t0.priority_ = 1;
+  t0.execution_time_ = 1;
+  Task t1;
+  t1.priority_ = 2;
+  t1.execution_time_ = 3;
+  Task t2;
+  t2.priority_ = 2;
+  t2.execution_time_ = 15;
+  Task t3;
+  t3.priority_ = 3;
+  t3.execution_time_ = 1;
+  
+  tasks.push_back(t0);
+  tasks.push_back(t1);
+  tasks.push_back(t2);
+  tasks.push_back(t3);
     
-    std::vector<Core> touse;
-    Core c;
-    touse.push_back(c);
-    Core e;
-    touse.push_back(e);
-    
-    
-  problem = new MpsProblem(&tasks, &touse);
+  std::vector<Core> touse;
+  Core c;
+  touse.push_back(c);
+  Core e;
+  touse.push_back(e);
+
+  mpsproblem = new MpsProblem(&tasks, &touse);
+  problem = mpsproblem;
   
 
   colony = get_ant_colony(problem);
@@ -269,7 +264,7 @@ int main(int argc, char *argv[]) {
 
     if(print_tour_flag) {
       std::cout << "\t";
-      print_tour(colony->get_best_tour_in_iteration());
+      mpsproblem->print_tour(colony->get_best_tour_in_iteration());
     }
 
     std::cout << std::endl;
@@ -277,7 +272,7 @@ int main(int argc, char *argv[]) {
   std::cout << std::endl;
   std::cout << "best\tordering" << std::endl;
   std::cout << colony->get_best_tour_length() << "\t";
-  print_tour(colony->get_best_tour());
+  mpsproblem->print_tour(colony->get_best_tour());
   std::cout << std::endl;
   delete colony;
 }

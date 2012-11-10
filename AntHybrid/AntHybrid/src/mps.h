@@ -28,6 +28,12 @@ struct Task {
     unsigned int execution_time_;
 };
 
+struct IdleTask : Task {
+    IdleTask() {
+        priority_ = 0;
+    }
+};
+
 struct Core {
 };
 
@@ -37,6 +43,11 @@ struct Core {
 //   tasks to cores. If you pass all precedence numebrs as 1, it
 //   will schedule tasks with no precedence relationships.
 //   Other details can be removed via similar means
+// Inherent assumptions:
+//  - Every task must be scheduled once
+//  - A core can only run one task simultaneously
+//  - No preemption
+//  - No task duplication (currently)
 class MpsProblem : public OptimizationProblem {
 private:
 
@@ -65,30 +76,24 @@ private:
     
     /// ============= Implementation Variables =====
     
-    // Index to the next task that should be executed. Note that when
-    // next_ready_task_ == tasks_.size() you have completed a tour
-    //unsigned int next_ready_task_;
-    
     // Initialized with the number of tasks in this problem
-    // TODO: Eventually replace this, it's hacky
-    static unsigned int task_size_;
-    
-    // Returns all tasks with the same priority as next_ready_task_
-    //std::list<Task> get_ready_tasks();
+    unsigned int task_size_;
     
     std::string debug_vertex(unsigned int vertex);
     
-    static inline unsigned int get_vertex_for(unsigned int core, unsigned int task) {
+    inline unsigned int get_vertex_for(unsigned int core, unsigned int task) {
         return core * task_size_ + task;
+    }
+  
+    inline void get_task_and_core_from_vertex(unsigned int vertex_id, unsigned int & task, unsigned int & core) {
+      task = vertex_id % task_size_;
+      core = vertex_id / task_size_;
     }
 
 public:
 
-    static inline void get_task_and_core_from_vertex(unsigned int vertex_id, unsigned int & task, unsigned int & core) {
-        task = vertex_id % task_size_;
-        core = vertex_id / task_size_;
-    }
-
+    void print_tour(std::vector<unsigned int> tour);
+  
     MpsProblem(std::vector<Task>* tasks, std::vector<Core>* cores);
     ~MpsProblem();
     unsigned int get_max_tour_size();
