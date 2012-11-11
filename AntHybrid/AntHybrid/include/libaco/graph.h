@@ -96,6 +96,15 @@ class AdjacencyMatrixGraph : public Graph, public Matrix<unsigned short int> {
     unsigned int get_degree(unsigned int vertex) const;
 };
 
+class DirectedAdjacencyMatrixGraph : public AdjacencyMatrixGraph {
+  
+public:
+  DirectedAdjacencyMatrixGraph(unsigned int vertices);
+  void add_edge(unsigned int from, unsigned int to);
+  std::vector<unsigned int> get_successors(unsigned int vertex) const;
+  std::vector<unsigned int> get_predecessors(unsigned int vertex) const;
+};
+
 template <class T> class AdjacencyMap {
   private:
     std::map<unsigned int, T> values_;

@@ -49,6 +49,33 @@ unsigned int AdjacencyMatrixGraph::get_degree(unsigned int vertex) const {
   return degree;
 }
 
+DirectedAdjacencyMatrixGraph::DirectedAdjacencyMatrixGraph(unsigned int vertices) : AdjacencyMatrixGraph(vertices) {
+}
+
+void DirectedAdjacencyMatrixGraph::add_edge(unsigned int v_from, unsigned int w_to) {
+  (*matrix_)[v_from][w_to] = 1;
+}
+
+std::vector<unsigned int> DirectedAdjacencyMatrixGraph::get_successors(unsigned int vertex) const {
+  std::vector<unsigned int> successors;
+  for(unsigned int i=0;i<number_of_vertices();i++) {
+    if((*matrix_)[vertex][i]) {
+      successors.push_back(i);
+    }
+  }
+  return successors;
+}
+
+std::vector<unsigned int> DirectedAdjacencyMatrixGraph::get_predecessors(unsigned int vertex) const {
+  std::vector<unsigned int> predecessors;
+  for(unsigned int i=0;i<number_of_vertices();i++) {
+    if((*matrix_)[i][vertex]) {
+      predecessors.push_back(i);
+    }
+  }
+  return predecessors;
+}
+
 AdjacencyMapGraph::AdjacencyMapGraph(unsigned int vertices, unsigned short int default_value) {
   vertices_ = new std::vector< AdjacencyMap<unsigned short int> >(vertices, AdjacencyMap<unsigned short int>(default_value));
 }
