@@ -45,8 +45,8 @@ public:
     return ss.str().c_str();
   }
   
-  unsigned int priority() {
-    return get_task()->priority_;
+  unsigned int pred_level() {
+    return get_task()->pred_level_;
   }
 };
 
@@ -55,7 +55,7 @@ private:
   Task static_task_;
 public:
   IdleTask(unsigned int start, unsigned int end) {
-    static_task_.priority_ = 0;
+    static_task_.pred_level_ = 0;
     static_task_.identifier_ = "idle";
     static_task_.execution_time_ = (end - start);
   }
@@ -77,7 +77,7 @@ private:
   
   // For a provided priority, this reports the last completion time of
   // any item with this priority
-  unsigned int get_priority_end_time(unsigned int priority);
+  unsigned int get_earliest_start_time(Task* t, unsigned int core_id, bool maintain_routing_time = false);
   
   // Based upon the current tasks, get the time that this core will complete
   unsigned int get_current_completion_time(unsigned int coreid);

@@ -213,17 +213,21 @@ int main(int argc, char *argv[]) {
   
   std::vector<Task> tasks;
   Task t0;
-  t0.priority_ = 1;
+  t0.pred_level_ = 1;
   t0.execution_time_ = 1;
+  t0.identifier_ = "t0";
   Task t1;
-  t1.priority_ = 2;
+  t1.pred_level_ = 2;
   t1.execution_time_ = 3;
+  t1.identifier_ = "t1";
   Task t2;
-  t2.priority_ = 2;
+  t2.pred_level_ = 2;
   t2.execution_time_ = 15;
+  t2.identifier_ = "t2";
   Task t3;
-  t3.priority_ = 3;
+  t3.pred_level_ = 3;
   t3.execution_time_ = 1;
+  t3.identifier_ = "t3";
   
   tasks.push_back(t0);
   tasks.push_back(t1);

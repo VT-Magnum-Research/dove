@@ -83,12 +83,21 @@ private:
   }
   
 public:
+  
+  static unsigned int get_routing_time(unsigned int core1, unsigned int core2) {
+    return 1;
+  }
+  
   void print_schedule(MpSchedule schedule);
   void print_tour(std::vector<unsigned int> tour);
   bool verify_schedule_passes_constraints(MpSchedule schedule);
 
   MpSchedule convert_tour_to_schedule(std::vector<unsigned int> tour);
   
+  // Assumptions: There should be one start node, which has a path to all other 'nodes'. This avoids
+  // situations with independent chains of priority e.g. 1-->2-->3<--2<--1 (a 2 is valid to run after a 1 completes,
+  // which does not match our programming assumptions)
+  // Also assumes that all priorities are contiguous e.g. 1,2,3,4 and not 1,15,23,25,26,40
   MpsProblem(std::vector<Task>* tasks, std::vector<Core>* cores);
   ~MpsProblem();
   unsigned int get_max_tour_size();

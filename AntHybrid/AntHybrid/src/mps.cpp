@@ -24,12 +24,12 @@ MpsProblem::MpsProblem(std::vector<Task>* tasks, std::vector<Core>* cores) {
   
   // Sanity Checks
   std::vector<Task>::iterator it;
-  unsigned int priority = 0;
+  unsigned int predecessor_level = 0;
   for ( it=tasks_->begin() ; it < tasks_->end(); it++ ) {
-    if (priority > (*it).priority_)
+    if (predecessor_level > (*it).pred_level_)
       throw "Task list is not sorted by priority";
     
-    priority = (*it).priority_;
+    predecessor_level = (*it).pred_level_;
   }
 }
 
@@ -72,19 +72,19 @@ std::map<unsigned int,double> MpsProblem::get_feasible_neighbours(unsigned int v
   // not been scheduled
   unsigned int task, core;
   get_task_and_core_from_vertex(vertex, task, core);
-  unsigned int priority = (*tasks_)[task].priority_;
+  unsigned int pred_level = (*tasks_)[task].pred_level_;
   std::map<unsigned int, double> neighbors;
   for (unsigned int i = 0; i < tasks_->size(); i++) {
     Task cur = (*tasks_)[i];
     
     // Unscheduled tasks at this priority?
-    if (cur.priority_ == priority && !cur.scheduled_)
+    if (cur.pred_level_ == pred_level && !cur.scheduled_)
       for (unsigned int core = 0; core < cores_->size(); core++)
         neighbors[get_vertex_for(core, i)] = 1.0;
     
-    if (cur.priority_ > priority) {
+    if (cur.pred_level_ > pred_level) {
       if (neighbors.size() == 0) {
-        priority += 1;
+        pred_level += 1;
         for (unsigned int core = 0; core < cores_->size(); core++)
           neighbors[get_vertex_for(core, i)] = 1.0;
       } else
@@ -140,17 +140,12 @@ MpSchedule MpsProblem::convert_tour_to_schedule(std::vector<unsigned int> tour) 
     get_task_and_core_from_vertex(*it, task_i, core_i);
     task = &(*tasks_)[task_i];
     
-      // Minimum starting time on this processor
-      unsigned int core_completion_time = schedule.get_current_completion_time(core_i);
-      
-      // Do we need to idle to maintain precedence?
-      unsigned int pred_end_time = schedule.get_priority_end_time(task->priority_ - 1);
-      
-      ScheduleItem si;
-      si.task_ = task;
-      si.start_ = std::max(core_completion_time, pred_end_time);
-      si.end_ = si.start_ + task->execution_time_;
-      schedule.add_task(core_i, si);
+    ScheduleItem si;
+    si.task_ = task;
+    si.start_ = schedule.get_earliest_start_time(task, core_i, true);;
+    // Pretending that all processors are homogeneous
+    si.end_ = si.start_ + task->execution_time_;
+    schedule.add_task(core_i, si);
   }
     
   return schedule;
@@ -181,7 +176,10 @@ bool MpsProblem::_verr(const char *fmt, ...) {
   return false;
 }
 
-
+// For my challenge, this is largely:
+// 1 - verify precedence is maintained on each core
+// 2 - verify precedence is maintained throughout the system
+// 3 - verify communication lags are correct
 bool MpsProblem::verify_schedule_passes_constraints(MpSchedule schedule) {
   
   // TODO-->Verify 1-1-1 mapping of processor, task, time slot e.g. no dual-processing of tasks
@@ -212,7 +210,7 @@ bool MpsProblem::verify_schedule_passes_constraints(MpSchedule schedule) {
         return verr("Two tasks overlapping: %s & %s",
                     prior->get_cstr(), cur->get_cstr());
     
-      if (cur->priority() < prior->priority())
+      if (cur->pred_level() < prior->pred_level())
         return verr("Tasks not following priority precedence: %s & %s",
                     prior->get_cstr(), cur->get_cstr());
     }

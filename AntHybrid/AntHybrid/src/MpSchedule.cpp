@@ -7,28 +7,39 @@
 //
 
 #include "MpSchedule.h"
+#include "mps.h"
 #include <algorithm>
 
 void MpSchedule::add_task(unsigned int core, ScheduleItem scheduled_task) {
   schedule_[core].push_back(scheduled_task);
 }
 
-unsigned int MpSchedule::get_priority_end_time(unsigned int priority) {
+unsigned int MpSchedule::get_earliest_start_time(Task* task, unsigned int core_id, bool maintain_routing_time) {
 
-  // No one ever has to wait for a P0 task to finish, as this indicates
-  // an idle processor
-  if (priority == 0)
-    return 0;
+  // No one can start before a core is free
+  unsigned int completion_time = get_current_completion_time(core_id);
   
-  unsigned int completion_time = 0;
-  std::map<unsigned int, std::vector<ScheduleItem> >::iterator it;
-  for (it = schedule_.begin(); it != schedule_.end(); it++)
+  // No predecessors, so we can start as soon as the core is free
+  if (task->pred_level_ == 1)
+    return completion_time;
+  
+  unsigned int predecessor_priority = task->pred_level_ - 1;
+  std::map<unsigned int, std::vector<ScheduleItem> >::iterator core;
+  for (core = schedule_.begin(); core != schedule_.end(); core++)
   {
-    std::vector<ScheduleItem> tasks = it->second;
-    std::vector<ScheduleItem>::iterator it2;
-    for (it2 = tasks.begin(); it2 != tasks.end(); it2++)
-      if (it2->priority()==priority)
-        completion_time = std::max(completion_time, it2->end_);
+    std::vector<ScheduleItem> core_tasks = core->second;
+    std::vector<ScheduleItem>::iterator core_task;
+    for (core_task = core_tasks.begin(); core_task != core_tasks.end(); core_task++)
+      if (core_task->pred_level()==predecessor_priority) {
+        // We cannot run until this task is finished
+        completion_time = std::max(completion_time, core_task->end_);
+        
+        // We cannot run until the task result is routed to us!
+        if (maintain_routing_time)
+          completion_time = std::max(completion_time, core_task->end_ +
+                                     MpsProblem::get_routing_time(core_id, core->first));
+          
+      }
   }
   
   return completion_time;

@@ -12,9 +12,10 @@
 #include <sstream>
 
 struct Task {
+  // This is analogous to pred_level
   // 1 is 'highest' priority and will be executed before 2,
   // which is before 3 ... etc
-  unsigned int priority_;
+  unsigned int pred_level_;
   
   bool scheduled_;
   
@@ -28,7 +29,7 @@ struct Task {
   
   const char* get_cstr() {
     std::stringstream ss;
-    ss << "[" << identifier_ << "," << priority_ << "]";
+    ss << "[" << identifier_ << "," << pred_level_ << "]";
     return ss.str().c_str();
   }
 };
