@@ -27,6 +27,8 @@ struct Task {
   // to a unique number
   std::string identifier_;
   
+  Task() : pred_level_(0), scheduled_(false), execution_time_(0), identifier_("") {}
+  
   const char* get_cstr() {
     std::stringstream ss;
     ss << "[" << identifier_ << "," << pred_level_ << "]";

@@ -12,6 +12,7 @@
 #include <iostream>
 #include <cstdlib>
 #include <map>
+#include <exception>
 #include <string>
 #include <stdio.h>
 #include <stdarg.h>
@@ -115,5 +116,18 @@ public:
   std::vector<unsigned int> apply_local_search(const std::vector<unsigned int> &tour);
   void cleanup();
 };
+
+class FileNotFoundException : public std::exception {
+private:
+  const char *filepath_;
+public:
+  FileNotFoundException(const char *filepath);
+  const char *what() const throw();
+};
+
+namespace Parser {
+  std::vector<Task>* parse_stg(const char *filepath) throw(FileNotFoundException);
+}
+
 
 #endif /* defined(__AntHybrid__hybrid__) */

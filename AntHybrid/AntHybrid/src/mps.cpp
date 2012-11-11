@@ -10,6 +10,8 @@
 #include <stdexcept>
 #include <sstream>
 #include <algorithm>
+#include <vector>
+#include <fstream>
 
 bool debug = false;
 
@@ -267,7 +269,7 @@ void MpsProblem::print_tour(std::vector<unsigned int> tour) {
 
 void MpsProblem::print_schedule(MpSchedule schedule) {
   
-  unsigned int time = schedule.get_completion_time();
+  //unsigned int time = schedule.get_completion_time();
   
 }
 
@@ -279,4 +281,87 @@ std::string MpsProblem::debug_vertex(unsigned int vertex) {
   oss << "(C" << core << ",T" << task << ")";
   return oss.str();
 }
+
+FileNotFoundException::FileNotFoundException(const char *filepath) {
+  filepath_ = filepath;
+}
+
+const char *FileNotFoundException::what() const throw() {
+  return filepath_;
+}
+
+bool precedence_sort(Task a, Task b) {
+  return a.pred_level_ < b.pred_level_;
+}
+
+std::vector<Task>* Parser::parse_stg(const char *filepath) throw(FileNotFoundException) {
+  enum section {
+    HEADER,
+    GRAPH,
+    FOOTER
+  };
+  
+  std::vector<Task>* tasks = NULL;
+  //DirectedAdjacencyMatrixGraph* graph = NULL;
+  
+  section s = HEADER;
+  std::ifstream file(filepath);
+  
+  if(!file)
+    throw FileNotFoundException(filepath);
+
+  unsigned int task_count = 0;
+  while(file.good()) {
+    if(s == HEADER) {
+      file >> task_count;
+      if (task_count !=0) {
+        // STG format always includes two dummy nodes
+        task_count = task_count + 2;
+        //graph = new DirectedAdjacencyMatrixGraph(task_count);
+        tasks = new std::vector<Task>(task_count);
+        s = GRAPH;
+      }
+    } else if(s == GRAPH) {
+      if (task_count-- == 0) {
+        s = FOOTER;
+        continue;
+      }
+      unsigned int task_id, task_processing_time, predecessor_count;
+      file >> task_id;
+      file >> task_processing_time;
+      file >> predecessor_count;
+      
+      Task* task = &(tasks->at(task_id));
+      if (task_id == 0)
+        task->pred_level_ = 1;
+      
+      for (int i = 0; i < predecessor_count; i++) {
+        unsigned int pred_id;
+        file >> pred_id;
+        //graph->add_edge(pred_id, task_id);
+        
+        task->pred_level_ = std::max(task->pred_level_,
+                                     tasks->at(pred_id).pred_level_ + 1);
+      }
+      
+      task->execution_time_ = task_processing_time;
+      std::ostringstream oss;
+      oss << "t" << task_id;
+      task->identifier_ = oss.str();
+      
+    } else if (s == FOOTER) {
+      std::string line;
+      file >> line;
+    }
+  }
+
+  file.close();
+  
+  std::sort(tasks->begin(), tasks->end(), precedence_sort);
+  tasks->pop_back();
+  tasks->erase(tasks->begin());
+
+  return tasks;
+}
+
 

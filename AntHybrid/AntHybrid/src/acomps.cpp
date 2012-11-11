@@ -52,8 +52,7 @@ static void parse_options(int argc, char *argv[]) {
   allowed.push_back(0);
   allowed.push_back(1);
   TCLAP::ValuesConstraint<unsigned int> allowed_values( allowed );
-  // TODO - Change this back to required!!!
-  TCLAP::ValueArg<std::string> filepath_arg("f", "file", "path to the input file", false, "", "filepath");
+  TCLAP::ValueArg<std::string> filepath_arg("f", "file", "path to the input file", true, "", "filepath");
   TCLAP::SwitchArg print_tour_arg("o", "printord", "print best elimination ordering in iteration");
   TCLAP::SwitchArg stag_variance_arg("", "stag_variance", "compute and print variation coefficient stagnation");
   TCLAP::SwitchArg stag_lambda_arg("", "stag_lambda", "compute and print lambda branching factor stagnation");
@@ -209,9 +208,12 @@ int main(int argc, char *argv[]) {
     exit(EXIT_SUCCESS);
   }
   
+  
+  std::vector<Task>* tasks = Parser::parse_stg(filepath.c_str());
+  
   OptimizationProblem *problem;
   
-  std::vector<Task> tasks;
+  /*std::vector<Task> tasks;
   Task t0;
   t0.pred_level_ = 1;
   t0.execution_time_ = 1;
@@ -232,7 +234,7 @@ int main(int argc, char *argv[]) {
   tasks.push_back(t0);
   tasks.push_back(t1);
   tasks.push_back(t2);
-  tasks.push_back(t3);
+  tasks.push_back(t3);*/
   
   std::vector<Core> touse;
   Core c;
@@ -240,9 +242,8 @@ int main(int argc, char *argv[]) {
   Core e;
   touse.push_back(e);
   
-  mpsproblem = new MpsProblem(&tasks, &touse);
+  mpsproblem = new MpsProblem(tasks, &touse);
   problem = mpsproblem;
-  
   
   colony = get_ant_colony(problem);
   
