@@ -61,16 +61,18 @@ private:
   
   /// ============= Implementation Variables =====
   
+  // Initialized with the number of tasks in this problem
+  unsigned int task_size_;
+  
+  
+  /// ============= Utility Methods  =============
+
   // Helper method for the verification
   // Note: The attribute will likely only work on Mac systems. Feel free
   // to remove it if it's causing trouble
   bool _verr(const char *fmt, ...)
     __attribute__((format (printf, 2, 3)));
-  
   #define verr(fmt,...) _verr(fmt"\n", ##__VA_ARGS__)
-  
-  // Initialized with the number of tasks in this problem
-  unsigned int task_size_;
   
   std::string debug_vertex(unsigned int vertex);
   
@@ -89,16 +91,12 @@ public:
     return 1;
   }
   
-  void print_schedule(MpSchedule schedule);
   void print_tour(std::vector<unsigned int> tour);
   bool verify_schedule_passes_constraints(MpSchedule schedule);
-
+  
   MpSchedule convert_tour_to_schedule(std::vector<unsigned int> tour);
   
-  // Assumptions: There should be one start node, which has a path to all other 'nodes'. This avoids
-  // situations with independent chains of priority e.g. 1-->2-->3<--2<--1 (a 2 is valid to run after a 1 completes,
-  // which does not match our programming assumptions)
-  // Also assumes that all priorities are contiguous e.g. 1,2,3,4 and not 1,15,23,25,26,40
+  // Assumes that all task precedence_levels are contiguous e.g. 1,2,3,4 and not 1,15,23,25,26,40
   MpsProblem(std::vector<Task>* tasks, std::vector<Core>* cores);
   ~MpsProblem();
   unsigned int get_max_tour_size();
@@ -126,6 +124,9 @@ public:
 };
 
 namespace Parser {
+  // Assumptions: There should be one start node, which has a path to all other 'nodes'. This avoids
+  // situations with independent chains of priority e.g. 1-->2-->3<--2<--1 (a 2 is valid to run after a 1 completes,
+  // which does not match our programming assumptions)
   std::vector<Task>* parse_stg(const char *filepath) throw(FileNotFoundException);
 }
 

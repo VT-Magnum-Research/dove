@@ -15,7 +15,7 @@
 
 bool debug = false;
 
-MpsProblem::MpsProblem(std::vector<Task>* tasks, std::vector<Core>* cores) {
+MpsProblem::MpsProblem(std::vector< Task>* tasks, std::vector<Core>* cores) {
   if (debug)
     std::cout << "MpsProblem::MpsProblem" << std::endl;
   tasks_ = tasks;
@@ -265,12 +265,6 @@ void MpsProblem::print_tour(std::vector<unsigned int> tour) {
     get_task_and_core_from_vertex(tour[i], task, core);
     std::cout << "(C" << core << ",T" << task << ")" << ((i == (tour.size()-1)) ? "" : ",");
   }
-}
-
-void MpsProblem::print_schedule(MpSchedule schedule) {
-  
-  //unsigned int time = schedule.get_completion_time();
-  
 }
 
 std::string MpsProblem::debug_vertex(unsigned int vertex) {

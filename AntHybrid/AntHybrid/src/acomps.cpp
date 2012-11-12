@@ -11,6 +11,7 @@
 enum StagnationMeasureType { STAG_NONE, STAG_VARIATION_COEFFICIENT, STAG_LAMBDA_BRANCHING_FACTOR };
 
 static std::string filepath;
+static unsigned int cores_used = 2;
 static unsigned int ants = 10;
 static unsigned int iterations = UINT_MAX;
 static double alpha = 1.0;
@@ -53,6 +54,7 @@ static void parse_options(int argc, char *argv[]) {
   allowed.push_back(1);
   TCLAP::ValuesConstraint<unsigned int> allowed_values( allowed );
   TCLAP::ValueArg<std::string> filepath_arg("f", "file", "path to the input file", true, "", "filepath");
+  TCLAP::ValueArg<unsigned int> cores_used_arg("c", "cores", "number of homogeneous processing cores. Defaults to 2", false, 2, "positive integer");
   TCLAP::SwitchArg print_tour_arg("o", "printord", "print best elimination ordering in iteration");
   TCLAP::SwitchArg stag_variance_arg("", "stag_variance", "compute and print variation coefficient stagnation");
   TCLAP::SwitchArg stag_lambda_arg("", "stag_lambda", "compute and print lambda branching factor stagnation");
@@ -79,6 +81,7 @@ static void parse_options(int argc, char *argv[]) {
   cmd.add(rho_arg);
   cmd.add(initial_pheromone_arg);
   cmd.add(filepath_arg);
+  cmd.add(cores_used_arg);
   cmd.add(print_tour_arg);
   cmd.add(stag_variance_arg);
   cmd.add(stag_lambda_arg);
@@ -96,6 +99,7 @@ static void parse_options(int argc, char *argv[]) {
   rho = rho_arg.getValue();
   initial_pheromone = initial_pheromone_arg.getValue();
   filepath = filepath_arg.getValue();
+  cores_used = cores_used_arg.getValue();
   print_tour_flag = print_tour_arg.getValue();
   stag_variance_flag = stag_variance_arg.getValue();
   stag_lambda_flag = stag_lambda_arg.getValue();
@@ -208,40 +212,17 @@ int main(int argc, char *argv[]) {
     exit(EXIT_SUCCESS);
   }
   
-  
   std::vector<Task>* tasks = Parser::parse_stg(filepath.c_str());
   
   OptimizationProblem *problem;
   
-  /*std::vector<Task> tasks;
-  Task t0;
-  t0.pred_level_ = 1;
-  t0.execution_time_ = 1;
-  t0.identifier_ = "t0";
-  Task t1;
-  t1.pred_level_ = 2;
-  t1.execution_time_ = 3;
-  t1.identifier_ = "t1";
-  Task t2;
-  t2.pred_level_ = 2;
-  t2.execution_time_ = 15;
-  t2.identifier_ = "t2";
-  Task t3;
-  t3.pred_level_ = 3;
-  t3.execution_time_ = 1;
-  t3.identifier_ = "t3";
-  
-  tasks.push_back(t0);
-  tasks.push_back(t1);
-  tasks.push_back(t2);
-  tasks.push_back(t3);*/
-  
-  std::vector<Core> touse;
-  Core c;
-  touse.push_back(c);
-  Core e;
-  touse.push_back(e);
-  
+  std::vector<Core> touse(cores_used);
+  for (int i = 0; i < cores_used; i++)
+  {
+    std::ostringstream oss;
+    oss << "Core " << i;
+    touse[i].identifier_ = oss.str();
+  }
   mpsproblem = new MpsProblem(tasks, &touse);
   problem = mpsproblem;
   
