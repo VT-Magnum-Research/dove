@@ -1,3 +1,6 @@
 AntHybrid/build
 AntHybrid/build/*
 AntHybrid/AntHybrid.xcodeproj/
+.Rproj.user
+.R*
+*.Rproj
