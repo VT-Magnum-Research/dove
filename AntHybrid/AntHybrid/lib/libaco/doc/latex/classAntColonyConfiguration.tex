@@ -1,0 +1,67 @@
+\hypertarget{classAntColonyConfiguration}{
+\section{AntColonyConfiguration Class Reference}
+\label{classAntColonyConfiguration}\index{AntColonyConfiguration@{AntColonyConfiguration}}
+}
+Base class of all ACO configurations.  
+
+
+{\tt \#include $<$ants.h$>$}
+
+Inheritance diagram for AntColonyConfiguration::\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[height=1.2844cm]{classAntColonyConfiguration}
+\end{center}
+\end{figure}
+\subsection*{Public Types}
+\begin{CompactItemize}
+\item 
+enum \textbf{LocalSearchType} \{ \textbf{LS\_\-NONE}, 
+\textbf{LS\_\-ITERATION\_\-BEST}, 
+\textbf{LS\_\-ALL}
+ \}
+\end{CompactItemize}
+\subsection*{Public Attributes}
+\begin{CompactItemize}
+\item 
+\hypertarget{classAntColonyConfiguration_3f18abe4272a3281947370750aa24a25}{
+unsigned int \hyperlink{classAntColonyConfiguration_3f18abe4272a3281947370750aa24a25}{number\_\-of\_\-ants}}
+\label{classAntColonyConfiguration_3f18abe4272a3281947370750aa24a25}
+
+\begin{CompactList}\small\item\em Number of ants that construct a tour in every iteration. \item\end{CompactList}\item 
+\hypertarget{classAntColonyConfiguration_dc25fc4205fe334a1715995aca9a32fd}{
+double \hyperlink{classAntColonyConfiguration_dc25fc4205fe334a1715995aca9a32fd}{alpha}}
+\label{classAntColonyConfiguration_dc25fc4205fe334a1715995aca9a32fd}
+
+\begin{CompactList}\small\item\em Weight of pheromone value in tour construction. \item\end{CompactList}\item 
+\hypertarget{classAntColonyConfiguration_bc3f9eeb6f15d3d3712b8a3640397a11}{
+double \hyperlink{classAntColonyConfiguration_bc3f9eeb6f15d3d3712b8a3640397a11}{beta}}
+\label{classAntColonyConfiguration_bc3f9eeb6f15d3d3712b8a3640397a11}
+
+\begin{CompactList}\small\item\em Weight of heuristic information in tour construction. \item\end{CompactList}\item 
+\hypertarget{classAntColonyConfiguration_d75d81f5beb7e47b572c53792500cd6d}{
+double \hyperlink{classAntColonyConfiguration_d75d81f5beb7e47b572c53792500cd6d}{evaporation\_\-rate}}
+\label{classAntColonyConfiguration_d75d81f5beb7e47b572c53792500cd6d}
+
+\begin{CompactList}\small\item\em Defines how fast pheromone shall evaporate. \item\end{CompactList}\item 
+\hypertarget{classAntColonyConfiguration_3ff4ef23212123411b37c43aa2a7f8e1}{
+double \hyperlink{classAntColonyConfiguration_3ff4ef23212123411b37c43aa2a7f8e1}{initial\_\-pheromone}}
+\label{classAntColonyConfiguration_3ff4ef23212123411b37c43aa2a7f8e1}
+
+\begin{CompactList}\small\item\em The initial amount of pheromone deposited on the edges. \item\end{CompactList}\item 
+\hypertarget{classAntColonyConfiguration_b8eb9dd710a57a0f8c6f40d5ff82dcc0}{
+LocalSearchType \hyperlink{classAntColonyConfiguration_b8eb9dd710a57a0f8c6f40d5ff82dcc0}{local\_\-search}}
+\label{classAntColonyConfiguration_b8eb9dd710a57a0f8c6f40d5ff82dcc0}
+
+\begin{CompactList}\small\item\em The type of local search to be performed. \item\end{CompactList}\end{CompactItemize}
+
+
+\subsection{Detailed Description}
+Base class of all ACO configurations. 
+
+Includes all configuration parameters all ACO variants have in common. 
+
+The documentation for this class was generated from the following files:\begin{CompactItemize}
+\item 
+include/libaco/ants.h\item 
+src/ants.cpp\end{CompactItemize}

@@ -1,0 +1,52 @@
+\hypertarget{classMaxMinAntColonyConfiguration}{
+\section{MaxMinAntColonyConfiguration Class Reference}
+\label{classMaxMinAntColonyConfiguration}\index{MaxMinAntColonyConfiguration@{MaxMinAntColonyConfiguration}}
+}
+Configuration class for \hyperlink{classMaxMinAntColony}{MaxMinAntColony}.  
+
+
+{\tt \#include $<$ants.h$>$}
+
+Inheritance diagram for MaxMinAntColonyConfiguration::\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[height=2cm]{classMaxMinAntColonyConfiguration}
+\end{center}
+\end{figure}
+\subsection*{Public Attributes}
+\begin{CompactItemize}
+\item 
+unsigned int \hyperlink{classMaxMinAntColonyConfiguration_4802ab01d7e73b5f31142679da63451a}{best\_\-so\_\-far\_\-frequency}
+\begin{CompactList}\small\item\em Frequency of best-so-far ant pheromone updates. \item\end{CompactList}\item 
+double \hyperlink{classMaxMinAntColonyConfiguration_ee28a7e4653e607c047b87f68ea73143}{a}
+\begin{CompactList}\small\item\em Determines lower bound of pheromone values. \item\end{CompactList}\end{CompactItemize}
+
+
+\subsection{Detailed Description}
+Configuration class for \hyperlink{classMaxMinAntColony}{MaxMinAntColony}. 
+
+\subsection{Member Data Documentation}
+\hypertarget{classMaxMinAntColonyConfiguration_4802ab01d7e73b5f31142679da63451a}{
+\index{MaxMinAntColonyConfiguration@{MaxMinAntColonyConfiguration}!best\_\-so\_\-far\_\-frequency@{best\_\-so\_\-far\_\-frequency}}
+\index{best\_\-so\_\-far\_\-frequency@{best\_\-so\_\-far\_\-frequency}!MaxMinAntColonyConfiguration@{MaxMinAntColonyConfiguration}}
+\subsubsection[best\_\-so\_\-far\_\-frequency]{\setlength{\rightskip}{0pt plus 5cm}unsigned int {\bf MaxMinAntColonyConfiguration::best\_\-so\_\-far\_\-frequency}}}
+\label{classMaxMinAntColonyConfiguration_4802ab01d7e73b5f31142679da63451a}
+
+
+Frequency of best-so-far ant pheromone updates. 
+
+For example: if best\_\-so\_\-far\_\-frequency = 3 then the best-so-far ant deposits pheromone in every third iteration instead of the iteration-best-ant \hypertarget{classMaxMinAntColonyConfiguration_ee28a7e4653e607c047b87f68ea73143}{
+\index{MaxMinAntColonyConfiguration@{MaxMinAntColonyConfiguration}!a@{a}}
+\index{a@{a}!MaxMinAntColonyConfiguration@{MaxMinAntColonyConfiguration}}
+\subsubsection[a]{\setlength{\rightskip}{0pt plus 5cm}double {\bf MaxMinAntColonyConfiguration::a}}}
+\label{classMaxMinAntColonyConfiguration_ee28a7e4653e607c047b87f68ea73143}
+
+
+Determines lower bound of pheromone values. 
+
+For example: if a = 2 then the lower bound of the pheromone values is half of the initial pheromone value (the pheromone value before the first iteration) 
+
+The documentation for this class was generated from the following files:\begin{CompactItemize}
+\item 
+include/libaco/ants.h\item 
+src/ants.cpp\end{CompactItemize}

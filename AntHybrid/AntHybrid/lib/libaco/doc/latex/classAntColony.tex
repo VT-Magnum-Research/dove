@@ -1,0 +1,137 @@
+\hypertarget{classAntColony}{
+\section{AntColony$<$ T, P $>$ Class Template Reference}
+\label{classAntColony}\index{AntColony@{AntColony}}
+}
+Virtual base class of all Ant Colony variants.  
+
+
+{\tt \#include $<$ants.h$>$}
+
+\subsection*{Public Member Functions}
+\begin{CompactItemize}
+\item 
+\hypertarget{classAntColony_68b01fbb4161e56af836d5d5fb99ea1e}{
+\textbf{AntColony} (\hyperlink{classOptimizationProblem}{OptimizationProblem} $\ast$problem, const \hyperlink{classAntColonyConfiguration}{AntColonyConfiguration} \&config)}
+\label{classAntColony_68b01fbb4161e56af836d5d5fb99ea1e}
+
+\item 
+\hypertarget{classAntColony_56f27f425a4f61a8c7f050dadf2e4bba}{
+void \textbf{run} ()}
+\label{classAntColony_56f27f425a4f61a8c7f050dadf2e4bba}
+
+\item 
+\hypertarget{classAntColony_904dbc6c22fcf7460f8cd6d27a692d31}{
+std::vector$<$ unsigned int $>$ \textbf{get\_\-best\_\-tour} ()}
+\label{classAntColony_904dbc6c22fcf7460f8cd6d27a692d31}
+
+\item 
+\hypertarget{classAntColony_a6acb9c16d45ee01fe4b800ab2706958}{
+std::vector$<$ unsigned int $>$ \textbf{get\_\-best\_\-tour\_\-in\_\-iteration} ()}
+\label{classAntColony_a6acb9c16d45ee01fe4b800ab2706958}
+
+\item 
+\hypertarget{classAntColony_99bedfbf44b8f43d062c90d5dfce6bcd}{
+double \textbf{get\_\-best\_\-tour\_\-length} ()}
+\label{classAntColony_99bedfbf44b8f43d062c90d5dfce6bcd}
+
+\item 
+\hypertarget{classAntColony_697a977e196575b4c840bddd1664a777}{
+double \textbf{get\_\-best\_\-tour\_\-length\_\-in\_\-iteration} ()}
+\label{classAntColony_697a977e196575b4c840bddd1664a777}
+
+\item 
+\hypertarget{classAntColony_88540742f97f22464682be15cf17f2d5}{
+std::vector$<$ unsigned int $>$ \textbf{get\_\-best\_\-tour\_\-no\_\-ls} ()}
+\label{classAntColony_88540742f97f22464682be15cf17f2d5}
+
+\item 
+\hypertarget{classAntColony_ca741db15566fb6cb9b9f565c9a772f8}{
+std::vector$<$ unsigned int $>$ \textbf{get\_\-best\_\-tour\_\-in\_\-iteration\_\-no\_\-ls} ()}
+\label{classAntColony_ca741db15566fb6cb9b9f565c9a772f8}
+
+\item 
+\hypertarget{classAntColony_c47e768d53f1454d4bfb471527b04f24}{
+double \textbf{get\_\-best\_\-tour\_\-length\_\-no\_\-ls} ()}
+\label{classAntColony_c47e768d53f1454d4bfb471527b04f24}
+
+\item 
+\hypertarget{classAntColony_ac831365482977d9ed7ca081a1186721}{
+double \textbf{get\_\-best\_\-tour\_\-length\_\-in\_\-iteration\_\-no\_\-ls} ()}
+\label{classAntColony_ac831365482977d9ed7ca081a1186721}
+
+\item 
+\hypertarget{classAntColony_4a0be6c6648a4cea87527ea6300cba3f}{
+double \textbf{get\_\-variation\_\-coefficient} ()}
+\label{classAntColony_4a0be6c6648a4cea87527ea6300cba3f}
+
+\item 
+\hypertarget{classAntColony_ec6fb957b6b4f5bcad9cf656c653c7ae}{
+double \textbf{get\_\-lambda\_\-branching\_\-factor} ()}
+\label{classAntColony_ec6fb957b6b4f5bcad9cf656c653c7ae}
+
+\end{CompactItemize}
+\subsection*{Protected Attributes}
+\begin{CompactItemize}
+\item 
+\hypertarget{classAntColony_8caa008736aa07ffd2b7125407126db8}{
+P $\ast$ \textbf{pheromones\_\-}}
+\label{classAntColony_8caa008736aa07ffd2b7125407126db8}
+
+\item 
+\hypertarget{classAntColony_790f9f0d9d6f452bb9b92d6eef86db10}{
+double \textbf{alpha\_\-}}
+\label{classAntColony_790f9f0d9d6f452bb9b92d6eef86db10}
+
+\item 
+\hypertarget{classAntColony_ff9c86f0fcbc70960925ad6bdda32f0d}{
+double \textbf{beta\_\-}}
+\label{classAntColony_ff9c86f0fcbc70960925ad6bdda32f0d}
+
+\item 
+\hypertarget{classAntColony_ee93d0421e0663a85a2c8ef5570aee7e}{
+AntColonyConfiguration::LocalSearchType \textbf{local\_\-search\_\-type\_\-}}
+\label{classAntColony_ee93d0421e0663a85a2c8ef5570aee7e}
+
+\item 
+\hypertarget{classAntColony_a2fe90465f65ef4ed374ed2c58049d9a}{
+std::list$<$ T $>$ $\ast$ \textbf{ants\_\-}}
+\label{classAntColony_a2fe90465f65ef4ed374ed2c58049d9a}
+
+\item 
+\hypertarget{classAntColony_c4290e064a01d849c700e527f7d81486}{
+\hyperlink{classOptimizationProblem}{OptimizationProblem} $\ast$ \textbf{problem\_\-}}
+\label{classAntColony_c4290e064a01d849c700e527f7d81486}
+
+\item 
+\hypertarget{classAntColony_27995e86165cb9742696427119ebe8d5}{
+T $\ast$ \textbf{best\_\-so\_\-far\_\-}}
+\label{classAntColony_27995e86165cb9742696427119ebe8d5}
+
+\item 
+\hypertarget{classAntColony_ac25a206baa571dd8c968cff992140cb}{
+T $\ast$ \textbf{best\_\-iteration\_\-}}
+\label{classAntColony_ac25a206baa571dd8c968cff992140cb}
+
+\item 
+\hypertarget{classAntColony_1e547e925018a29ef40a7dfe9bdf006e}{
+T $\ast$ \textbf{best\_\-so\_\-far\_\-no\_\-ls\_\-}}
+\label{classAntColony_1e547e925018a29ef40a7dfe9bdf006e}
+
+\item 
+\hypertarget{classAntColony_d396db834ac786f77e42fbc7f87b197c}{
+T $\ast$ \textbf{best\_\-iteration\_\-no\_\-ls\_\-}}
+\label{classAntColony_d396db834ac786f77e42fbc7f87b197c}
+
+\end{CompactItemize}
+
+
+\subsection{Detailed Description}
+\subsubsection*{template$<$class T = Ant, class P = PheromoneMatrix$>$ class AntColony$<$ T, P $>$}
+
+Virtual base class of all Ant Colony variants. 
+
+Ant Colony variants differ in the way ants construct their tours and how pheromone values are updated. All other logic is handled by this virtual base class. 
+
+The documentation for this class was generated from the following file:\begin{CompactItemize}
+\item 
+include/libaco/ants.h\end{CompactItemize}

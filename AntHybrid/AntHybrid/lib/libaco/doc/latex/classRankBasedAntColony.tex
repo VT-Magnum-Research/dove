@@ -1,0 +1,42 @@
+\hypertarget{classRankBasedAntColony}{
+\section{RankBasedAntColony Class Reference}
+\label{classRankBasedAntColony}\index{RankBasedAntColony@{RankBasedAntColony}}
+}
+Implementation of ACO variant \char`\"{}Rank-Based Ant System\char`\"{}.  
+
+
+{\tt \#include $<$ants.h$>$}
+
+Inheritance diagram for RankBasedAntColony::\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[height=2cm]{classRankBasedAntColony}
+\end{center}
+\end{figure}
+\subsection*{Public Member Functions}
+\begin{CompactItemize}
+\item 
+\hypertarget{classRankBasedAntColony_0ec025ae5d69d70df55e3f56a72cb1bf}{
+\textbf{RankBasedAntColony} (\hyperlink{classOptimizationProblem}{OptimizationProblem} $\ast$problem, const \hyperlink{classRankBasedAntColonyConfiguration}{RankBasedAntColonyConfiguration} \&config)}
+\label{classRankBasedAntColony_0ec025ae5d69d70df55e3f56a72cb1bf}
+
+\end{CompactItemize}
+\subsection*{Protected Member Functions}
+\begin{CompactItemize}
+\item 
+\hypertarget{classRankBasedAntColony_8a8d216e2eb181372dea9045755b8012}{
+void \textbf{update\_\-pheromones} ()}
+\label{classRankBasedAntColony_8a8d216e2eb181372dea9045755b8012}
+
+\end{CompactItemize}
+
+
+\subsection{Detailed Description}
+Implementation of ACO variant \char`\"{}Rank-Based Ant System\char`\"{}. 
+
+In this ACO variant only a constant number of ants is allowed to deposit pheromone in every iteration. For example if elitist\_\-ants\_\- = 5 then the best-so-far ant deposits pheromone $\ast$ 5, the iteration-best ant deposits pheromone $\ast$ 4, the second iteration-best ant deposits pheromone $\ast$ 3 and so on. Tours are constructe random-proporationallyly. 
+
+The documentation for this class was generated from the following files:\begin{CompactItemize}
+\item 
+include/libaco/ants.h\item 
+src/ants.cpp\end{CompactItemize}

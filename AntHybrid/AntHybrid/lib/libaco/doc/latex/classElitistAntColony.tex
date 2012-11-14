@@ -1,0 +1,42 @@
+\hypertarget{classElitistAntColony}{
+\section{ElitistAntColony Class Reference}
+\label{classElitistAntColony}\index{ElitistAntColony@{ElitistAntColony}}
+}
+Implementation of ACO variant \char`\"{}Elitist Ant System\char`\"{}.  
+
+
+{\tt \#include $<$ants.h$>$}
+
+Inheritance diagram for ElitistAntColony::\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[height=2cm]{classElitistAntColony}
+\end{center}
+\end{figure}
+\subsection*{Public Member Functions}
+\begin{CompactItemize}
+\item 
+\hypertarget{classElitistAntColony_a8008109e818918c7448f0475de41347}{
+\textbf{ElitistAntColony} (\hyperlink{classOptimizationProblem}{OptimizationProblem} $\ast$problem, const \hyperlink{classElitistAntColonyConfiguration}{ElitistAntColonyConfiguration} \&config)}
+\label{classElitistAntColony_a8008109e818918c7448f0475de41347}
+
+\end{CompactItemize}
+\subsection*{Protected Member Functions}
+\begin{CompactItemize}
+\item 
+\hypertarget{classElitistAntColony_867bb9f89c8935aa3e6f2ca3959a2190}{
+void \textbf{update\_\-pheromones} ()}
+\label{classElitistAntColony_867bb9f89c8935aa3e6f2ca3959a2190}
+
+\end{CompactItemize}
+
+
+\subsection{Detailed Description}
+Implementation of ACO variant \char`\"{}Elitist Ant System\char`\"{}. 
+
+In this ACO variant all ants are allowed to deposit pheromone. Additionally the best-so-far ant is allowed to deposit pheromone multiplied by some elitist\_\-weight\_\- in every iteration. Tours are constructed random-proportionally. 
+
+The documentation for this class was generated from the following files:\begin{CompactItemize}
+\item 
+include/libaco/ants.h\item 
+src/ants.cpp\end{CompactItemize}
