@@ -2,13 +2,13 @@ import os
 import shlex, subprocess
 import sys
 
-ants = 1
+ants = 1000
 iterations = 10
-stg_path = '/Users/hamiltont/Research/Qualifier/code/STG-benchmarks/'
-output_path = '/Users/hamiltont/Research/Qualifier/code/utils/benchmark.csv'
+rounds = 10;
+stg_path = '/home/magnum/hamiltont/Qualifier-utils/STG-benchmarks/'
+output_path = '/home/magnum/hamiltont/Qualifier-utils/benchmarks/12nov_' + str(ants) + 'ants_' + str(iterations) + 'iter_' + str(rounds) + 'rounds.csv'  
 argument_variations = [" --simple ", " --elitist 0.7 ", " --rank 50 ", "  --maxmin ", " --acs "]
 cores = [2, 4, 8, 16]
-rounds = 2;
 
 fout = open(output_path, 'a+')
 fout.write('opt,best,median,ants,iterations,cores,tasks,time,edges,crit_path,parallelism\n');
@@ -56,7 +56,7 @@ for dname in os.listdir(stg_path):
                 result = ""
                 for i in range(0,rounds):
                     sys.stdout.write("\t Round %d" % i)
-                    cmd = "AntHybrid %s -c %d -f %s%s/%s -m %d -i %d" % (arg, core, stg_path, dname, fname, ants, iterations)
+                    cmd = "./AntHybrid %s -c %d -f %s%s/%s -m %d -i %d" % (arg, core, stg_path, dname, fname, ants, iterations)
                     cargs = shlex.split(cmd)
                     output,error = subprocess.Popen(cargs,stdout=subprocess.PIPE, stderr=subprocess.PIPE).communicate()
                     result = output
@@ -66,13 +66,11 @@ for dname in os.listdir(stg_path):
                     times.append(float(total_time))
                     print(" : %s" % best_score)
                     
+                    
                 iterations = iterations
                 ants = ants
                 score_best = sorted(scores)[:-1][0] 
-                print "Getting median of ..."
-                print scores
                 score_median = getMedian(scores)
-                print "Median was %f" % score_median
                 time_median = getMedian(times)
                 edges = meta['Edges']
                 edges = edges[:edges.find('/')].strip()
