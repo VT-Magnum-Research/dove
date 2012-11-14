@@ -1,0 +1,6 @@
+v0.1
+
+This version is the initial ACO, using the tour path as the 
+final scheduling order. The pheromone matrix is of shape task*core, 
+where tour[0] defines the first mapping and the first scheduling, 
+and tour[1] defines the second mapping and the second scheduling, etc
