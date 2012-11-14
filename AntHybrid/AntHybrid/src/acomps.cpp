@@ -203,6 +203,21 @@ double timer() {
   }
 }
 
+double timer2() {
+  static bool initialized_time2 = false;
+  static clock_t time2;
+  if(!initialized_time2) {
+    time2 = clock();
+    initialized_time2 = true;
+    return 0.0;
+  } else {
+    clock_t time_diff = clock() - time2;
+    double elapsed_time = time_diff * 1.0 / CLOCKS_PER_SEC;
+    return elapsed_time;
+  }
+}
+
+
 int main(int argc, char *argv[]) {
   signal(SIGINT, terminate);
   try {
@@ -228,17 +243,18 @@ int main(int argc, char *argv[]) {
   
   colony = get_ant_colony(problem);
   
-  std::cout << "iter\ttime\tbest\tbest_it";
-  std::cout << ((stagnation_measure != STAG_NONE) ? "\tstagnation" : "");
-  std::cout << (print_tour_flag ? "\tordering" : "");
-  std::cout << std::endl;
+  //std::cout << "iter\ttime\tbest\tbest_it";
+  //std::cout << ((stagnation_measure != STAG_NONE) ? "\tstagnation" : "");
+  //std::cout << (print_tour_flag ? "\tordering" : "");
+  //std::cout << std::endl;
   timer();
+  timer2();
   for(unsigned int i=0;i<iterations && timer() < time_limit;i++) {
     colony->run();
-    std::cout << (i+1) << "\t";
-    std::cout << timer() << "\t";
-    std::cout << colony->get_best_tour_length() << "\t";
-    std::cout << colony->get_best_tour_length_in_iteration() << "\t";
+    //std::cout << (i+1) << "\t";
+    //std::cout << timer() << "\t";
+    //std::cout << colony->get_best_tour_length() << "\t";
+    //std::cout << colony->get_best_tour_length_in_iteration() << "\t";
     
     if(stagnation_measure == STAG_VARIATION_COEFFICIENT) {
       std::cout << colony->get_variation_coefficient();
@@ -253,23 +269,23 @@ int main(int argc, char *argv[]) {
       mpsproblem->print_tour(colony->get_best_tour_in_iteration());
     }
     
-    std::cout << std::endl;
+    //std::cout << std::endl;
   }
-  std::cout << std::endl;
-  std::cout << "best\tordering" << std::endl;
-  std::cout << colony->get_best_tour_length() << "\t";
-  mpsproblem->print_tour(colony->get_best_tour());
+  //std::cout << std::endl;
+  //std::cout << "best\tordering" << std::endl;
+  std::cout << colony->get_best_tour_length() << "," << timer2();
+  //mpsproblem->print_tour(colony->get_best_tour());
   
-  MpSchedule schedule = mpsproblem->convert_tour_to_schedule(colony->get_best_tour());
-  bool verify = mpsproblem->verify_schedule_passes_constraints(schedule);
+  //MpSchedule schedule = mpsproblem->convert_tour_to_schedule(colony->get_best_tour());
+  //bool verify = mpsproblem->verify_schedule_passes_constraints(schedule);
   
-  schedule.print_schedule_as_page();
+  //schedule.print_schedule_as_page();
   
-  std::cout << std::endl;
+  //std::cout << std::endl;
   delete colony;
   
-  if (!verify)
-    exit(EXIT_FAILURE);
-  else
-    exit(EXIT_SUCCESS);
+  //if (!verify)
+  //  exit(EXIT_FAILURE);
+  //else
+  //  exit(EXIT_SUCCESS);
 }

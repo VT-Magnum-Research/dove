@@ -70,6 +70,15 @@ std::map<unsigned int,double> MpsProblem::get_feasible_neighbours(unsigned int v
   if (debug)
     std::cout << "MpsProblem::get_feasible_neighbors: " << debug_vertex(vertex) << std::endl;
   
+  // TODO update this! We don't have to impose this limit here, it is imposed in the
+  // evaluation. We are limited the search of the solution space needlessly.
+  // Instead, we should simply say a feasible neighbor any task that has not been scheduled,
+  // on any processor
+
+  // TODO this constraining of the solution space may actually be a minor example of
+  // Constraint programming e.g. only allow scheduling in precedence ordering as this might
+  // be leading to better solutions naturally
+  
   // Limit feasible neighbors to tasks of allowed priorities that have
   // not been scheduled
   unsigned int task, core;
@@ -144,7 +153,8 @@ MpSchedule MpsProblem::convert_tour_to_schedule(std::vector<unsigned int> tour) 
     
     ScheduleItem si;
     si.task_ = task;
-    si.start_ = schedule.get_earliest_start_time(task, core_i, true);;
+    si.start_ = schedule.get_earliest_start_time(task, core_i);;
+
     // Pretending that all processors are homogeneous
     si.end_ = si.start_ + task->execution_time_;
     schedule.add_task(core_i, si);
