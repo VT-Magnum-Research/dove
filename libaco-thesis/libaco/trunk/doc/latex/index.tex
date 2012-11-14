@@ -1,0 +1,59 @@
+\hypertarget{index_intro_sec}{}\section{Introduction}\label{index_intro_sec}
+libaco is a library which can be used for solving combinatorial optimization problems using the Ant Colony Optimization (ACO) meta-heuristic. The library implements the following variants of ACO algorithms:
+
+\begin{itemize}
+\item Simple Ant System\item Elitist Ant System\item Rank-Based Ant System\item Max-Min Ant System\item Ant Colony System\end{itemize}
+
+
+For detailed descriptions of these algorithms take a look at the book \char`\"{}Ant Colony Optimization\char`\"{} by Marco Dorigo and Thomas Stuetzle.
+
+All this was implemented as part of my Master's Thesis at the Technical University of Vienna I'm currently working on with the prospective title 'Ant Colony Optimization for Tree and Hypertree Decomposition'.\hypertarget{index_getting_started_sec}{}\section{Getting Started}\label{index_getting_started_sec}
+If you don't have any clue how ant algorithms work I recommend you to read something on the topic first.
+
+The only interface between libaco and your client code is defined by the virtual class \hyperlink{classOptimizationProblem}{OptimizationProblem}. You need to inherit from this class and implement all pure virtual methods.
+
+
+
+\begin{Code}\begin{verbatim} class MyProblem : public OptimizationProblem {
+   public:
+     unsigned int get_max_tour_size() { /* TODO: implement */ }
+     unsigned int number_of_vertices() { /* TODO: implement */ }
+     std::map<unsigned int,double> get_feasible_start_vertices() { /* TODO: implement */ }
+     std::map<unsigned int,double> get_feasible_neighbours(unsigned int vertex) { /* TODO: implement */ }
+     double eval_tour(const std::vector<unsigned int> &tour) { /* TODO: implement */ }
+     double pheromone_update(unsigned int v, double tour_length) { /* TODO: implement */ }
+     void added_vertex_to_tour(unsigned int vertex) { /* TODO: implement */ }
+     bool is_tour_complete(const std::vector<unsigned int> &tour) { /* TODO: implement */ }
+     std::vector<unsigned int> apply_local_search(const std::vector<unsigned int> &tour) { return tour; }
+     void cleanup() { /* TODO: implement */ };
+ }
+\end{verbatim}
+\end{Code}
+
+
+
+After you have implemented your problem-specific logic all you need to do is to instantiate an ant colony and supply it with a corresponding configuration object and your \hyperlink{classOptimizationProblem}{OptimizationProblem}.
+
+
+
+\begin{Code}\begin{verbatim} AntColonyConfiguration config;
+ SimpleAntColony colony(new MyProblem(), config);
+ colony.run(); // run one iteration
+ std::vector<unsigned int> tour = colony.get_best_tour();
+ double length = colony.get_best_tour_length();
+\end{verbatim}
+\end{Code}
+
+
+
+For this example we have used a \hyperlink{classSimpleAntColony}{SimpleAntColony} but we also could have used one of the following other variants:
+
+\begin{itemize}
+\item \hyperlink{classElitistAntColony}{ElitistAntColony} (together with an \hyperlink{classElitistAntColonyConfiguration}{ElitistAntColonyConfiguration})\item \hyperlink{classRankBasedAntColony}{RankBasedAntColony} (together with an \hyperlink{classRankBasedAntColonyConfiguration}{RankBasedAntColonyConfiguration})\item \hyperlink{classMaxMinAntColony}{MaxMinAntColony} (together with an \hyperlink{classMaxMinAntColonyConfiguration}{MaxMinAntColonyConfiguration})\item \hyperlink{classACSAntColony}{ACSAntColony} (together with an \hyperlink{classACSAntColonyConfiguration}{ACSAntColonyConfiguration})\end{itemize}
+
+
+For a far more detailed explanation on how to make use of this library take a look at the tutorial at:
+
+\href{http://code.google.com/p/libaco/wiki/Tutorial}{\tt http://code.google.com/p/libaco/wiki/Tutorial}
+
+It shows step-by-step how to implement a program with libaco for finding solutions to arbitrary instances of the Travelling Salesman Problem. 

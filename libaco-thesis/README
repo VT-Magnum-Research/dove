@@ -1,0 +1,22 @@
+the libaco project
+-------------------------------------------
+
+acotemplate/
+
+  libaco template project. use this as a starting point for your application.
+
+acotreewidth/
+
+  example project. finds tree decompositions of small treewidth.
+
+acotsp/
+
+  example project. finds solutions to the travelling salesman problem.
+
+libaco/
+
+  the library itself.
+
+liblocalsearch/
+
+  library of local search algorithms.

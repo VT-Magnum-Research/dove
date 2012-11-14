@@ -1,0 +1,175 @@
+\hypertarget{classOptimizationProblem}{
+\section{OptimizationProblem Class Reference}
+\label{classOptimizationProblem}\index{OptimizationProblem@{OptimizationProblem}}
+}
+Interface a client of libaco needs to implement.  
+
+
+{\tt \#include $<$ants.h$>$}
+
+\subsection*{Public Member Functions}
+\begin{CompactItemize}
+\item 
+virtual unsigned int \hyperlink{classOptimizationProblem_c415a4d1350cd3580f2fcf26f7f6196c}{get\_\-max\_\-tour\_\-size} ()=0
+\begin{CompactList}\small\item\em Returns the maximum number of nodes in a tour. \item\end{CompactList}\item 
+virtual unsigned int \hyperlink{classOptimizationProblem_3f2b6672193e9b543f9a3419b6a516e8}{number\_\-of\_\-vertices} ()=0
+\begin{CompactList}\small\item\em Returns the number of vertices in the construction graph. \item\end{CompactList}\item 
+virtual std::map$<$ unsigned int, double $>$ \hyperlink{classOptimizationProblem_9d90c97f690e8987a152b37d0c51e744}{get\_\-feasible\_\-start\_\-vertices} ()=0
+\begin{CompactList}\small\item\em Returns a map with the ids of all feasible start vertices as keys and some heuristic value. \item\end{CompactList}\item 
+virtual std::map$<$ unsigned int, double $>$ \hyperlink{classOptimizationProblem_582a4ef61a491e2741060c2f83c3fc2e}{get\_\-feasible\_\-neighbours} (unsigned int vertex)=0
+\begin{CompactList}\small\item\em Returns a map with the ids of all feasible neighbour vertices of vertex as keys and some heuristic value. \item\end{CompactList}\item 
+virtual double \hyperlink{classOptimizationProblem_7e89680c220a5b45c716127145227034}{eval\_\-tour} (const std::vector$<$ unsigned int $>$ \&tour)=0
+\begin{CompactList}\small\item\em Returns the 'length' of a given tour (the lower the better). \item\end{CompactList}\item 
+virtual double \hyperlink{classOptimizationProblem_835a3b10f21b237610a9c2b9999c3589}{pheromone\_\-update} (unsigned int vertex, double tour\_\-length)=0
+\begin{CompactList}\small\item\em Returns the amount of pheromone that shall be deposited onto the edge pointing to v. \item\end{CompactList}\item 
+virtual void \hyperlink{classOptimizationProblem_3df069cbd0e948368a5696b21892cb7a}{added\_\-vertex\_\-to\_\-tour} (unsigned int vertex)=0
+\begin{CompactList}\small\item\em Callback that notifies the client code that the current ant has added this vertex to it's tour. \item\end{CompactList}\item 
+virtual bool \hyperlink{classOptimizationProblem_41c614f3cb6cc0d96fa34adf129ff47f}{is\_\-tour\_\-complete} (const std::vector$<$ unsigned int $>$ \&tour)=0
+\begin{CompactList}\small\item\em Determines whether the supplied tour is complete. \item\end{CompactList}\item 
+virtual std::vector$<$ unsigned int $>$ \hyperlink{classOptimizationProblem_74c083b6b88c801052af5dbfa06644e0}{apply\_\-local\_\-search} (const std::vector$<$ unsigned int $>$ \&tour)
+\begin{CompactList}\small\item\em Gives the client code the oppurtunity to improve the tour after construction by applying some local search. \item\end{CompactList}\item 
+\hypertarget{classOptimizationProblem_78e513c392ac1c5489b598b275cfef26}{
+virtual void \hyperlink{classOptimizationProblem_78e513c392ac1c5489b598b275cfef26}{cleanup} ()=0}
+\label{classOptimizationProblem_78e513c392ac1c5489b598b275cfef26}
+
+\begin{CompactList}\small\item\em Here go eventually necessary cleanup actions between two tour constructions. \item\end{CompactList}\end{CompactItemize}
+
+
+\subsection{Detailed Description}
+Interface a client of libaco needs to implement. 
+
+Interface to the problem-specific logic a client must supply. 
+
+\subsection{Member Function Documentation}
+\hypertarget{classOptimizationProblem_c415a4d1350cd3580f2fcf26f7f6196c}{
+\index{OptimizationProblem@{OptimizationProblem}!get\_\-max\_\-tour\_\-size@{get\_\-max\_\-tour\_\-size}}
+\index{get\_\-max\_\-tour\_\-size@{get\_\-max\_\-tour\_\-size}!OptimizationProblem@{OptimizationProblem}}
+\subsubsection[get\_\-max\_\-tour\_\-size]{\setlength{\rightskip}{0pt plus 5cm}virtual unsigned int OptimizationProblem::get\_\-max\_\-tour\_\-size ()\hspace{0.3cm}{\tt  \mbox{[}pure virtual\mbox{]}}}}
+\label{classOptimizationProblem_c415a4d1350cd3580f2fcf26f7f6196c}
+
+
+Returns the maximum number of nodes in a tour. 
+
+\begin{Desc}
+\item[Returns:]maximum number of nodes in a tour. \end{Desc}
+\hypertarget{classOptimizationProblem_3f2b6672193e9b543f9a3419b6a516e8}{
+\index{OptimizationProblem@{OptimizationProblem}!number\_\-of\_\-vertices@{number\_\-of\_\-vertices}}
+\index{number\_\-of\_\-vertices@{number\_\-of\_\-vertices}!OptimizationProblem@{OptimizationProblem}}
+\subsubsection[number\_\-of\_\-vertices]{\setlength{\rightskip}{0pt plus 5cm}virtual unsigned int OptimizationProblem::number\_\-of\_\-vertices ()\hspace{0.3cm}{\tt  \mbox{[}pure virtual\mbox{]}}}}
+\label{classOptimizationProblem_3f2b6672193e9b543f9a3419b6a516e8}
+
+
+Returns the number of vertices in the construction graph. 
+
+\begin{Desc}
+\item[Returns:]the number of vertices in the construction graph. \end{Desc}
+\hypertarget{classOptimizationProblem_9d90c97f690e8987a152b37d0c51e744}{
+\index{OptimizationProblem@{OptimizationProblem}!get\_\-feasible\_\-start\_\-vertices@{get\_\-feasible\_\-start\_\-vertices}}
+\index{get\_\-feasible\_\-start\_\-vertices@{get\_\-feasible\_\-start\_\-vertices}!OptimizationProblem@{OptimizationProblem}}
+\subsubsection[get\_\-feasible\_\-start\_\-vertices]{\setlength{\rightskip}{0pt plus 5cm}virtual std::map$<$unsigned int,double$>$ OptimizationProblem::get\_\-feasible\_\-start\_\-vertices ()\hspace{0.3cm}{\tt  \mbox{[}pure virtual\mbox{]}}}}
+\label{classOptimizationProblem_9d90c97f690e8987a152b37d0c51e744}
+
+
+Returns a map with the ids of all feasible start vertices as keys and some heuristic value. 
+
+\begin{Desc}
+\item[Returns:]a map that maps vertex ids to their heuristic value. the greater the value the more likely the vertex is chosen by the ant. \end{Desc}
+\hypertarget{classOptimizationProblem_582a4ef61a491e2741060c2f83c3fc2e}{
+\index{OptimizationProblem@{OptimizationProblem}!get\_\-feasible\_\-neighbours@{get\_\-feasible\_\-neighbours}}
+\index{get\_\-feasible\_\-neighbours@{get\_\-feasible\_\-neighbours}!OptimizationProblem@{OptimizationProblem}}
+\subsubsection[get\_\-feasible\_\-neighbours]{\setlength{\rightskip}{0pt plus 5cm}virtual std::map$<$unsigned int,double$>$ OptimizationProblem::get\_\-feasible\_\-neighbours (unsigned int {\em vertex})\hspace{0.3cm}{\tt  \mbox{[}pure virtual\mbox{]}}}}
+\label{classOptimizationProblem_582a4ef61a491e2741060c2f83c3fc2e}
+
+
+Returns a map with the ids of all feasible neighbour vertices of vertex as keys and some heuristic value. 
+
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em vertex}]the ant's current location. \end{description}
+\end{Desc}
+\begin{Desc}
+\item[Returns:]a map that maps neighbour ids to their heuristic value. the greater the value the more likely the neighbour is chosen by the ant. \end{Desc}
+\hypertarget{classOptimizationProblem_7e89680c220a5b45c716127145227034}{
+\index{OptimizationProblem@{OptimizationProblem}!eval\_\-tour@{eval\_\-tour}}
+\index{eval\_\-tour@{eval\_\-tour}!OptimizationProblem@{OptimizationProblem}}
+\subsubsection[eval\_\-tour]{\setlength{\rightskip}{0pt plus 5cm}virtual double OptimizationProblem::eval\_\-tour (const std::vector$<$ unsigned int $>$ \& {\em tour})\hspace{0.3cm}{\tt  \mbox{[}pure virtual\mbox{]}}}}
+\label{classOptimizationProblem_7e89680c220a5b45c716127145227034}
+
+
+Returns the 'length' of a given tour (the lower the better). 
+
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em tour}]that is supposed to be evaluated. \end{description}
+\end{Desc}
+\begin{Desc}
+\item[Returns:]the 'length' of the tour. \end{Desc}
+\hypertarget{classOptimizationProblem_835a3b10f21b237610a9c2b9999c3589}{
+\index{OptimizationProblem@{OptimizationProblem}!pheromone\_\-update@{pheromone\_\-update}}
+\index{pheromone\_\-update@{pheromone\_\-update}!OptimizationProblem@{OptimizationProblem}}
+\subsubsection[pheromone\_\-update]{\setlength{\rightskip}{0pt plus 5cm}virtual double OptimizationProblem::pheromone\_\-update (unsigned int {\em vertex}, \/  double {\em tour\_\-length})\hspace{0.3cm}{\tt  \mbox{[}pure virtual\mbox{]}}}}
+\label{classOptimizationProblem_835a3b10f21b237610a9c2b9999c3589}
+
+
+Returns the amount of pheromone that shall be deposited onto the edge pointing to v. 
+
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em vertex}]the vertex \item[{\em tour\_\-length}]the length of the tour. \end{description}
+\end{Desc}
+\begin{Desc}
+\item[Returns:]amount of pheromone that shall be laid on the edge to v. \end{Desc}
+\hypertarget{classOptimizationProblem_3df069cbd0e948368a5696b21892cb7a}{
+\index{OptimizationProblem@{OptimizationProblem}!added\_\-vertex\_\-to\_\-tour@{added\_\-vertex\_\-to\_\-tour}}
+\index{added\_\-vertex\_\-to\_\-tour@{added\_\-vertex\_\-to\_\-tour}!OptimizationProblem@{OptimizationProblem}}
+\subsubsection[added\_\-vertex\_\-to\_\-tour]{\setlength{\rightskip}{0pt plus 5cm}virtual void OptimizationProblem::added\_\-vertex\_\-to\_\-tour (unsigned int {\em vertex})\hspace{0.3cm}{\tt  \mbox{[}pure virtual\mbox{]}}}}
+\label{classOptimizationProblem_3df069cbd0e948368a5696b21892cb7a}
+
+
+Callback that notifies the client code that the current ant has added this vertex to it's tour. 
+
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em vertex}]that has been added to the tour. \end{description}
+\end{Desc}
+\hypertarget{classOptimizationProblem_41c614f3cb6cc0d96fa34adf129ff47f}{
+\index{OptimizationProblem@{OptimizationProblem}!is\_\-tour\_\-complete@{is\_\-tour\_\-complete}}
+\index{is\_\-tour\_\-complete@{is\_\-tour\_\-complete}!OptimizationProblem@{OptimizationProblem}}
+\subsubsection[is\_\-tour\_\-complete]{\setlength{\rightskip}{0pt plus 5cm}virtual bool OptimizationProblem::is\_\-tour\_\-complete (const std::vector$<$ unsigned int $>$ \& {\em tour})\hspace{0.3cm}{\tt  \mbox{[}pure virtual\mbox{]}}}}
+\label{classOptimizationProblem_41c614f3cb6cc0d96fa34adf129ff47f}
+
+
+Determines whether the supplied tour is complete. 
+
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em tour}]shall be checked for completeness. \end{description}
+\end{Desc}
+\begin{Desc}
+\item[Returns:]true if the tour is complete. false otherwise. \end{Desc}
+\hypertarget{classOptimizationProblem_74c083b6b88c801052af5dbfa06644e0}{
+\index{OptimizationProblem@{OptimizationProblem}!apply\_\-local\_\-search@{apply\_\-local\_\-search}}
+\index{apply\_\-local\_\-search@{apply\_\-local\_\-search}!OptimizationProblem@{OptimizationProblem}}
+\subsubsection[apply\_\-local\_\-search]{\setlength{\rightskip}{0pt plus 5cm}virtual std::vector$<$unsigned int$>$ OptimizationProblem::apply\_\-local\_\-search (const std::vector$<$ unsigned int $>$ \& {\em tour})\hspace{0.3cm}{\tt  \mbox{[}inline, virtual\mbox{]}}}}
+\label{classOptimizationProblem_74c083b6b88c801052af5dbfa06644e0}
+
+
+Gives the client code the oppurtunity to improve the tour after construction by applying some local search. 
+
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em tour}]initial tour for the local search. \end{description}
+\end{Desc}
+\begin{Desc}
+\item[Returns:]best tour found. \end{Desc}
+
+
+The documentation for this class was generated from the following file:\begin{CompactItemize}
+\item 
+include/libaco/ants.h\end{CompactItemize}

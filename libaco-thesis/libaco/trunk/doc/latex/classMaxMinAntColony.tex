@@ -1,0 +1,42 @@
+\hypertarget{classMaxMinAntColony}{
+\section{MaxMinAntColony Class Reference}
+\label{classMaxMinAntColony}\index{MaxMinAntColony@{MaxMinAntColony}}
+}
+Implementation of ACO variant \char`\"{}Max-Min Ant System\char`\"{}.  
+
+
+{\tt \#include $<$ants.h$>$}
+
+Inheritance diagram for MaxMinAntColony::\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[height=2cm]{classMaxMinAntColony}
+\end{center}
+\end{figure}
+\subsection*{Public Member Functions}
+\begin{CompactItemize}
+\item 
+\hypertarget{classMaxMinAntColony_6ed204255a7375de04e92ddabf610796}{
+\textbf{MaxMinAntColony} (\hyperlink{classOptimizationProblem}{OptimizationProblem} $\ast$problem, const \hyperlink{classMaxMinAntColonyConfiguration}{MaxMinAntColonyConfiguration} \&config)}
+\label{classMaxMinAntColony_6ed204255a7375de04e92ddabf610796}
+
+\end{CompactItemize}
+\subsection*{Protected Member Functions}
+\begin{CompactItemize}
+\item 
+\hypertarget{classMaxMinAntColony_5c1c00b28f589ec8a2fb45f03d068a85}{
+void \textbf{update\_\-pheromones} ()}
+\label{classMaxMinAntColony_5c1c00b28f589ec8a2fb45f03d068a85}
+
+\end{CompactItemize}
+
+
+\subsection{Detailed Description}
+Implementation of ACO variant \char`\"{}Max-Min Ant System\char`\"{}. 
+
+In this ACO variant either the best-so-far or the iteration-best ant is allowed to deposit pheromone depending on the best\_\-so\_\-far\_\-frequency. If the best\_\-so\_\-far\_\-frequency equals 3 then the best-so-far ant deposits it's pheromone every third iteration instead of the iteration-best ant. Upper and lower bounds on the pheromone values are introduced. The upper bound is given by the initial pheromone value while the lower bound is defined as: upper bound / a\_\-. Tours are constructed random-proporationally. 
+
+The documentation for this class was generated from the following files:\begin{CompactItemize}
+\item 
+include/libaco/ants.h\item 
+src/ants.cpp\end{CompactItemize}

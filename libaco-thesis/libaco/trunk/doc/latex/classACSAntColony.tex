@@ -1,0 +1,42 @@
+\hypertarget{classACSAntColony}{
+\section{ACSAntColony Class Reference}
+\label{classACSAntColony}\index{ACSAntColony@{ACSAntColony}}
+}
+Implementation of ACO variant \char`\"{}Ant Colony System\char`\"{}.  
+
+
+{\tt \#include $<$ants.h$>$}
+
+Inheritance diagram for ACSAntColony::\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[height=2cm]{classACSAntColony}
+\end{center}
+\end{figure}
+\subsection*{Public Member Functions}
+\begin{CompactItemize}
+\item 
+\hypertarget{classACSAntColony_3798006ef5648f6275a20fe5e75aceef}{
+\textbf{ACSAntColony} (\hyperlink{classOptimizationProblem}{OptimizationProblem} $\ast$problem, const \hyperlink{classACSAntColonyConfiguration}{ACSAntColonyConfiguration} \&config)}
+\label{classACSAntColony_3798006ef5648f6275a20fe5e75aceef}
+
+\end{CompactItemize}
+\subsection*{Protected Member Functions}
+\begin{CompactItemize}
+\item 
+\hypertarget{classACSAntColony_9e67aae971c5ba02a8a47797a079da06}{
+void \textbf{update\_\-pheromones} ()}
+\label{classACSAntColony_9e67aae971c5ba02a8a47797a079da06}
+
+\end{CompactItemize}
+
+
+\subsection{Detailed Description}
+Implementation of ACO variant \char`\"{}Ant Colony System\char`\"{}. 
+
+In this ACO variant only the best-so-far ant is allowed to deposit pheromone. Also pheromone evaporation only affects the edges chosen by the best-so-far ant. Tour construction is done pseudo-random proportionally meaning that with probability q0 the vertex with the best value is chosen and with probability 1 - q0 the vertex with the best value is most likely to be chosen by the ant during construction. 
+
+The documentation for this class was generated from the following files:\begin{CompactItemize}
+\item 
+include/libaco/ants.h\item 
+src/ants.cpp\end{CompactItemize}

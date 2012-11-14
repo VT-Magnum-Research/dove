@@ -1,0 +1,63 @@
+\hypertarget{classTspProblem}{\section{Tsp\-Problem Class Reference}
+\label{classTspProblem}\index{Tsp\-Problem@{Tsp\-Problem}}
+}
+
+
+Travelling Salesman Problem libaco implemenation.  
+
+
+
+
+{\ttfamily \#include $<$tsp.\-h$>$}
+
+Inheritance diagram for Tsp\-Problem\-:\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[height=2.000000cm]{classTspProblem}
+\end{center}
+\end{figure}
+\subsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\hypertarget{classTspProblem_aa83235d8f45df29e46310f200da1874f}{{\bfseries Tsp\-Problem} (Matrix$<$ unsigned int $>$ $\ast$distances)}\label{classTspProblem_aa83235d8f45df29e46310f200da1874f}
+
+\item 
+\hypertarget{classTspProblem_a23b73f500a498018220b43387d4ce9b7}{unsigned int {\bfseries get\-\_\-max\-\_\-tour\-\_\-size} ()}\label{classTspProblem_a23b73f500a498018220b43387d4ce9b7}
+
+\item 
+\hypertarget{classTspProblem_ac395626652825be2333401312b31d556}{unsigned int {\bfseries number\-\_\-of\-\_\-vertices} ()}\label{classTspProblem_ac395626652825be2333401312b31d556}
+
+\item 
+\hypertarget{classTspProblem_a06b643e4330618140448ea40866eaa4c}{std\-::map$<$ unsigned int, double $>$ {\bfseries get\-\_\-feasible\-\_\-start\-\_\-vertices} ()}\label{classTspProblem_a06b643e4330618140448ea40866eaa4c}
+
+\item 
+\hypertarget{classTspProblem_a24e9a8320098c090fdbe193106cce60d}{std\-::map$<$ unsigned int, double $>$ {\bfseries get\-\_\-feasible\-\_\-neighbours} (unsigned int vertex)}\label{classTspProblem_a24e9a8320098c090fdbe193106cce60d}
+
+\item 
+\hypertarget{classTspProblem_a5e2bbd95618635e2a23082d66646cfc9}{double {\bfseries eval\-\_\-tour} (const std\-::vector$<$ unsigned int $>$ \&tour)}\label{classTspProblem_a5e2bbd95618635e2a23082d66646cfc9}
+
+\item 
+\hypertarget{classTspProblem_a69027eff00a09f8791886cb4b74079cf}{double {\bfseries pheromone\-\_\-update} (unsigned int v, double tour\-\_\-length)}\label{classTspProblem_a69027eff00a09f8791886cb4b74079cf}
+
+\item 
+\hypertarget{classTspProblem_af9595b6b5ccb2acc960c8d1d75943754}{void {\bfseries added\-\_\-vertex\-\_\-to\-\_\-tour} (unsigned int vertex)}\label{classTspProblem_af9595b6b5ccb2acc960c8d1d75943754}
+
+\item 
+\hypertarget{classTspProblem_a94034be2774ce543db140a841e09c83a}{bool {\bfseries is\-\_\-tour\-\_\-complete} (const std\-::vector$<$ unsigned int $>$ \&tour)}\label{classTspProblem_a94034be2774ce543db140a841e09c83a}
+
+\item 
+\hypertarget{classTspProblem_a38ec0182d8032bfae748704aad67a26b}{std\-::vector$<$ unsigned int $>$ {\bfseries apply\-\_\-local\-\_\-search} (const std\-::vector$<$ unsigned int $>$ \&tour)}\label{classTspProblem_a38ec0182d8032bfae748704aad67a26b}
+
+\item 
+\hypertarget{classTspProblem_ad3ad8f53bbeaa2e44dfa98209ce9edf1}{void {\bfseries cleanup} ()}\label{classTspProblem_ad3ad8f53bbeaa2e44dfa98209ce9edf1}
+
+\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+Travelling Salesman Problem libaco implemenation. 
+
+The documentation for this class was generated from the following files\-:\begin{DoxyCompactItemize}
+\item 
+include/acotsp/tsp.\-h\item 
+src/tsp.\-cpp\end{DoxyCompactItemize}
