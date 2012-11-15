@@ -34,10 +34,11 @@ unsigned int MpSchedule::get_earliest_start_time(Task* task, unsigned int core_i
         // We cannot run until this task is finished
         completion_time = std::max(completion_time, core_task->end_);
         
-        // We cannot run until the task result is routed to us!
-        if (maintain_routing_time)
-          completion_time = std::max(completion_time, core_task->end_ +
-                                     MpsProblem::get_routing_time(core_id, core->first));
+        
+        // TODO We cannot run until the task result is routed to us!
+        //if (maintain_routing_time)
+        //  completion_time = std::max(completion_time, core_task->end_ +
+        //                            MpsProblem::get_routing_time(core_id, core->first));
           
       }
   }

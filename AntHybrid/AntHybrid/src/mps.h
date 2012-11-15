@@ -14,13 +14,16 @@
 #include <map>
 #include <exception>
 #include <string>
+#include <string.h>
 #include <stdio.h>
 #include <stdarg.h>
+#include "graph.h"
+
 #include "util.h"
 
 #include "ants.h"
 #include "data.h"
-#include "MpSchedule.h"
+//#include "MpSchedule.h"
 
 
 /// Multiprocessor scheduling using the libaco implemenation.
@@ -36,43 +39,58 @@
 class MpsProblem : public OptimizationProblem {
 private:
   
-  /// ============= Core Abstraction =============
+  // Should we print the stack and other debug messages as
+  // the algorithm runs? 
+  const static bool should_debug = true;
   
-  // Each task must be scheduled once, and tasks should be in
-  // ascending priority order before the aco begins execution
-  std::vector<Task>* tasks_;
-  
-  // libaco needs a fixed ordering
-  std::vector<Core>* cores_;
-  
-  /// ============= Removing Assumptions =========
-  
-  // TODO ignoring this for now...
-  // Execution times for running a task on a processor
-  //
-  // (*execution_times_)[v][w] gives you the time to run task v on processor w
-  // Matrix<unsigned int> * execution_times_;
-  
-  // TODO ignoring this for now...
-  // Routing times for passing messages between processors
-  //
-  // (*routing_times_)[v][w] gives you the time to pass a message from v to w
-  // Matrix<unsigned int> * routing_times_;
-  
-  /// ============= Implementation Variables =====
-  
-  // Initialized with the number of tasks in this problem
+  // The number of tasks in this problem
   unsigned int task_size_;
   
+  // The number of cores in this problem
+  unsigned int core_size_;
   
-  /// ============= Utility Methods  =============
-
-  // Helper method for the verification
-  // Note: The attribute will likely only work on Mac systems. Feel free
-  // to remove it if it's causing trouble
-  bool _verr(const char *fmt, ...)
-    __attribute__((format (printf, 2, 3)));
-  #define verr(fmt,...) _verr(fmt"\n", ##__VA_ARGS__)
+  // The communication cost (in time units) for passing a message between cores
+  //
+  // routing_costs_[i][j] is the cost of routing a message from i to j and will
+  // always equal routing_costs_[j][i]
+  SymmetricMatrix<unsigned int>* routing_costs_;
+  
+  // The time needed to run each task on a core
+  // running_times_[i][j] is the time needed to run task i on core j, and
+  // running_times_[j][i] is the time needed to run task j on core i
+  Matrix<unsigned int>* running_times_;
+  
+  // Contains all task precedence orderings
+  DirectedAcyclicGraph* precedence_graph_;
+  
+  // Returns the exact order in which tasks should be scheduled by an Ant. More precisely,
+  // task_scheduling_order_[current_tour_length_] can be used to get the index of the
+  // next task that should be scheduled. No value should be > task_size_
+  // Note that internal functions assume this never violates the precedence_graph_ at all
+  std::vector<unsigned int>* task_scheduling_order_;
+  
+  // As the tour is built, this is constructed. It contains the core that
+  // each task is mapped to. mapping_[i] = j implies that task i has been
+  // mapped to core j. 
+  std::vector<unsigned int> mapping_;
+  
+  // Incremented every time a vertex is added to the ant tour. The tour equals a collection
+  // of mappings between task&core, so this is the number of tasks that have been mapped
+  int current_tour_length_;
+  
+  // Used to cache the evaluation of our tour. Avoids having to recalculate the tour_evaluation
+  // after a local search is requested, because I know there is no local search being performed
+  // yet
+  bool local_search_requested_;
+  
+  // Used to cache the result of the tour
+  double tour_evaluation_cache;
+  
+  // Allows logging. Prints all messages to stderr currently so I can capture algorithm
+  // output and implementation debugging separately
+  void _log(const char *fmt, ...)
+  __attribute__((format (printf, 2, 3)));
+  #define log(fmt,...) _log(fmt"\n", ##__VA_ARGS__)
   
   std::string debug_vertex(unsigned int vertex);
   
@@ -85,21 +103,36 @@ private:
     core = vertex_id / task_size_;
   }
   
+  
+  
+  inline void _debug(const char *fmt, ...) __attribute__((format (printf, 2, 3)))
+  {
+    if (should_debug) {
+      char fmt2[300];
+      strcpy(fmt2, fmt);
+      strcpy(fmt2, "\n");
+      
+      va_list arg;
+      va_start(arg, fmt);
+      std::vfprintf(stderr, fmt2, arg);
+      va_end(arg);
+    }
+  }
+  #define debug(fmt,...) _log(fmt"\n", ##__VA_ARGS__)
+  
 public:
   
-  static unsigned int get_routing_time(unsigned int core1, unsigned int core2) {
-    return 1;
-  }
-  
-  void print_tour(std::vector<unsigned int> tour);
-  bool verify_schedule_passes_constraints(MpSchedule schedule);
-  
-  MpSchedule convert_tour_to_schedule(std::vector<unsigned int> tour);
+  void print_mapping(std::vector<unsigned int> tour);
   
   // Assumes that all task precedence_levels are contiguous e.g. 1,2,3,4 and not 1,15,23,25,26,40
-  MpsProblem(std::vector<Task>* tasks, std::vector<Core>* cores);
+  MpsProblem(SymmetricMatrix<unsigned int>* routing_costs,
+             Matrix<unsigned int>*          run_times,
+             DirectedAcyclicGraph*          task_precedence,
+             std::vector<unsigned int>*     task_scheduling_order);
   ~MpsProblem();
   unsigned int get_max_tour_size();
+  
+  // Number of vertices in the construction graph
   unsigned int number_of_vertices();
   
   // Vertex ids must be 0...number_of_vertices() - 1
@@ -127,7 +160,7 @@ namespace Parser {
   // Assumptions: There should be one start node, which has a path to all other 'nodes'. This avoids
   // situations with independent chains of priority e.g. 1-->2-->3<--2<--1 (a 2 is valid to run after a 1 completes,
   // which does not match our programming assumptions)
-  std::vector<Task>* parse_stg(const char *filepath) throw(FileNotFoundException);
+  std::vector<Task>* parse_stg(const char *filepath, DirectedAcyclicGraph* &out_graph) throw(FileNotFoundException);
 }
 
 

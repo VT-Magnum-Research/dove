@@ -183,7 +183,7 @@ static void terminate(int signal) {
   std::cout << std::endl;
   std::cout << "best\tordering" << std::endl;
   std::cout << colony->get_best_tour_length() << "\t";
-  mpsproblem->print_tour(colony->get_best_tour());
+  //mpsproblem->print_tour(colony->get_best_tour());
   std::cout << std::endl;
   delete colony;
   exit(EXIT_SUCCESS);
@@ -218,6 +218,14 @@ double timer2() {
 }
 
 
+bool precedence_sort(Task a, Task b) {
+  return a.pred_level_ < b.pred_level_;
+}
+
+bool identifier_sort(Task a, Task b) {
+  return a.int_identifier_ < b.int_identifier_;
+}
+
 int main(int argc, char *argv[]) {
   signal(SIGINT, terminate);
   try {
@@ -227,10 +235,6 @@ int main(int argc, char *argv[]) {
     exit(EXIT_SUCCESS);
   }
   
-  std::vector<Task>* tasks = Parser::parse_stg(filepath.c_str());
-  
-  OptimizationProblem *problem;
-  
   std::vector<Core> touse(cores_used);
   for (int i = 0; i < cores_used; i++)
   {
@@ -238,10 +242,34 @@ int main(int argc, char *argv[]) {
     oss << "Core " << i;
     touse[i].identifier_ = oss.str();
   }
-  mpsproblem = new MpsProblem(tasks, &touse);
-  problem = mpsproblem;
+
+  DirectedAcyclicGraph* task_precedence = NULL;
+  std::vector<Task>* tasks = Parser::parse_stg(filepath.c_str(), task_precedence);
+  std::sort(tasks->begin(), tasks->end(), identifier_sort);
+  
+  // Assuming that all communication costs are uniform and are equally zero
+  SymmetricMatrix<unsigned int>* routing_costs = new SymmetricMatrix<unsigned int>((int) touse.size(), 0);
+  
+  // Build the run times by combining information about cores and tasks
+  // We are assuming homogeneous processors for now
+  Matrix<unsigned int>* run_times = new Matrix<unsigned int>((int) tasks->size(), (int) touse.size(), 0);
+  for (int task = 0; task < tasks->size(); task++)
+    for (int core = 0; core < touse.size(); core++)
+      (*run_times)[task][core] = tasks->at(task).execution_time_;
+  
+  
+  // Reorder tasks by precedence to create at least a simple but somewhat reasonable sorting order
+  std::sort(tasks->begin(), tasks->end(), precedence_sort);
+  std::vector<unsigned int> task_scheduling_order(tasks->size());
+  for (int task = 0; task < tasks->size(); task++)
+    task_scheduling_order[task] = tasks->at(task).int_identifier_;
+
+  OptimizationProblem *problem = new MpsProblem(routing_costs, run_times, task_precedence, &task_scheduling_order);
   
   colony = get_ant_colony(problem);
+  
+
+  problem->get_feasible_start_vertices();
   
   //std::cout << "iter\ttime\tbest\tbest_it";
   //std::cout << ((stagnation_measure != STAG_NONE) ? "\tstagnation" : "");
@@ -266,7 +294,7 @@ int main(int argc, char *argv[]) {
     
     if(print_tour_flag) {
       std::cout << "\t";
-      mpsproblem->print_tour(colony->get_best_tour_in_iteration());
+      // TODO mpsproblem->print_tour(colony->get_best_tour_in_iteration());
     }
     
     //std::cout << std::endl;

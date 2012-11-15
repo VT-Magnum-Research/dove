@@ -27,6 +27,9 @@ struct Task {
   // to a unique number
   std::string identifier_;
   
+  // Another possible unique identifier
+  unsigned int int_identifier_;
+  
   Task() : pred_level_(0), scheduled_(false), execution_time_(0), identifier_("") {}
   
   const char* get_cstr() {
