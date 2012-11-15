@@ -1,3 +1,6 @@
+#ifndef __AntHybrid__graph__
+#define __AntHybrid__graph__
+
 #include <vector>
 #include <map>
 #include <string>
@@ -25,6 +28,14 @@ template <class T> class Row {
     }
 
     T &operator[](unsigned int i) {
+      return (*values_)[i];
+    }
+  
+    long size() {
+      return values_->size();
+    }
+  
+    T &at(unsigned int i) {
       return (*values_)[i];
     }
 };
@@ -72,6 +83,16 @@ template <class T> class Matrix {
     }
 };
 
+template <typename T> class SymmetricMatrix : public Matrix<T> {
+public:
+  SymmetricMatrix(unsigned int vertices, T value) : Matrix<T>(vertices, vertices, value) {
+  }
+  void set_value(unsigned int v, unsigned int w, T value) {
+    (*Matrix<T>::matrix_)[v][w] = value;
+    (*Matrix<T>::matrix_)[w][v] = value;
+  }
+};
+
 class Graph {
   public:
     virtual ~Graph() {}
@@ -96,12 +117,19 @@ class AdjacencyMatrixGraph : public Graph, public Matrix<unsigned short int> {
     unsigned int get_degree(unsigned int vertex) const;
 };
 
-class DirectedAdjacencyMatrixGraph : public AdjacencyMatrixGraph {
+class DirectedAcyclicGraph : public Matrix<unsigned int> {
   
 public:
-  DirectedAdjacencyMatrixGraph(unsigned int vertices);
+  DirectedAcyclicGraph(unsigned int vertices);
   void add_edge(unsigned int from, unsigned int to);
   std::vector<unsigned int> get_successors(unsigned int vertex) const;
+  
+  // Returns a row of all potential successors. Any integers that are
+  // non-zero indicate that this is a potential successor
+  inline Row<unsigned int> &get_successor_row(unsigned int vertex) {
+    return (*matrix_)[vertex];
+  }
+
   std::vector<unsigned int> get_predecessors(unsigned int vertex) const;
 };
 
@@ -194,3 +222,4 @@ class HyperGraph {
       return *graph;
     }
 };
+#endif /* defined(__AntHybrid__graph__) */ 

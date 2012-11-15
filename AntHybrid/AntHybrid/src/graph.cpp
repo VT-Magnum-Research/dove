@@ -1,4 +1,4 @@
-#include <libaco/graph.h>
+#include "graph.h"
 
 AdjacencyMatrixGraph::AdjacencyMatrixGraph(unsigned int vertices) : Matrix<unsigned short int>(vertices, vertices, 0) {
 }
@@ -49,16 +49,16 @@ unsigned int AdjacencyMatrixGraph::get_degree(unsigned int vertex) const {
   return degree;
 }
 
-DirectedAdjacencyMatrixGraph::DirectedAdjacencyMatrixGraph(unsigned int vertices) : AdjacencyMatrixGraph(vertices) {
+DirectedAcyclicGraph::DirectedAcyclicGraph(unsigned int vertices) : Matrix<unsigned int>(vertices, vertices, 0) {
 }
 
-void DirectedAdjacencyMatrixGraph::add_edge(unsigned int v_from, unsigned int w_to) {
+void DirectedAcyclicGraph::add_edge(unsigned int v_from, unsigned int w_to) {
   (*matrix_)[v_from][w_to] = 1;
 }
 
-std::vector<unsigned int> DirectedAdjacencyMatrixGraph::get_successors(unsigned int vertex) const {
+std::vector<unsigned int> DirectedAcyclicGraph::get_successors(unsigned int vertex) const {
   std::vector<unsigned int> successors;
-  for(unsigned int i=0;i<number_of_vertices();i++) {
+  for(unsigned int i=0;i<matrix_->size();i++) {
     if((*matrix_)[vertex][i]) {
       successors.push_back(i);
     }
@@ -66,9 +66,11 @@ std::vector<unsigned int> DirectedAdjacencyMatrixGraph::get_successors(unsigned 
   return successors;
 }
 
-std::vector<unsigned int> DirectedAdjacencyMatrixGraph::get_predecessors(unsigned int vertex) const {
+
+
+std::vector<unsigned int> DirectedAcyclicGraph::get_predecessors(unsigned int vertex) const {
   std::vector<unsigned int> predecessors;
-  for(unsigned int i=0;i<number_of_vertices();i++) {
+  for(unsigned int i=0;i < matrix_->size() ;i++) {
     if((*matrix_)[i][vertex]) {
       predecessors.push_back(i);
     }
