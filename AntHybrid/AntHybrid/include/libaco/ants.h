@@ -381,10 +381,9 @@ template<class T=Ant, class P=PheromoneMatrix> class AntColony {
     }
 
     virtual void update_pheromones() = 0;
-  protected:
+
+protected:
     P *pheromones_;
-    double alpha_;
-    double beta_;
     AntColonyConfiguration::LocalSearchType local_search_type_;
     std::list<T> *ants_;
     OptimizationProblem *problem_;
@@ -394,6 +393,9 @@ template<class T=Ant, class P=PheromoneMatrix> class AntColony {
     T *best_iteration_no_ls_;
 
   public:
+    double alpha_;
+    double beta_;
+  
     AntColony(OptimizationProblem *problem, const AntColonyConfiguration &config) {
       problem_ = problem;
       ants_ = new std::list<T>(config.number_of_ants, T(problem->get_max_tour_size()));

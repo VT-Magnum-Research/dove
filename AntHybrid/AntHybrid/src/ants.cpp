@@ -219,6 +219,7 @@ int Ant::current_vertex() {
 
 std::multimap<double,unsigned int,Ant::MultiMapComp> Ant::get_feasible_vertices(OptimizationProblem &op, PheromoneMatrix &pheromones, double alpha, double beta) {
   std::map<unsigned int,double> vertices;
+  bool should_debug = false;
   if(current_vertex() == -1) {
     vertices = op.get_feasible_start_vertices();
   } else {
@@ -234,9 +235,16 @@ std::multimap<double,unsigned int,Ant::MultiMapComp> Ant::get_feasible_vertices(
       (*it).second = numerator;
       denominator += numerator;
     } else {
+
       double numerator = pow(pheromones.get(current_vertex(), vertex), alpha) * pow(heuristic_value, beta);
       (*it).second = numerator;
       denominator += numerator;
+      
+      if (should_debug) {
+        std::cerr << "\tEdge to " << vertex  << std::endl;
+        std::cerr << "\tpow(" << pheromones.get(current_vertex(), vertex) << "," << alpha << ") * pow(" << heuristic_value << "," << beta << ")" << std::endl;
+        std::cerr << "\tNumertor is " << numerator << " and current denom = " << denominator << std::endl;
+      }
     }
   }
 
@@ -251,6 +259,9 @@ std::multimap<double,unsigned int,Ant::MultiMapComp> Ant::get_feasible_vertices(
     } else {
       probability = (*it).second / denominator;
     }
+    if (should_debug) 
+      std::cerr << "Edge to " << vertex << " has probability " << probability << std::endl;
+    
     //std::cout << pheromones.get(current_vertex(), vertex) << " " << heuristic_value << std::endl;
     //std::cout << "vertex: " << vertex << " heuristic: " << heuristic_value << " probability: " << probability << std::endl;
     probabilities.insert(std::pair<double,unsigned int>(probability, vertex));
