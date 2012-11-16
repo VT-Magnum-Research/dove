@@ -1,3 +1,12 @@
+v0.2
+
+In this version the pheromone matrix is {core * task}, and the ordering
+of all tasks is fixed before the ants can run. Therefore the ants cannot
+wander randomly through the graph, they must wander from column to column
+in an increasing fashion. The first and last columns only have a single 
+valid node, meaning that ants are literally wandering from start to end
+trying to find the shortest path. 
+
 v0.1
 
 This version is the initial ACO, using the tour path as the 

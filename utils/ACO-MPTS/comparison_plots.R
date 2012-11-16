@@ -1,5 +1,5 @@
 # Read Data In
-data = read.csv(file.open(), colClasses=c(rep("numeric", 11)))
+data = read.csv(file.open(), colClasses=c(rep("numeric", 15)))
 names(data)
 
 data$best_improv = ((data$opt - data$best) / data$opt)
