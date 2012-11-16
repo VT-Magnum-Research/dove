@@ -4,16 +4,34 @@ import os
 import shlex
 import subprocess 
 from copy import deepcopy
+import random
 
-ants = 15
-iterations = 10
-rounds = 4
-stg_path = '/home/hamiltont/STG-benchmarks/'
-ant_path = '/home/hamiltont/AntHybrid'
-#stg_path = '/Users/hamiltont/Research/Qualifier/code/STG-benchmarks/'
-#ant_path = '/Users/hamiltont/Research/Qualifier/code/AntHybrid/build/Debug/AntHybrid'
-argument_variations = ["simple"] #, "rank 5", "elitist 0.7", "rank 50", "maxmin", "acs"]
-cores=[2, 4]#, 8, 16] 
+ants                = 60
+iterations          = 100
+alpha               = 2
+beta                = 0.85
+argument_variations = ["--acs --acs_q0 0.5 --acs_xi 0.1"]
+cores               = [2, 4, 8, 16] 
+task_heterogeneity  = [1, 2, 4, 8, 16]
+core_heterogeneity  = [1, 2, 4, 8, 16]
+route_heter         = [1, 2, 4, 8, 16]
+
+# Total tasks per sample: 
+#   4 core
+#   5 task heter
+#   5 core heter
+#   5 route heter
+# * 6 STG task counts
+#  ________
+#   3000 per             
+
+# How many times should we run a complete analysis
+samples = 1;
+
+#stg_path    = '/home/hamiltont/STG-benchmarks'
+#binary_path = '/home/hamiltont/AntHybrid'
+stg_path    = '/Users/hamiltont/Research/Qualifier/code/STG-benchmarks'
+binary_path = '/Users/hamiltont/Research/Qualifier/code/AntHybrid/build/Debug/AntHybrid'
 
 def get_file_meta(file_path):
     meta = {}
@@ -29,35 +47,24 @@ def get_file_meta(file_path):
             meta[key] = value
     return meta
    
-'''def getMedian(numericValues):
-    theValues = sorted(numericValues)
-    if len(theValues) % 2 == 1:
-        return theValues[(len(theValues)+1)//2-1]
-    else:
-        lower = theValues[len(theValues)//2-1]
-        upper = theValues[len(theValues)//2]
-        return (float(lower + upper)) / 2  
-
-@TaskGenerator
-def runACO(arg,core,stg):
-    cmd = "%s --%s -c %d -f %s -m %d -i %d" % (ant_path, arg, core, stg, ants, iterations)
-    print "-----------------------------------------------------------"
-    print cmd
-    import shlex
-    import subprocess 
-    cargs = shlex.split(cmd)
-    output,errors = subprocess.Popen(cargs,stdout=subprocess.PIPE,stderr=subprocess.PIPE).communicate()
-    print "Output was %s" % output
-    return output'''
-    
 @TaskGenerator
 def runACOcomplete(task):
-    arg = task['arg']
-    core = task['cores']
+
     stg = task['stg']
     ant = task['ants']
     iter = task['iter']
-    cmd = "%s --%s -c %d -f %s -m %d -i %d" % (ant_path, arg, core, stg, ant, iter)
+    cmd = ("{binary} {args} -c {cores} -f {stg_file} "
+    "-m {ants} -i {iterations} --task_heter {task_h} "
+    "--route_default 1 --route_heter {route_h} "
+    "--core_heter {core_h} ").format(binary     =  binary_path, 
+                                     args       =  task['arg'], 
+                                     cores      =  task['cores'], 
+                                     stg_file   =  task['stg_path'], 
+                                     ants       =  task['ants'], 
+                                     iterations =  task['iter'],
+                                     task_h     =  task['task_h'],
+                                     route_h    =  task['route_h'],
+                                     core_h     =  task['core_h']) 
     print "-----------------------------------------------------------"
     print cmd
     cargs = shlex.split(cmd)
@@ -67,52 +74,54 @@ def runACOcomplete(task):
     score = value.split(",")[0] 
     runtime = value.split(",")[1] 
     newTask = deepcopy(task)
-    newTask.pop('stg')
+    newTask.pop('stg_path')
     newTask.update({'score':float(score), 'time':float(runtime)})
     return newTask
     
-'''@TaskGenerator
-def summarize(results):
-    scores = [] 
-    times = [] 
-    for r in results:
-        value = str(r)
-        score = value.split(",")[0] 
-        time = value.split(",")[1] 
-        scores.append(float(score)) 
-        times.append(float(time))
-        print "\tAchieved %s in  %s cpu cycles" % (score,time)
-     print "Best was %f, s_medians %5.5f, t_median %5.5f" % (min(scores),getMedian(scores),getMedian(times))
-    return ({'s_best':min(scores), 
-          's_median':getMedian(scores), 
-         't_median':getMedian(times)}) '''
-
 tasks = []
-for dname in os.listdir(stg_path):
-    if dname[0] == ".":
+# 6 times multiplier
+for dir in os.listdir(stg_path):
+    if dir[0] == ".":
         continue
-    for fname in os.listdir(stg_path + dname):
-        if fname[0] == ".":
-            continue        
-                
-        for arg in argument_variations:
-            for core in cores:
-                path = "%s%s/%s" % (stg_path,dname,fname)
-                meta = get_file_meta("%s%s/%s" % (stg_path, dname, fname))
-                edges = meta['Edges']
-                edges = edges[:edges.find('/')].strip()
-                opt = meta["%d Proc." % core]
-                opt = opt[opt.rfind(" "):].strip()
-                parallelism = meta["Parallelism"]
-                cp = meta["CP Length"]
-                task_count = dname
-
-                # Build the task inputs
-                task = {'cores':core,'arg':arg,'stg':path,'ants':ants,
-                        'iter':iterations,'opt':opt,'tasks':task_count,'edges':edges,
-                        'cp':cp,'parallelism':parallelism}
-                for round in range(0, rounds):
-                    tasks.append(deepcopy(task))
+    if dir == "CUST":
+        continue
+    
+    # Arbitrary multiplier
+    random.seed(42)
+    for sample in range(samples): 
+        stg_file = 'rand{num:=04}.stg'.format(num=random.randint(0, 178))
+                          
+        # 500 times multiplier
+        for core in cores:
+            for task_h in task_heterogeneity:
+                for core_h in core_heterogeneity:
+                    for route_h in route_heter:
+                        path = "%s/%s/%s" % (stg_path, dir, stg_file)
+                        meta = get_file_meta("%s/%s/%s" % (stg_path, dir, stg_file))
+                        edges = meta['Edges']
+                        edges = edges[:edges.find('/')].strip()
+                        opt = meta["%d Proc." % core]
+                        opt = opt[opt.rfind(" "):].strip()
+                        parallelism = meta["Parallelism"]
+                        cp = meta["CP Length"]
+                        task_count = dir
+                        
+                        # Build the task inputs
+                        task = {'cores'       : core,
+                                'stg'         : stg_file,
+                                'stg_path'    : path,
+                                'ants'        : ants,
+                                'iter'        : iterations,
+                                'opt'         : opt,
+                                'sample'      : sample,
+                                'tasks'       : task_count,
+                                'edges'       : edges,
+                                'cp'          : cp,
+                                'parallelism' : parallelism,
+                                'task_h'      : task_h,
+                                'core_h'      : core_h, 
+                                'route_h'     : route_h}
+                        tasks.append(task)
 results = []
 for task in tasks:
 	results.append(runACOcomplete(task))
