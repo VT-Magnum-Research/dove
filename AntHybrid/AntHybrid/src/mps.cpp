@@ -37,6 +37,10 @@ MpsProblem::~MpsProblem(){
   debug("MpsProblem::~MpsProblem");
 }
 
+void MpsProblem::set_ant_colony(AntColony<Ant>* colony) {
+  colony_ = colony;
+}
+
 unsigned int MpsProblem::get_max_tour_size(){
   debug("MpsProblem::get_max_tour_size: %u", task_size_);
   return task_size_;
@@ -50,24 +54,24 @@ unsigned int MpsProblem::number_of_vertices(){
 
 std::map<unsigned int,double> MpsProblem::get_feasible_start_vertices(){
   debug("MpsProblem::get_feasible_start_vertices");
-  
-  // get the index of the next task to be scheduled
-  unsigned int task = task_scheduling_order_->at(0);
 
   // Start on any processor
-  // Favor verticies where the execution will complete first
   std::map<unsigned int,double> vertices;
-  for (int core = 0; core < core_size_; core++) {
-    double preference = 1.0 / (double) (*running_times_)[task][core];
-    unsigned int vertex_id = get_vertex_for(core, task);
-    vertices[vertex_id] = preference;
-  }
+  vertices[get_vertex_for(0, task_scheduling_order_->front())] = 1.0;
   
   return vertices;
 }
 
 std::map<unsigned int,double> MpsProblem::get_feasible_neighbours(unsigned int vertex){
   debug("MpsProblem::get_feasible_neighbors: %s", debug_vertex(vertex).c_str());
+  
+  // Are we scheduling the next to last task? If so, force all ants onto the
+  // same core and don't bother with a full calculation
+  if (current_tour_length_ == (task_size_ - 1)) {
+    std::map<unsigned int,double> neighbors;
+    neighbors[get_vertex_for(0, task_size_ - 1)] = 1;
+    return neighbors;
+  }
   
   // We know what task is being scheduled currently, so let's get it
   unsigned int task = task_scheduling_order_->at(current_tour_length_);
@@ -90,10 +94,19 @@ std::map<unsigned int,double> MpsProblem::get_feasible_neighbours(unsigned int v
     for (predecessor_iter = predecessors.begin();
          predecessor_iter != predecessors.end();
          predecessor_iter++)
-      total_routing_time += (double) core_routing[*predecessor_iter];
+      total_routing_time = std::max(total_routing_time, (double) core_routing[*predecessor_iter]);
     
     unsigned int vertex_id = get_vertex_for(core, task);
-    neighbors[vertex_id] = total_routing_time / running_time;
+    //neighbors[vertex_id] = total_routing_time / running_time;
+    neighbors[vertex_id] = 1.0 / running_time;
+    debug("\tAssigning %s heuristic %f. Running time is %f. Consider %f",
+          debug_vertex(vertex_id).c_str(), (1/running_time), running_time, (1.0 / running_time));
+  }
+  
+  if (neighbors.size() == 0) {
+    debug("There were no feasible neighbors");
+    log("There were no feasible neighbors");
+    throw "There were no feasible neighbors!";
   }
   
   return neighbors;
@@ -121,7 +134,9 @@ double MpsProblem::eval_tour(const std::vector<unsigned int> &tour){
   std::vector<unsigned int> current_core_completion_time(core_size_, 0);
   std::vector<unsigned int> current_task_completion_time(task_size_, 0);
   
-  for (int cur=0; cur < tour.size(); cur++) {
+  // Start at one to avoid first dummy task, and end at size-1 for the end dummy
+  // node
+  for (int cur = 1; cur < (tour.size() - 1); cur++) {
     unsigned int task = task_scheduling_order_->at(cur);
     unsigned int core = mapping_[task];
     get_task_and_core_from_vertex(tour[cur], task, core);
@@ -138,12 +153,13 @@ double MpsProblem::eval_tour(const std::vector<unsigned int> &tour){
     unsigned int finish_time = min_start_time + run_time;
     current_core_completion_time[core] = finish_time;
   
-    // Delay all of our successors
+    // Delay all of our successors, except for the final dummy node
+    // Node 0 will never be a successor either
     Row<unsigned int> successors = precedence_graph_->get_successor_row(task);
-    for (int cur=0; cur < successors.size(); cur++)
+    for (int cur=1; cur < successors.size() - 1; cur++)
     {
       // Are they actually a successor?
-      if (successors[cur] == 0)
+      if (successors[cur] == 0 )
         continue;
       
       // What is the time to route from my core to theirs?
@@ -174,7 +190,7 @@ double MpsProblem::eval_tour(const std::vector<unsigned int> &tour){
 // ants that there is something better over the hill
 double MpsProblem::pheromone_update(unsigned int vertex, double tour_length){
   
-  unsigned int task, core;
+  /*unsigned int task, core;
   get_task_and_core_from_vertex(vertex, task, core);
   
   // Locate the running time our heuristic (earliest completion time) considers
@@ -198,8 +214,23 @@ double MpsProblem::pheromone_update(unsigned int vertex, double tour_length){
   // the bound
   double pheromone = std::min(percent_of_best_guess_of_heuristic, 2.0) / tour_length;
 
-  debug("MpsProblem::pheromone_update: %s, %f", debug_vertex(vertex).c_str(), pheromone);
   return pheromone;
+   */
+
+  // Pheremone deposit is always between zero and one, and is linearly scaled depending upon
+  // how close this solution was to the best solution
+  //
+  /*double best = colony_->get_best_tour_length();
+  best = std::min(best, colony_->get_best_tour_length_in_iteration());
+  
+  double percent_improvement = (best - tour_length) / best;
+  if (percent_improvement <= 0)
+    return 0;
+  
+  return std::pow(percent_improvement * 100, 1.5);
+   */
+  debug("MpsProblem::pheromone_update: %s, %f", debug_vertex(vertex).c_str(), 3.5);
+  return 3.5;
 }
 
 void MpsProblem::added_vertex_to_tour(unsigned int vertex){
@@ -250,7 +281,7 @@ std::string MpsProblem::debug_vertex(unsigned int vertex) {
   get_task_and_core_from_vertex(vertex, task, core);
   
   std::ostringstream oss;
-  oss << "(C" << core << ",T" << task << ")";
+  oss << "(C" << core << ",T" << task << "):" << vertex;
   return oss.str();
 }
 
@@ -409,7 +440,6 @@ bool MpsProblem::verify_schedule_passes_constraints(MpSchedule schedule) {
                     prior->get_cstr(), cur->get_cstr());
     }
   }
-  
   
   //
   //

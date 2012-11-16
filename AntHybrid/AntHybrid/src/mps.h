@@ -41,7 +41,7 @@ private:
   
   // Should we print the stack and other debug messages as
   // the algorithm runs? 
-  const static bool should_debug = true;
+  const static bool should_debug = false;
   
   // The number of tasks in this problem
   unsigned int task_size_;
@@ -86,6 +86,8 @@ private:
   // Used to cache the result of the tour
   double tour_evaluation_cache;
   
+  AntColony<Ant>* colony_;
+  
   // Allows logging. Prints all messages to stderr currently so I can capture algorithm
   // output and implementation debugging separately
   void _log(const char *fmt, ...)
@@ -104,27 +106,28 @@ private:
   }
   
   
-  
   inline void _debug(const char *fmt, ...) __attribute__((format (printf, 2, 3)))
   {
-    if (should_debug) {
-      char fmt2[300];
-      strcpy(fmt2, fmt);
-      strcpy(fmt2, "\n");
-      
+    if (should_debug) {      
       va_list arg;
       va_start(arg, fmt);
-      std::vfprintf(stderr, fmt2, arg);
+      std::vfprintf(stderr, fmt, arg);
       va_end(arg);
     }
+
   }
-  #define debug(fmt,...) _log(fmt"\n", ##__VA_ARGS__)
+  #define debug(fmt,...) _debug(fmt"\n", ##__VA_ARGS__)
   
 public:
+  
+  void set_ant_colony(AntColony<Ant>* colony);
   
   void print_mapping(std::vector<unsigned int> tour);
   
   // Assumes that all task precedence_levels are contiguous e.g. 1,2,3,4 and not 1,15,23,25,26,40
+  // Passed DAG must ensure that there is one starting node with zero execution time on any core,
+  // and one finishing node with zero execution time on any core, and that their integer_ids
+  // are placed at position zero and position back() in the task_scheduling_order
   MpsProblem(SymmetricMatrix<unsigned int>* routing_costs,
              Matrix<unsigned int>*          run_times,
              DirectedAcyclicGraph*          task_precedence,

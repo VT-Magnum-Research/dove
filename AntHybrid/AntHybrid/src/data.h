@@ -45,8 +45,9 @@ struct Core {
   // to a unique number
   std::string identifier_;
   
-  unsigned int current_task_priority;
-  unsigned int current_task_completion_time;
+  // Allows us to treat different processors in a homogeneous or
+  // heterogeneous fashion
+  unsigned int speed_multiplier_;
 };
 
 #endif

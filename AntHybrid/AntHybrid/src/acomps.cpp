@@ -1,6 +1,7 @@
 #include <iostream>
 #include <string>
 #include <vector>
+#include <algorithm>
 #include <cfloat>
 #include <climits>
 #include <csignal>
@@ -11,7 +12,6 @@
 enum StagnationMeasureType { STAG_NONE, STAG_VARIATION_COEFFICIENT, STAG_LAMBDA_BRANCHING_FACTOR };
 
 static std::string filepath;
-static unsigned int cores_used = 2;
 static unsigned int ants = 10;
 static unsigned int iterations = UINT_MAX;
 static double alpha = 1.0;
@@ -28,6 +28,12 @@ static bool elitist_as_flag = false;
 static bool rank_as_flag = false;
 static bool maxmin_as_flag = false;
 static bool acs_as_flag = false;
+
+static unsigned int cores_used = 2;
+static unsigned int processor_heterogenity = 1;
+static unsigned int routing_heterogenity = 1;
+static unsigned int routing_default=0;
+static unsigned int task_heterogenity = 1;
 
 static double elitist_weight = 2.0;
 static unsigned int ranked_ants = 1;
@@ -55,7 +61,11 @@ static void parse_options(int argc, char *argv[]) {
   TCLAP::ValuesConstraint<unsigned int> allowed_values( allowed );
   TCLAP::ValueArg<std::string> filepath_arg("f", "file", "path to the input file", true, "", "filepath");
   TCLAP::ValueArg<unsigned int> cores_used_arg("c", "cores", "number of homogeneous processing cores. Defaults to 2", false, 2, "positive integer");
+  TCLAP::ValueArg<unsigned int> processor_h_arg("","core_heter", "Processor heterogeneity. 1 specifies homogeneous processors, <int> specifies a limit on processor upper bound that is randomly queried to build a set of heterogeneous processors. Default is 1", false, 1, "positive integer");
   TCLAP::SwitchArg print_tour_arg("o", "printord", "print best elimination ordering in iteration");
+  TCLAP::ValueArg<unsigned int> task_harg("", "task_heter", "task heterogeneity. 1 specifies to leave task homogenity alone, <int> specifies a limit on the upper bound a task completion time can be multiplied by. Default is 1", false, 1, "positive integer");
+  TCLAP::ValueArg<unsigned int> routing_h_arg("","routing_heter", "routing heterogeneity. 1 specifies homogeneous routing delay, <int> specifies a limit on routing delay upper bounds that is randomly queried to build a set of routing delays between the processors. Default is 1", false, 1, "positive integer");
+  TCLAP::ValueArg<unsigned int> routing_def_arg("","route_default", "base routing cost between cores. Default is 0", false, 0, "positive integer");
   TCLAP::SwitchArg stag_variance_arg("", "stag_variance", "compute and print variation coefficient stagnation");
   TCLAP::SwitchArg stag_lambda_arg("", "stag_lambda", "compute and print lambda branching factor stagnation");
   TCLAP::ValueArg<double> time_limit_arg("t", "time", "terminate after n seconds (after last iteration is finished)", false, time_limit, "double");
@@ -81,7 +91,6 @@ static void parse_options(int argc, char *argv[]) {
   cmd.add(rho_arg);
   cmd.add(initial_pheromone_arg);
   cmd.add(filepath_arg);
-  cmd.add(cores_used_arg);
   cmd.add(print_tour_arg);
   cmd.add(stag_variance_arg);
   cmd.add(stag_lambda_arg);
@@ -91,7 +100,16 @@ static void parse_options(int argc, char *argv[]) {
   cmd.add(acs_q0_arg);
   cmd.add(acs_xi_arg);
   cmd.xorAdd(as_variants);
+  
+  cmd.add(cores_used_arg);
+  cmd.add(processor_h_arg);
+  cmd.add(routing_h_arg);
+  cmd.add(routing_def_arg);
+  cmd.add(task_harg);
+
   cmd.parse(argc, argv);
+  
+  
   ants = ants_arg.getValue();
   iterations = iterations_arg.getValue();
   alpha = alpha_arg.getValue();
@@ -99,7 +117,6 @@ static void parse_options(int argc, char *argv[]) {
   rho = rho_arg.getValue();
   initial_pheromone = initial_pheromone_arg.getValue();
   filepath = filepath_arg.getValue();
-  cores_used = cores_used_arg.getValue();
   print_tour_flag = print_tour_arg.getValue();
   stag_variance_flag = stag_variance_arg.getValue();
   stag_lambda_flag = stag_lambda_arg.getValue();
@@ -115,6 +132,13 @@ static void parse_options(int argc, char *argv[]) {
   acs_as_flag = acs_as_arg.isSet();
   acs_q0 = acs_q0_arg.getValue();
   acs_xi = acs_xi_arg.getValue();
+  cores_used = cores_used_arg.getValue();
+  processor_heterogenity=processor_h_arg.getValue();
+  routing_heterogenity=routing_h_arg.getValue();
+  routing_default=routing_def_arg.getValue();
+  task_heterogenity = task_harg.getValue();
+
+
   
   if(stag_variance_arg.isSet()) {
     stagnation_measure = STAG_VARIATION_COEFFICIENT;
@@ -128,14 +152,18 @@ static void set_config(AntColonyConfiguration &config) {
   config.alpha = alpha;
   config.beta = beta;
   config.evaporation_rate = rho;
-  config.initial_pheromone = initial_pheromone;
+  if (initial_pheromone != -1)
+    config.initial_pheromone = initial_pheromone;
+  else
+    config.initial_pheromone = 0;
 }
 
 static void set_initial_pheromone(OptimizationProblem *problem, AntColonyConfiguration &config) {
-  if(config.initial_pheromone == -1.0) {
-    double initial_pheromone = compute_average_pheromone_update(*problem) * config.number_of_ants;
-    config.initial_pheromone = initial_pheromone * (1.0 / ants);
-  }
+  //if(config.initial_pheromone == -1.0) {
+  //  double initial_pheromone = compute_average_pheromone_update(*problem) * config.number_of_ants;
+  //  config.initial_pheromone = initial_pheromone * (1.0 / ants);
+  //}
+  config.initial_pheromone = 2;
 }
 
 AntColony<Ant> *get_ant_colony(OptimizationProblem *problem) {
@@ -177,16 +205,13 @@ AntColony<Ant> *get_ant_colony(OptimizationProblem *problem) {
 }
 
 static void terminate(int signal) {
-  if (mpsproblem == NULL)
-    exit(EXIT_SUCCESS);
-  
-  std::cout << std::endl;
-  std::cout << "best\tordering" << std::endl;
-  std::cout << colony->get_best_tour_length() << "\t";
+  //std::cout << std::endl;
+  //std::cout << "best\tordering" << std::endl;
+  //std::cout << colony->get_best_tour_length() << "\t";
   //mpsproblem->print_tour(colony->get_best_tour());
-  std::cout << std::endl;
+  //std::cout << std::endl;
   delete colony;
-  exit(EXIT_SUCCESS);
+  exit(EXIT_FAILURE);
 }
 
 double timer() {
@@ -226,6 +251,78 @@ bool identifier_sort(Task a, Task b) {
   return a.int_identifier_ < b.int_identifier_;
 }
 
+void run_entire_aco(DirectedAcyclicGraph* task_precedence,
+                    SymmetricMatrix<unsigned int>* routing_costs,
+                    Matrix<unsigned int>* run_times,
+                    std::vector<unsigned int>* task_scheduling_order) {
+  
+  MpsProblem *problem = new MpsProblem(routing_costs, run_times, task_precedence, task_scheduling_order);
+  colony = get_ant_colony(problem);
+  problem->set_ant_colony(colony);
+  
+  problem->get_feasible_start_vertices();
+  std::ostream* info = &std::cerr;
+  
+  *info << "iter\ttime\tbest\tbest_it\talpha\tbeta";
+  *info << ((stagnation_measure != STAG_NONE) ? "\tstagnation" : "");
+  *info << (print_tour_flag ? "\tordering" : "");
+  *info << std::endl;
+  
+  timer();
+  timer2();
+  for(unsigned int i=0;i<iterations && timer() < time_limit;i++) {
+    colony->run();
+    *info << (i+1) << "\t";
+    *info << timer() << "\t";
+    *info << colony->get_best_tour_length() << "\t";
+    *info << colony->get_best_tour_length_in_iteration() << "\t";
+    *info << colony->alpha_ << "\t" << colony->beta_ << "\t";
+    
+    // colony->alpha_ = colony->alpha_ * 1.25;
+    //if (colony->beta_ != 0)
+    //  colony->beta_ = colony->beta_ - 10;
+    
+    if(stagnation_measure == STAG_VARIATION_COEFFICIENT) {
+      *info << colony->get_variation_coefficient();
+    }
+    
+    if(stagnation_measure == STAG_LAMBDA_BRANCHING_FACTOR) {
+      *info << colony->get_lambda_branching_factor();
+    }
+    
+    if(print_tour_flag) {
+      std::cout << "\t";
+      // TODO mpsproblem->print_tour(colony->get_best_tour_in_iteration());
+    }
+    
+    *info << std::endl;
+  }
+  *info << std::endl;
+  *info << "best\tordering" << std::endl;
+  *info << colony->get_best_tour_length() << "," << timer2();
+  std::cout << colony->get_best_tour_length() << "," << timer2();
+  
+  //mpsproblem->print_tour(colony->get_best_tour());
+  
+  //MpSchedule schedule = mpsproblem->convert_tour_to_schedule(colony->get_best_tour());
+  //bool verify = mpsproblem->verify_schedule_passes_constraints(schedule);
+  
+  //schedule.print_schedule_as_page();
+}
+double unifRand()
+{
+  return rand() / double(RAND_MAX);
+}
+//
+// Generate a random number in a real interval.
+// param a one end point of the interval
+// param b the other end of the interval
+// return a inform rand numberin [a,b].
+unsigned int unifRand(double a, double b)
+{
+  return (unsigned int)((b-a)*1.0*unifRand() + a);
+}
+
 int main(int argc, char *argv[]) {
   signal(SIGINT, terminate);
   try {
@@ -241,79 +338,70 @@ int main(int argc, char *argv[]) {
     std::ostringstream oss;
     oss << "Core " << i;
     touse[i].identifier_ = oss.str();
+    touse[i].speed_multiplier_ = 1;
+    if (processor_heterogenity != 1.0)
+      touse[i].speed_multiplier_ *= unifRand(1, processor_heterogenity);
   }
+  
 
   DirectedAcyclicGraph* task_precedence = NULL;
   std::vector<Task>* tasks = Parser::parse_stg(filepath.c_str(), task_precedence);
+  for (int i =0; i<tasks->size(); i++)
+    tasks->at(i).execution_time_ = tasks->at(i).execution_time_ * unifRand(1, task_heterogenity);
+  
   std::sort(tasks->begin(), tasks->end(), identifier_sort);
   
-  // Assuming that all communication costs are uniform and are equally zero
-  SymmetricMatrix<unsigned int>* routing_costs = new SymmetricMatrix<unsigned int>((int) touse.size(), 0);
+  SymmetricMatrix<unsigned int>* routing_costs = new SymmetricMatrix<unsigned int>((int) touse.size(), routing_default);
+  for (int i =0; i<cores_used; i++)
+      for (int j =0; j<cores_used; j++)
+        (*routing_costs)[i][j] *= routing_default * unifRand(1, routing_heterogenity);
+  
   
   // Build the run times by combining information about cores and tasks
-  // We are assuming homogeneous processors for now
   Matrix<unsigned int>* run_times = new Matrix<unsigned int>((int) tasks->size(), (int) touse.size(), 0);
   for (int task = 0; task < tasks->size(); task++)
     for (int core = 0; core < touse.size(); core++)
-      (*run_times)[task][core] = tasks->at(task).execution_time_;
-  
-  
-  // Reorder tasks by precedence to create at least a simple but somewhat reasonable sorting order
+      (*run_times)[task][core] = tasks->at(task).execution_time_ * touse[core].speed_multiplier_;
+
+  // Initially reorder tasks by precedence to create at least a simple but somewhat reasonable sorting order
+  // then flatten into scheduling order
   std::sort(tasks->begin(), tasks->end(), precedence_sort);
-  std::vector<unsigned int> task_scheduling_order(tasks->size());
+  std::vector<unsigned int> scheduling_order(tasks->size());
   for (int task = 0; task < tasks->size(); task++)
-    task_scheduling_order[task] = tasks->at(task).int_identifier_;
+    scheduling_order[task] = tasks->at(task).int_identifier_;
+  run_entire_aco(task_precedence, routing_costs, run_times, &scheduling_order);
 
-  OptimizationProblem *problem = new MpsProblem(routing_costs, run_times, task_precedence, &task_scheduling_order);
-  
-  colony = get_ant_colony(problem);
-  
+  /* Methods for hybrid
+  // Create a number of large-scale exploration steps to guide the ACO
+  srand ( (int) time(NULL) );
+  for (int i = 0; i < 400; i++) {
+    // Randomly shuffle items, not allowing precedence overlap in sorting order
+    unsigned int current_pred = 2;
+    while (current_pred != tasks->back().pred_level_ - 1) {
+      // Find the first task that has current pred
+      std::vector<Task>::iterator begin = tasks->begin();
+      while (begin->pred_level_ != current_pred)
+        ++begin;
+      
+      std::vector<Task>::iterator end(begin);
+      while (end->pred_level_ != current_pred + 1)
+        ++end;
+      --end;
+      
+      std::random_shuffle(begin, end);
+      ++current_pred;
+    }
+    
+    std::vector<unsigned int> scheduling_order(tasks->size());
+    for (int task = 0; task < tasks->size(); task++)
+      scheduling_order[task] = tasks->at(task).int_identifier_;
+    
+    run_entire_aco(task_precedence, routing_costs, run_times, &scheduling_order);
+  }*/
 
-  problem->get_feasible_start_vertices();
+  delete task_precedence;
+  delete routing_costs;
+  delete run_times;
   
-  //std::cout << "iter\ttime\tbest\tbest_it";
-  //std::cout << ((stagnation_measure != STAG_NONE) ? "\tstagnation" : "");
-  //std::cout << (print_tour_flag ? "\tordering" : "");
-  //std::cout << std::endl;
-  timer();
-  timer2();
-  for(unsigned int i=0;i<iterations && timer() < time_limit;i++) {
-    colony->run();
-    //std::cout << (i+1) << "\t";
-    //std::cout << timer() << "\t";
-    //std::cout << colony->get_best_tour_length() << "\t";
-    //std::cout << colony->get_best_tour_length_in_iteration() << "\t";
-    
-    if(stagnation_measure == STAG_VARIATION_COEFFICIENT) {
-      std::cout << colony->get_variation_coefficient();
-    }
-    
-    if(stagnation_measure == STAG_LAMBDA_BRANCHING_FACTOR) {
-      std::cout << colony->get_lambda_branching_factor();
-    }
-    
-    if(print_tour_flag) {
-      std::cout << "\t";
-      // TODO mpsproblem->print_tour(colony->get_best_tour_in_iteration());
-    }
-    
-    //std::cout << std::endl;
-  }
-  //std::cout << std::endl;
-  //std::cout << "best\tordering" << std::endl;
-  std::cout << colony->get_best_tour_length() << "," << timer2();
-  //mpsproblem->print_tour(colony->get_best_tour());
-  
-  //MpSchedule schedule = mpsproblem->convert_tour_to_schedule(colony->get_best_tour());
-  //bool verify = mpsproblem->verify_schedule_passes_constraints(schedule);
-  
-  //schedule.print_schedule_as_page();
-  
-  //std::cout << std::endl;
   delete colony;
-  
-  //if (!verify)
-  //  exit(EXIT_FAILURE);
-  //else
-  //  exit(EXIT_SUCCESS);
 }
