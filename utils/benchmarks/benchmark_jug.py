@@ -1,17 +1,19 @@
 from jug.task import TaskGenerator
 from jug import Task
 import os
+import shlex
+import subprocess 
+from copy import deepcopy
 
-ants = 10
-iterations = 100
-rounds = 100;
+ants = 15
+iterations = 10
+rounds = 4
 stg_path = '/home/hamiltont/STG-benchmarks/'
 ant_path = '/home/hamiltont/AntHybrid'
 #stg_path = '/Users/hamiltont/Research/Qualifier/code/STG-benchmarks/'
 #ant_path = '/Users/hamiltont/Research/Qualifier/code/AntHybrid/build/Debug/AntHybrid'
-argument_variations = ["rank 3"] #"simple", "elitist 0.7", "rank 50", "maxmin", "acs"]
-cores=[2, 4, 8, 16]
-results = [] 
+argument_variations = ["simple"] #, "rank 5", "elitist 0.7", "rank 50", "maxmin", "acs"]
+cores=[2, 4]#, 8, 16] 
 
 def get_file_meta(file_path):
     meta = {}
@@ -27,7 +29,7 @@ def get_file_meta(file_path):
             meta[key] = value
     return meta
    
-def getMedian(numericValues):
+'''def getMedian(numericValues):
     theValues = sorted(numericValues)
     if len(theValues) % 2 == 1:
         return theValues[(len(theValues)+1)//2-1]
@@ -36,19 +38,40 @@ def getMedian(numericValues):
         upper = theValues[len(theValues)//2]
         return (float(lower + upper)) / 2  
 
+@TaskGenerator
 def runACO(arg,core,stg):
     cmd = "%s --%s -c %d -f %s -m %d -i %d" % (ant_path, arg, core, stg, ants, iterations)
+    print "-----------------------------------------------------------"
+    print cmd
     import shlex
     import subprocess 
     cargs = shlex.split(cmd)
     output,errors = subprocess.Popen(cargs,stdout=subprocess.PIPE,stderr=subprocess.PIPE).communicate()
-    return output
+    print "Output was %s" % output
+    return output'''
     
-def getBest(numericValues):
-    values = sorted(numericValues)
-    best = values[:-1]
-    return best
-
+@TaskGenerator
+def runACOcomplete(task):
+    arg = task['arg']
+    core = task['cores']
+    stg = task['stg']
+    ant = task['ants']
+    iter = task['iter']
+    cmd = "%s --%s -c %d -f %s -m %d -i %d" % (ant_path, arg, core, stg, ant, iter)
+    print "-----------------------------------------------------------"
+    print cmd
+    cargs = shlex.split(cmd)
+    output,errors = subprocess.Popen(cargs,stdout=subprocess.PIPE,stderr=subprocess.PIPE).communicate()
+    value = str(output)
+    print "Output was %s" % value
+    score = value.split(",")[0] 
+    runtime = value.split(",")[1] 
+    newTask = deepcopy(task)
+    newTask.pop('stg')
+    newTask.update({'score':float(score), 'time':float(runtime)})
+    return newTask
+    
+'''@TaskGenerator
 def summarize(results):
     scores = [] 
     times = [] 
@@ -57,17 +80,14 @@ def summarize(results):
         score = value.split(",")[0] 
         time = value.split(",")[1] 
         scores.append(float(score)) 
-        times.append(float(time)) 
-    return ({'s_best':getBest(scores), 
+        times.append(float(time))
+        print "\tAchieved %s in  %s cpu cycles" % (score,time)
+     print "Best was %f, s_medians %5.5f, t_median %5.5f" % (min(scores),getMedian(scores),getMedian(times))
+    return ({'s_best':min(scores), 
           's_median':getMedian(scores), 
-         't_median':getMedian(times)}) 
+         't_median':getMedian(times)}) '''
 
-def runTrial(rounds, path, core):
-    scores = []
-    times = []
-    results = [Task(runACO,arg,core,path) for i in range(0,rounds)]
-    return Task(summarize,results)
-
+tasks = []
 for dname in os.listdir(stg_path):
     if dname[0] == ".":
         continue
@@ -78,9 +98,6 @@ for dname in os.listdir(stg_path):
         for arg in argument_variations:
             for core in cores:
                 path = "%s%s/%s" % (stg_path,dname,fname)
-                data = runTrial(rounds, path, core)
-                
-                # Stores data for this trial
                 meta = get_file_meta("%s%s/%s" % (stg_path, dname, fname))
                 edges = meta['Edges']
                 edges = edges[:edges.find('/')].strip()
@@ -88,13 +105,15 @@ for dname in os.listdir(stg_path):
                 opt = opt[opt.rfind(" "):].strip()
                 parallelism = meta["Parallelism"]
                 cp = meta["CP Length"]
-                meta = 0; # Free up meta with this many tasks
-                tasks = dname
-                s_best = data['s_best']
-                s_median = data['s_median']
-                t_median = data['t_median']
-                trial = {'arg':arg, 'ants':ants, 'iter':iterations, 'cores': core, 
-                         's_opt':opt, 'tasks': tasks, 'edges': edges, 'cp':cp,
-                        'parallelism':parallelism, 's_best': s_best, 
-                        's_median': s_median, 't_median': t_median}
-                results.append(trial)
+                task_count = dname
+
+                # Build the task inputs
+                task = {'cores':core,'arg':arg,'stg':path,'ants':ants,
+                        'iter':iterations,'opt':opt,'tasks':task_count,'edges':edges,
+                        'cp':cp,'parallelism':parallelism}
+                for round in range(0, rounds):
+                    tasks.append(deepcopy(task))
+results = []
+for task in tasks:
+	results.append(runACOcomplete(task))
+
