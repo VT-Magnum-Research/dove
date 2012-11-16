@@ -1,16 +1,16 @@
 all: bin/AntHybrid
 
-bin/AntHybrid: libaco liblocalsearch bin/mps.o bin/acomps.o
-	g++ bin/mps.o bin/acomps.o -Llib/ -laco -o bin/AntHybrid
+bin/AntHybrid: utils	
+	g++ -Wall -Isrc/utils -c src/mps.cpp -o build/mps.o
+	g++ -Wall -Isrc/utils -c src/acomps.cpp -o build/acomps.o
+	g++ -Wall -o bin/AntHybrid build/*.o
 
-bin/acomps.o: src/acomps.cpp include/acomps/mps.h include/libaco/ants.h include/libaco/graph.h include/libaco/util.h include/mps.h
-	g++ -Wall -ansi -I include/ -c src/acomps.cpp -o bin/acomps.o
-
-acomps/%.h:
-	cp src/$*.h include/
-
-bin/utils:
-	g++ -Wall -ansi -I include/ -c src/mps.cpp -o bin/mps.o
+utils:
+	g++ -Wall -c src/utils/ants.cpp -o build/ants.o
+	g++ -Wall -c src/utils/graph.cpp -o build/graph.o
+	g++ -Wall -c src/utils/localsearch.cpp -o build/localsearch.o
+	g++ -Wall -c src/utils/util.cpp -o build/util.o
 
 clean: .
-	rm bin/*
+	rm build/*.o
+	rm bin/AntHybrid

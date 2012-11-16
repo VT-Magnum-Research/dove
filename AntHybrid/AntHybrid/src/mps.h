@@ -17,7 +17,6 @@
 #include <string.h>
 #include <stdio.h>
 #include <stdarg.h>
-#include "graph.h"
 
 #include "util.h"
 
@@ -25,6 +24,7 @@
 #include "data.h"
 //#include "MpSchedule.h"
 
+#include "graph.h"
 
 /// Multiprocessor scheduling using the libaco implemenation.
 //   At the basic level, this does nothing more than allocate

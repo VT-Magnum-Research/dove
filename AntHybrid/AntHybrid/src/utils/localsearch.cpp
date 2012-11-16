@@ -1,10 +1,10 @@
 #include <iostream>
-#include <liblocalsearch/localsearch.h>
+#include "localsearch.h"
 
 unsigned int random_number(unsigned int range) {
   static bool seeded = false;
   if(!seeded) {
-    srand(time(0));
+    srand((int ) time(0));
     seeded = true;
   }
   return (rand() % range);

@@ -4,8 +4,8 @@
 #include <list>
 #include <cmath>
 #include <cfloat>
-#include <libaco/ants.h>
-#include <libaco/util.h>
+#include "ants.h"
+#include "util.h"
 
 PheromoneMatrix::PheromoneMatrix(int vertices, double evaporation_rate, double initial_pheromone) : Matrix<double>(vertices, vertices, initial_pheromone) {
   evaporation_rate_ = evaporation_rate;
@@ -531,6 +531,3 @@ void ACSAntColony::update_pheromones() {
   }
   best_so_far_->offline_pheromone_update(*problem_, *pheromones_);
 }
-
-#endif /* defined(__AntHybrid__hybrid__) */
-
