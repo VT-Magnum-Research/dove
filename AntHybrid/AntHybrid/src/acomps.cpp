@@ -5,7 +5,8 @@
 #include <cfloat>
 #include <climits>
 #include <csignal>
-#include <tclap/CmdLine.h>
+#include "tclap/CmdLine.h"
+#include "ants.h"
 
 #include "mps.h"
 
