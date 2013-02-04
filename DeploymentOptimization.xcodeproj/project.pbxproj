@@ -7,8 +7,11 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		5D38720A16B874A70062B72E /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 5D38720916B874A70062B72E /* main.cpp */; };
+		5D38720A16B874A70062B72E /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 5D38720916B874A70062B72E /* main.cpp */; settings = {COMPILER_FLAGS = "-lmpi"; }; };
 		5D38720C16B874A70062B72E /* DeploymentOptimization.1 in CopyFiles */ = {isa = PBXBuildFile; fileRef = 5D38720B16B874A70062B72E /* DeploymentOptimization.1 */; };
+		5D5EE94416B890F90048FA6E /* libboost_mpi.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 5D5EE94016B87E320048FA6E /* libboost_mpi.dylib */; };
+		5D5EE94616B8910D0048FA6E /* libmpi.1.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 5D5EE94516B8910D0048FA6E /* libmpi.1.dylib */; };
+		5D5EE94816B892BF0048FA6E /* libmpi_cxx.1.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 5D5EE94716B892BF0048FA6E /* libmpi_cxx.1.dylib */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -28,6 +31,9 @@
 		5D38720516B874A70062B72E /* DeploymentOptimization */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = DeploymentOptimization; sourceTree = BUILT_PRODUCTS_DIR; };
 		5D38720916B874A70062B72E /* main.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = main.cpp; sourceTree = "<group>"; };
 		5D38720B16B874A70062B72E /* DeploymentOptimization.1 */ = {isa = PBXFileReference; lastKnownFileType = text.man; path = DeploymentOptimization.1; sourceTree = "<group>"; };
+		5D5EE94016B87E320048FA6E /* libboost_mpi.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libboost_mpi.dylib; path = ../../../../../usr/local/lib/libboost_mpi.dylib; sourceTree = "<group>"; };
+		5D5EE94516B8910D0048FA6E /* libmpi.1.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libmpi.1.dylib; path = ../../../../../usr/local/lib/libmpi.1.dylib; sourceTree = "<group>"; };
+		5D5EE94716B892BF0048FA6E /* libmpi_cxx.1.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libmpi_cxx.1.dylib; path = ../../../../../usr/local/lib/libmpi_cxx.1.dylib; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -35,6 +41,9 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				5D5EE94816B892BF0048FA6E /* libmpi_cxx.1.dylib in Frameworks */,
+				5D5EE94616B8910D0048FA6E /* libmpi.1.dylib in Frameworks */,
+				5D5EE94416B890F90048FA6E /* libboost_mpi.dylib in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -44,6 +53,9 @@
 		5D3871FA16B874A70062B72E = {
 			isa = PBXGroup;
 			children = (
+				5D5EE94716B892BF0048FA6E /* libmpi_cxx.1.dylib */,
+				5D5EE94516B8910D0048FA6E /* libmpi.1.dylib */,
+				5D5EE94016B87E320048FA6E /* libboost_mpi.dylib */,
 				5D38720816B874A70062B72E /* DeploymentOptimization */,
 				5D38720616B874A70062B72E /* Products */,
 			);
@@ -148,6 +160,8 @@
 				GCC_WARN_ABOUT_RETURN_TYPE = YES;
 				GCC_WARN_UNINITIALIZED_AUTOS = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
+				HEADER_SEARCH_PATHS = /usr/local/include/;
+				LIBRARY_SEARCH_PATHS = /usr/local/lib;
 				MACOSX_DEPLOYMENT_TARGET = 10.8;
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = macosx;
@@ -172,6 +186,8 @@
 				GCC_WARN_ABOUT_RETURN_TYPE = YES;
 				GCC_WARN_UNINITIALIZED_AUTOS = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
+				HEADER_SEARCH_PATHS = /usr/local/include/;
+				LIBRARY_SEARCH_PATHS = /usr/local/lib;
 				MACOSX_DEPLOYMENT_TARGET = 10.8;
 				SDKROOT = macosx;
 			};
@@ -180,6 +196,8 @@
 		5D38721016B874A70062B72E /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				HEADER_SEARCH_PATHS = /usr/local/include/;
+				LIBRARY_SEARCH_PATHS = /usr/local/lib;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
@@ -187,6 +205,8 @@
 		5D38721116B874A70062B72E /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				HEADER_SEARCH_PATHS = /usr/local/include/;
+				LIBRARY_SEARCH_PATHS = /usr/local/lib;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;
@@ -210,6 +230,7 @@
 				5D38721116B874A70062B72E /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};
