@@ -7,11 +7,12 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		5D38720A16B874A70062B72E /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 5D38720916B874A70062B72E /* main.cpp */; settings = {COMPILER_FLAGS = "-lmpi"; }; };
+		5D38720A16B874A70062B72E /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 5D38720916B874A70062B72E /* main.cpp */; settings = {COMPILER_FLAGS = "-lm"; }; };
 		5D38720C16B874A70062B72E /* DeploymentOptimization.1 in CopyFiles */ = {isa = PBXBuildFile; fileRef = 5D38720B16B874A70062B72E /* DeploymentOptimization.1 */; };
-		5D5EE94416B890F90048FA6E /* libboost_mpi.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 5D5EE94016B87E320048FA6E /* libboost_mpi.dylib */; };
-		5D5EE94616B8910D0048FA6E /* libmpi.1.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 5D5EE94516B8910D0048FA6E /* libmpi.1.dylib */; };
-		5D5EE94816B892BF0048FA6E /* libmpi_cxx.1.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 5D5EE94716B892BF0048FA6E /* libmpi_cxx.1.dylib */; };
+		5DA52C6E16C1BD76008D9D7D /* libboost_mpi.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 5DA52C6A16C1BD76008D9D7D /* libboost_mpi.dylib */; };
+		5DA52C6F16C1BD76008D9D7D /* libboost_serialization.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 5DA52C6B16C1BD76008D9D7D /* libboost_serialization.dylib */; };
+		5DA52C7216C1BDBD008D9D7D /* libmpi_cxx.1.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 5DA52C6C16C1BD76008D9D7D /* libmpi_cxx.1.dylib */; };
+		5DA52C7316C1BDBD008D9D7D /* libmpi.1.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 5DA52C6D16C1BD76008D9D7D /* libmpi.1.dylib */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -31,9 +32,10 @@
 		5D38720516B874A70062B72E /* DeploymentOptimization */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = DeploymentOptimization; sourceTree = BUILT_PRODUCTS_DIR; };
 		5D38720916B874A70062B72E /* main.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = main.cpp; sourceTree = "<group>"; };
 		5D38720B16B874A70062B72E /* DeploymentOptimization.1 */ = {isa = PBXFileReference; lastKnownFileType = text.man; path = DeploymentOptimization.1; sourceTree = "<group>"; };
-		5D5EE94016B87E320048FA6E /* libboost_mpi.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libboost_mpi.dylib; path = ../../../../../usr/local/lib/libboost_mpi.dylib; sourceTree = "<group>"; };
-		5D5EE94516B8910D0048FA6E /* libmpi.1.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libmpi.1.dylib; path = ../../../../../usr/local/lib/libmpi.1.dylib; sourceTree = "<group>"; };
-		5D5EE94716B892BF0048FA6E /* libmpi_cxx.1.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libmpi_cxx.1.dylib; path = ../../../../../usr/local/lib/libmpi_cxx.1.dylib; sourceTree = "<group>"; };
+		5DA52C6A16C1BD76008D9D7D /* libboost_mpi.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libboost_mpi.dylib; path = ../../../../../usr/local/lib/libboost_mpi.dylib; sourceTree = "<group>"; };
+		5DA52C6B16C1BD76008D9D7D /* libboost_serialization.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libboost_serialization.dylib; path = ../../../../../usr/local/lib/libboost_serialization.dylib; sourceTree = "<group>"; };
+		5DA52C6C16C1BD76008D9D7D /* libmpi_cxx.1.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libmpi_cxx.1.dylib; path = ../../../../../usr/local/lib/libmpi_cxx.1.dylib; sourceTree = "<group>"; };
+		5DA52C6D16C1BD76008D9D7D /* libmpi.1.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libmpi.1.dylib; path = ../../../../../usr/local/lib/libmpi.1.dylib; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -41,9 +43,10 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				5D5EE94816B892BF0048FA6E /* libmpi_cxx.1.dylib in Frameworks */,
-				5D5EE94616B8910D0048FA6E /* libmpi.1.dylib in Frameworks */,
-				5D5EE94416B890F90048FA6E /* libboost_mpi.dylib in Frameworks */,
+				5DA52C7216C1BDBD008D9D7D /* libmpi_cxx.1.dylib in Frameworks */,
+				5DA52C7316C1BDBD008D9D7D /* libmpi.1.dylib in Frameworks */,
+				5DA52C6E16C1BD76008D9D7D /* libboost_mpi.dylib in Frameworks */,
+				5DA52C6F16C1BD76008D9D7D /* libboost_serialization.dylib in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -53,9 +56,10 @@
 		5D3871FA16B874A70062B72E = {
 			isa = PBXGroup;
 			children = (
-				5D5EE94716B892BF0048FA6E /* libmpi_cxx.1.dylib */,
-				5D5EE94516B8910D0048FA6E /* libmpi.1.dylib */,
-				5D5EE94016B87E320048FA6E /* libboost_mpi.dylib */,
+				5DA52C6A16C1BD76008D9D7D /* libboost_mpi.dylib */,
+				5DA52C6B16C1BD76008D9D7D /* libboost_serialization.dylib */,
+				5DA52C6C16C1BD76008D9D7D /* libmpi_cxx.1.dylib */,
+				5DA52C6D16C1BD76008D9D7D /* libmpi.1.dylib */,
 				5D38720816B874A70062B72E /* DeploymentOptimization */,
 				5D38720616B874A70062B72E /* Products */,
 			);
@@ -156,6 +160,7 @@
 					"$(inherited)",
 				);
 				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				GCC_VERSION = com.apple.compilers.llvmgcc42;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
 				GCC_WARN_ABOUT_RETURN_TYPE = YES;
 				GCC_WARN_UNINITIALIZED_AUTOS = YES;
@@ -182,6 +187,7 @@
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				GCC_C_LANGUAGE_STANDARD = gnu99;
 				GCC_ENABLE_OBJC_EXCEPTIONS = YES;
+				GCC_VERSION = com.apple.compilers.llvmgcc42;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
 				GCC_WARN_ABOUT_RETURN_TYPE = YES;
 				GCC_WARN_UNINITIALIZED_AUTOS = YES;
@@ -196,6 +202,7 @@
 		5D38721016B874A70062B72E /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				GCC_VERSION = com.apple.compilers.llvmgcc42;
 				HEADER_SEARCH_PATHS = /usr/local/include/;
 				LIBRARY_SEARCH_PATHS = /usr/local/lib;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -205,6 +212,7 @@
 		5D38721116B874A70062B72E /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				GCC_VERSION = com.apple.compilers.llvmgcc42;
 				HEADER_SEARCH_PATHS = /usr/local/include/;
 				LIBRARY_SEARCH_PATHS = /usr/local/lib;
 				PRODUCT_NAME = "$(TARGET_NAME)";
