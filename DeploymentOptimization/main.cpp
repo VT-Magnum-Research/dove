@@ -33,44 +33,44 @@ int main(int argc, char* argv[])
       
       std::cout << "0: Finished compute in " << (time(NULL)-start0) << std::endl;
       
-      world.send(1, 0 , 0); // Send '0' to rank 1 with tag '0'
+      world.send(1, 0); // Send '0' to rank 1 with tag '0'
       
       std::cout << "0: Sent tag 0 to rank 1" << std::endl;
-      world.send(2, 0 , 0);
+      world.send(2, 0);
       std::cout << "0: Sent tag 1 to rank 2" << std::endl;
+      
+      
       
       
       break;
     case 1:
       std::cout << "1: Awake" << std::endl;
-      int data1;
-      world.recv(0, 0, data1); // Recv tag '0' from rank 0
+      world.recv(0, 0); // Recv tag '0' from rank 0
       std::cout << "1: Recv tag 0 from rank 0" << std::endl;
       time_t start1;
       start1 = time (NULL);
       std::cout << "1: Started compute" << std::endl;
       while ((time(NULL)-start1) < execution_times[1]);
       std::cout << "1: Finished compute in " << (time(NULL)-start1) << std::endl;
-      world.send(3, 0, 0);
+      world.send(3, 0);
       break;
     case 2:
       std::cout << "2: Awake" << std::endl;
-      int data2;
-      world.recv(0, 0, data2);
+      world.recv(0, 0);
       std::cout << "2: Recv tag 0 from rank 0" << std::endl;
       time_t start2;
       start2 = time (NULL);
       std::cout << "2: Started compute" << std::endl;
       while ((time(NULL)-start2) < execution_times[2]);
       std::cout << "2: Finished compute in " << (time(NULL)-start2) << std::endl;
-      world.send(3, 0, 0);
+      world.send(3, 0);
       break;
     case 3:
       std::cout << "3: Awake" << std::endl;
-      int data30, data31;
-      world.recv(1, 0, data30);
+
+      world.recv(1, 0);
       std::cout << "3: Recv tag 0 from rank 1" << std::endl;
-      world.recv(2, 0, data31);
+      world.recv(2, 0);
       std::cout << "3: Recv tag 0 from rank 2" << std::endl;
       time_t start3;
       start3 = time (NULL);
