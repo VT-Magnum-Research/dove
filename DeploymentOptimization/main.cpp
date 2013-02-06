@@ -22,64 +22,61 @@ int main(int argc, char* argv[])
   long execution_times [4] = {1, 6, 1, 2};
 
   switch (world.rank()) {
-    case 0:
+    case 0: {
       std::cout << "0: Awake" << std::endl;
-      time_t start0;
-      start0 = time (NULL);
-      
+      time_t start;
+      start = time (NULL);
       std::cout << "0: Started compute" << std::endl;
+      while ((time(NULL)-start) < execution_times[0]);
+      std::cout << "0: Finished compute in " << (time(NULL)-start) << std::endl;
       
-      while ((time(NULL)-start0) < execution_times[0]);
-      
-      std::cout << "0: Finished compute in " << (time(NULL)-start0) << std::endl;
-      
-      world.send(1, 0); // Send '0' to rank 1 with tag '0'
-      
-      std::cout << "0: Sent tag 0 to rank 1" << std::endl;
-      world.send(2, 0);
+      mpi::request reqs[2];
+      reqs[0] = world.isend(1, 0);
+      reqs[1] = world.isend(2, 0);
+      mpi::wait_all(reqs, reqs + 2);
       std::cout << "0: Sent tag 1 to rank 2" << std::endl;
+      std::cout << "0: Sent tag 0 to rank 1" << std::endl;
       
-      
-      
-      
-      break;
-    case 1:
+      break; }
+    case 1: {
       std::cout << "1: Awake" << std::endl;
       world.recv(0, 0); // Recv tag '0' from rank 0
       std::cout << "1: Recv tag 0 from rank 0" << std::endl;
-      time_t start1;
-      start1 = time (NULL);
+      time_t start;
+      start = time (NULL);
       std::cout << "1: Started compute" << std::endl;
-      while ((time(NULL)-start1) < execution_times[1]);
-      std::cout << "1: Finished compute in " << (time(NULL)-start1) << std::endl;
+      while ((time(NULL)-start) < execution_times[1]);
+      std::cout << "1: Finished compute in " << (time(NULL)-start) << std::endl;
       world.send(3, 0);
-      break;
-    case 2:
+      break; }
+    case 2: {
       std::cout << "2: Awake" << std::endl;
       world.recv(0, 0);
       std::cout << "2: Recv tag 0 from rank 0" << std::endl;
-      time_t start2;
-      start2 = time (NULL);
+      time_t start;
+      start = time (NULL);
       std::cout << "2: Started compute" << std::endl;
-      while ((time(NULL)-start2) < execution_times[2]);
-      std::cout << "2: Finished compute in " << (time(NULL)-start2) << std::endl;
+      while ((time(NULL)-start) < execution_times[2]);
+      std::cout << "2: Finished compute in " << (time(NULL)-start) << std::endl;
       world.send(3, 0);
-      break;
-    case 3:
+      break; }
+    case 3: {
       std::cout << "3: Awake" << std::endl;
-
-      world.recv(1, 0);
+      
+      mpi::request req[2];
+      req[0] = world.irecv(1, 0);
+      req[1] = world.irecv(2, 0);
+      mpi::wait_all(req, req + 2);
       std::cout << "3: Recv tag 0 from rank 1" << std::endl;
-      world.recv(2, 0);
       std::cout << "3: Recv tag 0 from rank 2" << std::endl;
-      time_t start3;
-      start3 = time (NULL);
+      time_t start;
+      start = time (NULL);
       std::cout << "3: Started compute" << std::endl;
-      while ((time(NULL)-start3) < execution_times[3]);
-      std::cout << "3: Finished compute in " << (time(NULL)-start3) << std::endl;
+      while ((time(NULL)-start) < execution_times[3]);
+      std::cout << "3: Finished compute in " << (time(NULL)-start) << std::endl;
       
       std::cout << "3: DONE!!" << std::endl;
-      break;
+      break; }
   }
   
   return 0;
