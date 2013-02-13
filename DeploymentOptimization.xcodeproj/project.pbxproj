@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		5D386DD516CBF760005C4BA3 /* graph.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 5D386DD316CBF760005C4BA3 /* graph.cpp */; };
 		5D38720A16B874A70062B72E /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 5D38720916B874A70062B72E /* main.cpp */; settings = {COMPILER_FLAGS = "-lm"; }; };
 		5D38720C16B874A70062B72E /* DeploymentOptimization.1 in CopyFiles */ = {isa = PBXBuildFile; fileRef = 5D38720B16B874A70062B72E /* DeploymentOptimization.1 */; };
 		5DA52C6E16C1BD76008D9D7D /* libboost_mpi.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 5DA52C6A16C1BD76008D9D7D /* libboost_mpi.dylib */; };
@@ -29,9 +30,12 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		5D386DD316CBF760005C4BA3 /* graph.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = graph.cpp; sourceTree = "<group>"; };
+		5D386DD416CBF760005C4BA3 /* graph.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = graph.h; sourceTree = "<group>"; };
 		5D38720516B874A70062B72E /* DeploymentOptimization */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = DeploymentOptimization; sourceTree = BUILT_PRODUCTS_DIR; };
 		5D38720916B874A70062B72E /* main.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = main.cpp; sourceTree = "<group>"; };
 		5D38720B16B874A70062B72E /* DeploymentOptimization.1 */ = {isa = PBXFileReference; lastKnownFileType = text.man; path = DeploymentOptimization.1; sourceTree = "<group>"; };
+		5D7DB55216CBFC82008E7356 /* main.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = main.h; sourceTree = "<group>"; };
 		5DA52C6A16C1BD76008D9D7D /* libboost_mpi.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libboost_mpi.dylib; path = ../../../../../usr/local/lib/libboost_mpi.dylib; sourceTree = "<group>"; };
 		5DA52C6B16C1BD76008D9D7D /* libboost_serialization.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libboost_serialization.dylib; path = ../../../../../usr/local/lib/libboost_serialization.dylib; sourceTree = "<group>"; };
 		5DA52C6C16C1BD76008D9D7D /* libmpi_cxx.1.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libmpi_cxx.1.dylib; path = ../../../../../usr/local/lib/libmpi_cxx.1.dylib; sourceTree = "<group>"; };
@@ -76,7 +80,10 @@
 		5D38720816B874A70062B72E /* DeploymentOptimization */ = {
 			isa = PBXGroup;
 			children = (
+				5D386DD316CBF760005C4BA3 /* graph.cpp */,
+				5D386DD416CBF760005C4BA3 /* graph.h */,
 				5D38720916B874A70062B72E /* main.cpp */,
+				5D7DB55216CBFC82008E7356 /* main.h */,
 				5D38720B16B874A70062B72E /* DeploymentOptimization.1 */,
 			);
 			path = DeploymentOptimization;
@@ -134,6 +141,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				5D38720A16B874A70062B72E /* main.cpp in Sources */,
+				5D386DD516CBF760005C4BA3 /* graph.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
