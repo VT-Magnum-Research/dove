@@ -3,3 +3,6 @@ build/
 *.xcuserstate
 *.xc*
 *.plist
+DeploymentOptimization/generator
+DeploymentOptimization/impl
+DeploymentOptimization/impl.cpp
