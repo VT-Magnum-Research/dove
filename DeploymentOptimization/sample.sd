@@ -1,0 +1,29 @@
+<optimization name="SAACO">
+
+<system>
+
+    <processingunits count="4" />
+    
+    <system-description-file path="/path/to/sd/file" />
+    
+    <routingdelays>
+        <delay from="0" to="1" val="15" />
+        <delay from="0" to="2" val="15" />
+        <delay from="0" to="3" val="15" />
+        <delay from="1" to="2" val="15" />
+        <delay from="1" to="3" val="15" />
+        <delay from="2" to="3" val="15" />
+    </routingdelays>
+</system>
+
+<deployments>
+    <deployment>
+        <deploy task="1" unit="15" />
+        <deploy task="1" unit="15" />
+        <deploy task="1" unit="15" />
+        <deploy task="1" unit="15" />
+        <score makespan="232" />
+    </deployment>
+</deployments>
+
+</optimization>
