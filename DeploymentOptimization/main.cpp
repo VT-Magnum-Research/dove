@@ -12,25 +12,62 @@
 #include <iostream>
 #include <fstream>
 #include "main.h" // Includes Task and STG parser
+#include "rapidxml.hpp"
+#include "rapidxml_utils.hpp"
+#include "rapidxml_print.hpp"
 
 namespace mpi = boost::mpi;
 
 // Forward declare methods to come
 void run_simple_mpi(int argc, char* argv[]);
 void build_mpi_from_stl(char* file_path, char* outfile_p);
+void build_rankfiles_from_deployment(char* sd_path, char* output);
 
 bool SAMPLE = false;
 
-// Simple usage: a.out <input_STG_file_path> <output_file_path>
+// Simple usage: a.out <input_STG_file_path> <output_file_path> <input_SD_file_Path> <output_rank_file_path>
 int main(int argc, char* argv[])
 {
   if (SAMPLE)
     run_simple_mpi(argc, argv);
-  else
+  else {
+    build_rankfiles_from_deployment(argv[3], argv[4]);
     build_mpi_from_stl(argv[1], argv[2]);
+  }
   
   return 0;
 }
+
+void build_rankfiles_from_deployment(char* sd_path, char* output) {
+  rapidxml::file<> xmlFile(sd_path);
+  rapidxml::xml_document<> doc;
+  doc.parse<0>(xmlFile.data());
+
+  rapidxml::xml_node<> *node = doc.first_node("optimization")
+                                  ->first_node("deployments")
+                                  ->first_node("deployment");
+  std::cout << "Name of my first node is: " << node->name() << "\n";
+  std::cout << "Node value " << node->value() << "\n";
+  for (rapidxml::xml_attribute<> *attr = node->first_attribute();
+       attr; attr = attr->next_attribute())
+  {
+    std::cout << "Node has attribute " << attr->name() << " ";
+    std::cout << "with value " << attr->value() << "\n";
+  }
+  
+  // Try to add a unit
+  rapidxml::xml_node<> *unit = doc.allocate_node(rapidxml::node_element, "unit");
+  node->append_node(unit);
+  rapidxml::xml_attribute<> *attr = doc.allocate_attribute("type", "GPP");
+  unit->append_attribute(attr);
+  
+  std::cout << doc;
+  
+  std::cout << "Done";
+
+}
+
+
 
 bool DEBUG_LOG = true;
 void build_mpi_case_for_task(unsigned int tid, unsigned int exectime, std::vector<unsigned int>& pre, std::vector<unsigned int>& post, std::ofstream& out);
