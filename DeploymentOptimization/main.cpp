@@ -11,10 +11,15 @@
 #include <boost/mpi/communicator.hpp>
 #include <iostream>
 #include <fstream>
-#include "main.h" // Includes Task and STG parser
-#include "rapidxml.hpp"
-#include "rapidxml_utils.hpp"
-#include "rapidxml_print.hpp"
+
+// Includes Task and STG parser
+#include "main.h"
+#include "libs/rapidxml.hpp"
+#include "libs/rapidxml_utils.hpp"
+#include "libs/rapidxml_print.hpp"
+
+#include "tclap/CmdLine.h"
+
 
 namespace mpi = boost::mpi;
 
@@ -23,17 +28,62 @@ void run_simple_mpi(int argc, char* argv[]);
 void build_mpi_from_stl(char* file_path, char* outfile_p);
 void build_rankfiles_from_deployment(char* sd_path, char* output);
 
-bool SAMPLE = false;
-
 // Simple usage: a.out <input_STG_file_path> <output_file_path> <input_SD_file_Path> <output_rank_file_path>
+
+// Usage: a.out <input.STG> <optimization.xml> <system.xml> <output_directory>
+//
+// Outputs:
+//    output_directory/
+//    - input.cpp               (translated software model)
+//    - Makefile                (build input.cpp on ataack cloud)
+//    - rankfile.{0..N}         (one MPI rankfile for each deployment in optimization.xml)
+//    - run_mpi.sh              (sample run script)
+
+
+// TODO - Advanced Usage
+// a.out --system <xml> --stg <stg> --recursive(STG recursive) --deployments <xml> --outdir <dir>
+// Automatically detect STG files recursively
+
+
+// Declare all of the variables that will be parsed by tclap for us
+static std::string input_stg;
+static std::string input_dep;
+static std::string input_sys;
+static std::string input_gendir;
+static bool DEBUG_LOG = false;
+
+static void parse_options(int argc, char *argv[]) {
+  TCLAP::CmdLine cmd("Multi-core Deployment Optimization Model --> MPI Code Generator ", ' ', "0.1");
+  TCLAP::ValueArg<std::string> stg_arg("s", "stg", "path to STG file containing a directed acyclic graph describing the software model. Will result in a *.cpp file of the same unqualified name being generated and placed in the output directory", true, "", "STG path");
+  cmd.add(stg_arg);
+  TCLAP::ValueArg<std::string> dep_arg("d", "deployments", "path to XML file containing all of the deployments", true, "", "Deployment XML");
+  cmd.add(dep_arg);
+  TCLAP::ValueArg<std::string> sys_arg("y", "system", "path to XML file containing a description of the final deployment system hardware. Used to understand the ID's of processing units used in the deployment XML file", true, "", "system XML");
+  cmd.add(sys_arg);
+  TCLAP::ValueArg<std::string> dir_arg("o", "output", "path to a directory where output will be placed. Output directory should contain the stg.cpp, Makefile, rankfile.{0..} (one for each deployment) and a sample run_mpi.sh showing how to phrase the running of all the MPI code", true, "", "output dirpath");
+  cmd.add(dir_arg);
+  TCLAP::SwitchArg debug_arg("", "debug", "Include println statements in the generated stg.cpp code (slows down MPI execution)");
+  
+  cmd.parse(argc, argv);
+  input_stg = stg_arg.getValue();
+  input_dep = dep_arg.getValue();
+  input_sys = sys_arg.getValue();
+  input_gendir = dir_arg.getValue();
+  DEBUG_LOG = debug_arg.getValue();
+}
+
+
 int main(int argc, char* argv[])
 {
-  if (SAMPLE)
-    run_simple_mpi(argc, argv);
-  else {
-    build_rankfiles_from_deployment(argv[3], argv[4]);
-    build_mpi_from_stl(argv[1], argv[2]);
+  try {
+    parse_options(argc, argv);
+  } catch (TCLAP::ArgException &e) {
+    std::cerr << "error: " << e.error() << " for arg " << e.argId() << std::endl;
+    exit(EXIT_SUCCESS);
   }
+  
+  build_rankfiles_from_deployment(argv[3], argv[4]);
+  build_mpi_from_stl(argv[1], argv[2]);
   
   return 0;
 }
@@ -69,7 +119,6 @@ void build_rankfiles_from_deployment(char* sd_path, char* output) {
 
 
 
-bool DEBUG_LOG = true;
 void build_mpi_case_for_task(unsigned int tid, unsigned int exectime, std::vector<unsigned int>& pre, std::vector<unsigned int>& post, std::ofstream& out);
 void build_mpi_from_stl(char* filepath, char* outfilepath) {
   DirectedAcyclicGraph* task_precedence = NULL;
@@ -91,15 +140,6 @@ void build_mpi_from_stl(char* filepath, char* outfilepath) {
     "  mpi::environment env(argc, argv);\n"
     "  mpi::communicator world;\n";
   out << start_main;
-  
-  // Execution time array
-//  out <<
-//    "  long execution_times [" << tasks->size() << "] = {";
-//  
-//  unsigned long end = tasks->size();
-//  for (int i = 0; i < end; i++)
-//    out << tasks->at(i).execution_time_ <<
-//      (i==(end-1) ? "};\n\n" : ", ");
   
   // Switch start
   out <<
@@ -181,76 +221,5 @@ void build_mpi_case_for_task(unsigned int tid, unsigned int exectime, std::vecto
   // ========= Case Footer
   out <<
     "      break; }\n";
-}
-
-
-
-
-// TODO: Sends need to be non-blocking. Perhaps also replace the current recv with receive all so that there are
-// not unexpected items. Also add in the ability to remove the data on the send
-void run_simple_mpi(int argc, char* argv[]) {
-  
-  mpi::environment env(argc, argv);
-  mpi::communicator world;
-  long execution_times [4] = {1, 6, 1, 2};
-  
-  switch (world.rank()) {
-    case 0: {
-      std::cout << "0: Awake" << std::endl;
-      time_t start;
-      start = time (NULL);
-      std::cout << "0: Started compute" << std::endl;
-      while ((time(NULL)-start) < execution_times[0]);
-      
-      std::cout << "0: Finished compute in " << (time(NULL)-start) << std::endl;
-      
-      mpi::request reqs[2];
-      reqs[0] = world.isend(1, 0);
-      reqs[1] = world.isend(2, 0);
-      mpi::wait_all(reqs, reqs + 2);
-      std::cout << "0: Sent tag 1 to rank 2" << std::endl;
-      std::cout << "0: Sent tag 0 to rank 1" << std::endl;
-      
-      break; }
-    case 1: {
-      std::cout << "1: Awake" << std::endl;
-      world.recv(0, 0); // Recv tag '0' from rank 0
-      std::cout << "1: Recv tag 0 from rank 0" << std::endl;
-      time_t start;
-      start = time (NULL);
-      std::cout << "1: Started compute" << std::endl;
-      while ((time(NULL)-start) < execution_times[1]);
-      std::cout << "1: Finished compute in " << (time(NULL)-start) << std::endl;
-      world.send(3, 0);
-      break; }
-    case 2: {
-      std::cout << "2: Awake" << std::endl;
-      world.recv(0, 0);
-      std::cout << "2: Recv tag 0 from rank 0" << std::endl;
-      time_t start;
-      start = time (NULL);
-      std::cout << "2: Started compute" << std::endl;
-      while ((time(NULL)-start) < execution_times[2]);
-      std::cout << "2: Finished compute in " << (time(NULL)-start) << std::endl;
-      world.send(3, 0);
-      break; }
-    case 3: {
-      std::cout << "3: Awake" << std::endl;
-      
-      mpi::request req[2];
-      req[0] = world.irecv(1, 0);
-      req[1] = world.irecv(2, 0);
-      mpi::wait_all(req, req + 2);
-      std::cout << "3: Recv tag 0 from rank 1" << std::endl;
-      std::cout << "3: Recv tag 0 from rank 2" << std::endl;
-      time_t start;
-      start = time (NULL);
-      std::cout << "3: Started compute" << std::endl;
-      while ((time(NULL)-start) < execution_times[3]);
-      std::cout << "3: Finished compute in " << (time(NULL)-start) << std::endl;
-      
-      std::cout << "3: DONE!!" << std::endl;
-      break; }
-  }
 }
 

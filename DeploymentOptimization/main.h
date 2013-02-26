@@ -9,7 +9,7 @@
 #ifndef DeploymentOptimization_main_h
 #define DeploymentOptimization_main_h
 
-#include "graph.h"
+#include "libs/graph.h"
 
 struct Task {
   // This is analogous to pred_level
