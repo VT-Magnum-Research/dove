@@ -11,6 +11,7 @@
 #include <boost/mpi/communicator.hpp>
 #include <iostream>
 #include <fstream>
+#include <stdio.h>
 
 // Includes Task and STG parser
 #include "main.h"
@@ -23,10 +24,11 @@
 
 namespace mpi = boost::mpi;
 
+
 // Forward declare methods to come
 void run_simple_mpi(int argc, char* argv[]);
-void build_mpi_from_stl(char* file_path, char* outfile_p);
-void build_rankfiles_from_deployment(char* sd_path, char* output);
+void build_mpi_from_stl(const char*, const char*);
+void build_rankfiles_from_deployment(const char*);
 
 // Simple usage: a.out <input_STG_file_path> <output_file_path> <input_SD_file_Path> <output_rank_file_path>
 
@@ -40,16 +42,11 @@ void build_rankfiles_from_deployment(char* sd_path, char* output);
 //    - run_mpi.sh              (sample run script)
 
 
-// TODO - Advanced Usage
-// a.out --system <xml> --stg <stg> --recursive(STG recursive) --deployments <xml> --outdir <dir>
-// Automatically detect STG files recursively
-
-
 // Declare all of the variables that will be parsed by tclap for us
 static std::string input_stg;
 static std::string input_dep;
-static std::string input_sys;
-static std::string input_gendir;
+static std::string input_system;
+static std::string outdir;
 static bool DEBUG_LOG = false;
 
 static void parse_options(int argc, char *argv[]) {
@@ -60,18 +57,17 @@ static void parse_options(int argc, char *argv[]) {
   cmd.add(dep_arg);
   TCLAP::ValueArg<std::string> sys_arg("y", "system", "path to XML file containing a description of the final deployment system hardware. Used to understand the ID's of processing units used in the deployment XML file", true, "", "system XML");
   cmd.add(sys_arg);
-  TCLAP::ValueArg<std::string> dir_arg("o", "output", "path to a directory where output will be placed. Output directory should contain the stg.cpp, Makefile, rankfile.{0..} (one for each deployment) and a sample run_mpi.sh showing how to phrase the running of all the MPI code", true, "", "output dirpath");
+  TCLAP::ValueArg<std::string> dir_arg("o", "output", "path to a directory where output will be placed. Output directory should contain the stg_impl.cpp, Makefile, rankfile.{0..} (one for each deployment) and a sample run_mpi.sh showing how to phrase the running of all the MPI code", true, "", "output dirpath");
   cmd.add(dir_arg);
   TCLAP::SwitchArg debug_arg("", "debug", "Include println statements in the generated stg.cpp code (slows down MPI execution)");
   
   cmd.parse(argc, argv);
   input_stg = stg_arg.getValue();
   input_dep = dep_arg.getValue();
-  input_sys = sys_arg.getValue();
-  input_gendir = dir_arg.getValue();
+  input_system = sys_arg.getValue();
+  outdir = dir_arg.getValue();
   DEBUG_LOG = debug_arg.getValue();
 }
-
 
 int main(int argc, char* argv[])
 {
@@ -82,49 +78,124 @@ int main(int argc, char* argv[])
     exit(EXIT_SUCCESS);
   }
   
-  build_rankfiles_from_deployment(argv[3], argv[4]);
-  build_mpi_from_stl(argv[1], argv[2]);
+  build_rankfiles_from_deployment(input_dep.c_str());
+  
+  std::string output_stg_cpp_path = outdir.append("/stg_impl.cpp");
+  build_mpi_from_stl(input_stg.c_str(),
+                     output_stg_cpp_path.c_str());
   
   return 0;
 }
 
-void build_rankfiles_from_deployment(char* sd_path, char* output) {
-  rapidxml::file<> xmlFile(sd_path);
-  rapidxml::xml_document<> doc;
-  doc.parse<0>(xmlFile.data());
+void parse_ids_from_system_xml(int &node_pid, int &proc_pid, int &core_pid, int &hwth_pid, std::string &hostname, std::string &ip);
 
-  rapidxml::xml_node<> *node = doc.first_node("optimization")
-                                  ->first_node("deployments")
-                                  ->first_node("deployment");
-  std::cout << "Name of my first node is: " << node->name() << "\n";
-  std::cout << "Node value " << node->value() << "\n";
-  for (rapidxml::xml_attribute<> *attr = node->first_attribute();
-       attr; attr = attr->next_attribute())
-  {
-    std::cout << "Node has attribute " << attr->name() << " ";
-    std::cout << "with value " << attr->value() << "\n";
+void build_rankfiles_from_deployment(const char* deployment_path) {
+
+  // Load XML files
+  rapidxml::xml_document<> dep_doc;
+  rapidxml::file<> xml_deployment(deployment_path);
+  dep_doc.parse<0>(xml_deployment.data());
+  
+  // Pull out the mapping we are using and translate
+  // that into a proper rankfile format
+  std::string mapping = dep_doc.first_node("mapping")->first_attribute("to")->value();
+  const char* format = "";
+  if (mapping.compare("cores") == 0) {
+    // rank 1=10.0.2.4 slot=p1:8
+    // references physical socket 1 and physical core 8
+    format = "rank %d=%s slot=p%d:%d";
+  } else if (mapping.compare("nodes") == 0){
+    format = "%dsdf";
+    throw "only cores supported now";
+  } else if (mapping.compare("hw-threads") == 0) {
+    format = "%dewr";
+    throw "only cores supported now";
+  } else if (mapping.compare("processors") == 0) {
+    format = "%dasdf";
+    throw "only cores supported now";
+  } else
+    throw "The provided mapping was not recognized. Use one of cores,nodes,processors,hw-threads";
+  
+  char buffer [50];
+  int rank = 0;
+  const char* ip = "10.0.2.4";
+  int socket = 1;
+  int core = 8;
+  sprintf(buffer, format, rank, ip, socket, core);
+  
+
+  // Locate all deployments
+  rapidxml::xml_node<>* deps = dep_doc.first_node("deployments");
+  for (rapidxml::xml_node<>* deployment = deps->first_node();
+       deployment;
+       deployment = deployment->next_sibling()) {
+    
+    // Start writing the rankfile
+    std::string id = deployment->first_attribute("id")->value();
+    std::string rankfile = outdir.append(".").append(id);
+    std::ofstream rf;
+    rf.open(rankfile.c_str());
+    
+    // Iterate over every mapping in deployment
+    for (rapidxml::xml_node<>* mapping = deployment->first_node();
+         mapping;
+         mapping = mapping->next_sibling()) {
+      
+      std::string rank = mapping->first_attribute("t")->value();
+      std::string physical_id = mapping->first_attribute("u")->value();
+      
+      std::string hostname;
+      std::string ip;
+      int node_pid;
+      int proc_pid;
+      int core_pid;
+      int hwth_pid;
+      // TODO Call helper function here to fill in the values above
+      parse_ids_from_system_xml(node_pid, proc_pid, core_pid, hwth_pid, hostname, ip);
+      
+      // Then use format string to write them to buffer, and
+      // finally push the buffer out to a file
+      
+    }
   }
   
-  // Try to add a unit
-  rapidxml::xml_node<> *unit = doc.allocate_node(rapidxml::node_element, "unit");
-  node->append_node(unit);
-  rapidxml::xml_attribute<> *attr = doc.allocate_attribute("type", "GPP");
-  unit->append_attribute(attr);
+
   
-  std::cout << doc;
+  // Try to add a unit
+  // rapidxml::xml_node<> *unit = doc.allocate_node(rapidxml::node_element, "unit");
+  // node->append_node(unit);
+  // rapidxml::xml_attribute<> *attr = doc.allocate_attribute("type", "GPP");
+  // unit->append_attribute(attr);
+  // std::cout << doc;
   
   std::cout << "Done";
 
 }
 
+void parse_ids_from_system_xml(int id, 
+                               int &node_pid, int &proc_pid,
+                               int &core_pid, int &hwth_pid,
+                               std::string &hostname,
+                               std::string &ip) {
+  rapidxml::file<> xml_system(input_system.c_str());
+  rapidxml::xml_document<> sys_doc;
+  sys_doc.parse<0>(xml_system.data());
+  
+  //dep_doc.first_node("deployments");
+  
+  
+  
+}
+
 
 
 void build_mpi_case_for_task(unsigned int tid, unsigned int exectime, std::vector<unsigned int>& pre, std::vector<unsigned int>& post, std::ofstream& out);
-void build_mpi_from_stl(char* filepath, char* outfilepath) {
+void build_mpi_from_stl(const char* stg_path,
+                        const char* impl_cpp_outpath) {
   DirectedAcyclicGraph* task_precedence = NULL;
-  std::vector<Task>* tasks = parse_stg(filepath, task_precedence);
+  std::vector<Task>* tasks = parse_stg(stg_path, task_precedence);
   std::ofstream out;
-  out.open(outfilepath);
+  out.open(impl_cpp_outpath);
   
   // Write header
   const char * header =
