@@ -119,12 +119,8 @@
     </node_delay>
 
     <core_delay units="ms">
-        0>1:12
-        0>2:2
-        0>3:5
-        1>2:4
-        1>3:17
-        2>3:12        
+      <cd f="0" t="1" v="12" />
+      <cd f="1" t="0" v="12" />
     </core_delay>
 </routings>
 
