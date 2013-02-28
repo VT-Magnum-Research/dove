@@ -117,8 +117,7 @@
 				5D33AC8D16DC62740046A273 /* Visitor.h */,
 				5D33AC8E16DC62740046A273 /* XorHandler.h */,
 			);
-			name = tclap;
-			path = ../tclap;
+			path = tclap;
 			sourceTree = "<group>";
 		};
 		5D3871FA16B874A70062B72E = {
@@ -177,7 +176,7 @@
 		5D3871FC16B874A70062B72E /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastUpgradeCheck = 0450;
+				LastUpgradeCheck = 0460;
 				ORGANIZATIONNAME = "Virginia Tech";
 			};
 			buildConfigurationList = 5D3871FF16B874A70062B72E /* Build configuration list for PBXProject "generator" */;
@@ -276,26 +275,28 @@
 		5D38721016B874A70062B72E /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				GCC_VERSION = com.apple.compilers.llvmgcc42;
+				GCC_VERSION = com.apple.compilers.llvm.clang.1_0;
 				HEADER_SEARCH_PATHS = (
 					/usr/local/include/,
 					libs/,
 				);
 				LIBRARY_SEARCH_PATHS = /usr/local/lib;
 				PRODUCT_NAME = "$(PRODUCT_NAME)";
+				SYMROOT = "$(PROJECT_NAME)/gen";
 			};
 			name = Debug;
 		};
 		5D38721116B874A70062B72E /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				GCC_VERSION = com.apple.compilers.llvmgcc42;
+				GCC_VERSION = com.apple.compilers.llvm.clang.1_0;
 				HEADER_SEARCH_PATHS = (
 					/usr/local/include/,
 					libs/,
 				);
 				LIBRARY_SEARCH_PATHS = /usr/local/lib;
 				PRODUCT_NAME = "$(PRODUCT_NAME)";
+				SYMROOT = "$(PROJECT_NAME)/gen";
 			};
 			name = Release;
 		};

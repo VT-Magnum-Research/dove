@@ -15,14 +15,14 @@ IMPLO=impl
 # --- targets
 all: generator impl
 impl: 
-	g++ $(CFLAGS) $(LIBS) $(IMPLCPP) -o $(IMPLO)
+	g++ $(CFLAGS) $(LIBS) gen/$(IMPLCPP) -o bin/$(IMPLO)
         
 generator: graph.cpp graph.h main.cpp main.h
-	g++ $(CFLAGS) $(LIBS) graph.cpp main.cpp -o generator
-	./generator "$(STG)" $(IMPLCPP)
+	g++ $(CFLAGS) $(LIBS) graph.cpp main.cpp -o bin/generator
+	./bin/generator "$(STG)" gen/$(IMPLCPP)
        
 # --- remove binary and executable files
 clean:
-	rm -f generator $(IMPLCPP) $(IMPLO)
+	rm -f bin/generator gen/$(IMPLCPP) bin/$(IMPLO)
 
 

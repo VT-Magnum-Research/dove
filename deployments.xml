@@ -1,0 +1,38 @@
+
+\<optimization name="SAACO">
+
+
+<mapping to="cores" />
+<!-- Other options: 
+<mapping to="processors" />
+<mapping to="nodes" />
+<mapping to="hw-threads" /> -->
+
+<deployments>
+<!-- To save space, here's the mapping: 
+     t == task, u == unit -->
+    <deployment id="0">
+        <deploy t="1" u="5" />
+        <deploy t="2" u="6" />
+        <deploy t="0" u="12" />
+        <deploy t="3" u="16" />
+        <score makespan="232" physical_time="123" />
+    </deployment>
+    <deployment id="1">
+        <deploy t="1" u="5" />
+        <deploy t="2" u="6" />
+        <deploy t="0" u="12" />
+        <deploy t="3" u="16" />
+        <score makespan="232" physical_time="123" />
+    </deployment>
+    <deployment id="2">
+        <deploy t="1" u="5" />
+        <deploy t="2" u="6" />
+        <deploy t="0" u="12" />
+        <deploy t="3" u="16" />
+        <score makespan="232" physical_time="123" />
+    </deployment>
+
+</deployments>
+
+</optimization>

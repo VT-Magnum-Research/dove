@@ -5,6 +5,8 @@
 //  Created by Hamilton Turner on 1/29/13.
 //  Copyright (c) 2013 Virginia Tech. All rights reserved.
 //
+
+
 #include <boost/mpi.hpp>
 #include <boost/mpi/collectives.hpp>
 #include <boost/mpi/environment.hpp>
@@ -19,8 +21,7 @@
 #include "libs/rapidxml_utils.hpp"
 #include "libs/rapidxml_print.hpp"
 
-#include "tclap/CmdLine.h"
-
+#include "libs/tclap/CmdLine.h"
 
 namespace mpi = boost::mpi;
 
