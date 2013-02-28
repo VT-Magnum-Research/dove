@@ -241,6 +241,7 @@
 				ONLY_ACTIVE_ARCH = YES;
 				PRODUCT_NAME = generator;
 				SDKROOT = macosx;
+				SYMROOT = "$(PROJECT_NAME)/gen";
 			};
 			name = Debug;
 		};
@@ -268,6 +269,7 @@
 				MACOSX_DEPLOYMENT_TARGET = 10.8;
 				PRODUCT_NAME = generator;
 				SDKROOT = macosx;
+				SYMROOT = "$(PROJECT_NAME)/gen";
 			};
 			name = Release;
 		};

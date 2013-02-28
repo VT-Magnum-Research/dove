@@ -1,8 +1,7 @@
 *.xcscheme
-build/
 *.xcuserstate
 *.xc*
 *.plist
-DeploymentOptimization/generator
-DeploymentOptimization/impl
-DeploymentOptimization/impl.cpp
+generator/impl
+generator/impl.cpp
+generator/gen/*
