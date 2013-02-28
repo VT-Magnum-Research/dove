@@ -151,7 +151,7 @@ void build_rankfiles_from_deployment(const char* deployment_path) {
       int core_pid;
       int hwth_pid;
       // TODO Call helper function here to fill in the values above
-      parse_ids_from_system_xml(node_pid, proc_pid, core_pid, hwth_pid, hostname, ip);
+      //parse_ids_from_system_xml(node_pid, proc_pid, core_pid, hwth_pid, hostname, ip);
       
       // Then use format string to write them to buffer, and
       // finally push the buffer out to a file

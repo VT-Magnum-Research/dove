@@ -30,7 +30,6 @@
 /* Begin PBXFileReference section */
 		5D33AC7616DC62740046A273 /* Arg.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Arg.h; sourceTree = "<group>"; };
 		5D33AC7716DC62740046A273 /* ArgException.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ArgException.h; sourceTree = "<group>"; };
-		5D33AC7816DC62740046A273 /* ArgTraits.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ArgTraits.h; sourceTree = "<group>"; };
 		5D33AC7916DC62740046A273 /* CmdLine.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CmdLine.h; sourceTree = "<group>"; };
 		5D33AC7A16DC62740046A273 /* CmdLineInterface.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CmdLineInterface.h; sourceTree = "<group>"; };
 		5D33AC7B16DC62740046A273 /* CmdLineOutput.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CmdLineOutput.h; sourceTree = "<group>"; };
@@ -41,7 +40,6 @@
 		5D33AC8216DC62740046A273 /* MultiArg.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MultiArg.h; sourceTree = "<group>"; };
 		5D33AC8316DC62740046A273 /* MultiSwitchArg.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MultiSwitchArg.h; sourceTree = "<group>"; };
 		5D33AC8416DC62740046A273 /* OptionalUnlabeledTracker.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OptionalUnlabeledTracker.h; sourceTree = "<group>"; };
-		5D33AC8516DC62740046A273 /* StandardTraits.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = StandardTraits.h; sourceTree = "<group>"; };
 		5D33AC8616DC62740046A273 /* StdOutput.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = StdOutput.h; sourceTree = "<group>"; };
 		5D33AC8716DC62740046A273 /* SwitchArg.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SwitchArg.h; sourceTree = "<group>"; };
 		5D33AC8816DC62740046A273 /* UnlabeledMultiArg.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = UnlabeledMultiArg.h; sourceTree = "<group>"; };
@@ -51,13 +49,12 @@
 		5D33AC8C16DC62740046A273 /* VersionVisitor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = VersionVisitor.h; sourceTree = "<group>"; };
 		5D33AC8D16DC62740046A273 /* Visitor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Visitor.h; sourceTree = "<group>"; };
 		5D33AC8E16DC62740046A273 /* XorHandler.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = XorHandler.h; sourceTree = "<group>"; };
-		5D33AC8F16DC62740046A273 /* ZshCompletionOutput.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ZshCompletionOutput.h; sourceTree = "<group>"; };
 		5D372BB516D74D3E001FEE4E /* rapidxml.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = rapidxml.hpp; sourceTree = "<group>"; };
 		5D372BB616D74E24001FEE4E /* rapidxml_utils.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = rapidxml_utils.hpp; sourceTree = "<group>"; };
 		5D372BB716D753D7001FEE4E /* rapidxml_print.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = rapidxml_print.hpp; sourceTree = "<group>"; };
 		5D386DD316CBF760005C4BA3 /* graph.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = graph.cpp; sourceTree = "<group>"; };
 		5D386DD416CBF760005C4BA3 /* graph.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = graph.h; sourceTree = "<group>"; };
-		5D38720516B874A70062B72E /* DeploymentOptimization */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = DeploymentOptimization; sourceTree = BUILT_PRODUCTS_DIR; };
+		5D38720516B874A70062B72E /* generator */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = generator; sourceTree = BUILT_PRODUCTS_DIR; };
 		5D38720916B874A70062B72E /* main.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = main.cpp; sourceTree = "<group>"; };
 		5D7DB55216CBFC82008E7356 /* main.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = main.h; sourceTree = "<group>"; };
 		5DA52C6A16C1BD76008D9D7D /* libboost_mpi.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libboost_mpi.dylib; path = ../../../../../usr/local/lib/libboost_mpi.dylib; sourceTree = "<group>"; };
@@ -92,7 +89,7 @@
 				5D372BB516D74D3E001FEE4E /* rapidxml.hpp */,
 			);
 			name = libs;
-			path = DeploymentOptimization/libs;
+			path = generator/libs;
 			sourceTree = SOURCE_ROOT;
 		};
 		5D33AC7516DC62740046A273 /* tclap */ = {
@@ -100,7 +97,6 @@
 			children = (
 				5D33AC7616DC62740046A273 /* Arg.h */,
 				5D33AC7716DC62740046A273 /* ArgException.h */,
-				5D33AC7816DC62740046A273 /* ArgTraits.h */,
 				5D33AC7916DC62740046A273 /* CmdLine.h */,
 				5D33AC7A16DC62740046A273 /* CmdLineInterface.h */,
 				5D33AC7B16DC62740046A273 /* CmdLineOutput.h */,
@@ -111,7 +107,6 @@
 				5D33AC8216DC62740046A273 /* MultiArg.h */,
 				5D33AC8316DC62740046A273 /* MultiSwitchArg.h */,
 				5D33AC8416DC62740046A273 /* OptionalUnlabeledTracker.h */,
-				5D33AC8516DC62740046A273 /* StandardTraits.h */,
 				5D33AC8616DC62740046A273 /* StdOutput.h */,
 				5D33AC8716DC62740046A273 /* SwitchArg.h */,
 				5D33AC8816DC62740046A273 /* UnlabeledMultiArg.h */,
@@ -121,7 +116,6 @@
 				5D33AC8C16DC62740046A273 /* VersionVisitor.h */,
 				5D33AC8D16DC62740046A273 /* Visitor.h */,
 				5D33AC8E16DC62740046A273 /* XorHandler.h */,
-				5D33AC8F16DC62740046A273 /* ZshCompletionOutput.h */,
 			);
 			name = tclap;
 			path = ../tclap;
@@ -134,7 +128,7 @@
 				5DA52C6B16C1BD76008D9D7D /* libboost_serialization.dylib */,
 				5DA52C6C16C1BD76008D9D7D /* libmpi_cxx.1.dylib */,
 				5DA52C6D16C1BD76008D9D7D /* libmpi.1.dylib */,
-				5D38720816B874A70062B72E /* DeploymentOptimization */,
+				5D38720816B874A70062B72E /* generator */,
 				5D38720616B874A70062B72E /* Products */,
 			);
 			sourceTree = "<group>";
@@ -142,27 +136,27 @@
 		5D38720616B874A70062B72E /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				5D38720516B874A70062B72E /* DeploymentOptimization */,
+				5D38720516B874A70062B72E /* generator */,
 			);
 			name = Products;
 			sourceTree = "<group>";
 		};
-		5D38720816B874A70062B72E /* DeploymentOptimization */ = {
+		5D38720816B874A70062B72E /* generator */ = {
 			isa = PBXGroup;
 			children = (
 				5D33AC7416DC60CA0046A273 /* libs */,
 				5D38720916B874A70062B72E /* main.cpp */,
 				5D7DB55216CBFC82008E7356 /* main.h */,
 			);
-			path = DeploymentOptimization;
+			path = generator;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		5D38720416B874A70062B72E /* DeploymentOptimization */ = {
+		5D38720416B874A70062B72E /* generator */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 5D38720F16B874A70062B72E /* Build configuration list for PBXNativeTarget "DeploymentOptimization" */;
+			buildConfigurationList = 5D38720F16B874A70062B72E /* Build configuration list for PBXNativeTarget "generator" */;
 			buildPhases = (
 				5D38720116B874A70062B72E /* Sources */,
 				5D38720216B874A70062B72E /* Frameworks */,
@@ -172,9 +166,9 @@
 			);
 			dependencies = (
 			);
-			name = DeploymentOptimization;
+			name = generator;
 			productName = DeploymentOptimization;
-			productReference = 5D38720516B874A70062B72E /* DeploymentOptimization */;
+			productReference = 5D38720516B874A70062B72E /* generator */;
 			productType = "com.apple.product-type.tool";
 		};
 /* End PBXNativeTarget section */
@@ -186,7 +180,7 @@
 				LastUpgradeCheck = 0450;
 				ORGANIZATIONNAME = "Virginia Tech";
 			};
-			buildConfigurationList = 5D3871FF16B874A70062B72E /* Build configuration list for PBXProject "DeploymentOptimization" */;
+			buildConfigurationList = 5D3871FF16B874A70062B72E /* Build configuration list for PBXProject "generator" */;
 			compatibilityVersion = "Xcode 3.2";
 			developmentRegion = English;
 			hasScannedForEncodings = 0;
@@ -198,7 +192,7 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				5D38720416B874A70062B72E /* DeploymentOptimization */,
+				5D38720416B874A70062B72E /* generator */,
 			);
 		};
 /* End PBXProject section */
@@ -245,6 +239,7 @@
 				LIBRARY_SEARCH_PATHS = /usr/local/lib;
 				MACOSX_DEPLOYMENT_TARGET = 10.8;
 				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = generator;
 				SDKROOT = macosx;
 			};
 			name = Debug;
@@ -271,6 +266,7 @@
 				HEADER_SEARCH_PATHS = /usr/local/include/;
 				LIBRARY_SEARCH_PATHS = /usr/local/lib;
 				MACOSX_DEPLOYMENT_TARGET = 10.8;
+				PRODUCT_NAME = generator;
 				SDKROOT = macosx;
 			};
 			name = Release;
@@ -284,7 +280,7 @@
 					libs/,
 				);
 				LIBRARY_SEARCH_PATHS = /usr/local/lib;
-				PRODUCT_NAME = "$(TARGET_NAME)";
+				PRODUCT_NAME = "$(PRODUCT_NAME)";
 			};
 			name = Debug;
 		};
@@ -297,14 +293,14 @@
 					libs/,
 				);
 				LIBRARY_SEARCH_PATHS = /usr/local/lib;
-				PRODUCT_NAME = "$(TARGET_NAME)";
+				PRODUCT_NAME = "$(PRODUCT_NAME)";
 			};
 			name = Release;
 		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		5D3871FF16B874A70062B72E /* Build configuration list for PBXProject "DeploymentOptimization" */ = {
+		5D3871FF16B874A70062B72E /* Build configuration list for PBXProject "generator" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				5D38720D16B874A70062B72E /* Debug */,
@@ -313,7 +309,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		5D38720F16B874A70062B72E /* Build configuration list for PBXNativeTarget "DeploymentOptimization" */ = {
+		5D38720F16B874A70062B72E /* Build configuration list for PBXNativeTarget "generator" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				5D38721016B874A70062B72E /* Debug */,
