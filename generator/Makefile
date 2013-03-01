@@ -2,10 +2,14 @@
 #  $ export STG="path to STG file"
 #  $ make 
 
-CFLAGS=  -O3
-LIBS = -L/usr/local/lib -lmpi -lmpi_cxx -lboost_serialization -lboost_mpi -lm 
 IMPLCPP=impl.cpp
 IMPLO=impl
+
+CFLAGS= -O3 -I/usr/include/openmpi-x86_64
+LD_LIBRARY_PATH=/usr/local/lib:/usr/lib64/openmpi/lib
+LDFLAGS=-L/usr/local/lib -L/usr/lib64/openmpi/lib
+LIBS = $(LDFLAGS) -lmpi -lmpi_cxx -lboost_serialization -lboost_mpi 
+
 
 # Terminology: 
 # model = input model e.g. STL file
@@ -17,8 +21,8 @@ all: generator impl
 impl: 
 	g++ $(CFLAGS) $(LIBS) gen/$(IMPLCPP) -o bin/$(IMPLO)
         
-generator: graph.cpp graph.h main.cpp main.h
-	g++ $(CFLAGS) $(LIBS) graph.cpp main.cpp -o bin/generator
+generator: libs/graph.cpp libs/graph.h main.cpp main.h
+	g++ $(CFLAGS) $(LIBS) libs/graph.cpp main.cpp -o bin/generator
 	./bin/generator "$(STG)" gen/$(IMPLCPP)
        
 # --- remove binary and executable files

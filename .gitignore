@@ -5,3 +5,4 @@
 generator/impl
 generator/impl.cpp
 generator/gen/*
+generator/bin/*
