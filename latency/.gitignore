@@ -1,0 +1,4 @@
+*.swp
+rankfile
+latency_impl/latency
+generate_latency
