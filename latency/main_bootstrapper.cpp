@@ -40,7 +40,7 @@ std::string get_latency(std::string from, std::string to) {
     remove(rankfile.c_str());
     return "<cd f =\"" + from +
            "\"  t=\""   + to +
-           "\"  v=\""   + microsec_str + "\"/>";
+           "\"  v=\""   + microsec_str + "\" />";
 }
 
 std::string make_rankfile(std::string to, std::string from) {
