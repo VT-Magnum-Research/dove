@@ -38,7 +38,7 @@ std::string get_latency(std::string from, std::string to) {
     string microsec_line = match(result, regex_line);
     string microsec_str = match(microsec_line, regex_number);
     remove(rankfile.c_str());
-    return "<cd f =\"" + from +
+    return "<cd f=\"" + from +
            "\"  t=\""   + to +
            "\"  v=\""   + microsec_str + "\" />";
 }
