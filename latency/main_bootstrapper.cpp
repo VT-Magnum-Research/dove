@@ -44,18 +44,17 @@ std::string get_latency(std::string from, std::string to) {
 }
 
 std::string make_rankfile(std::string to, std::string from) {
-    char sfn[21] = "";
-    FILE* sfp;
-    int fd = -1;
+    char sfn[21] = ""; FILE* sfp; int fd = -1;
      
     strncpy(sfn, "/tmp/rankfile.XXXXXX", sizeof sfn);
-    if ((fd = mkstemp(sfn)) == -1 ||
-       (sfp = fdopen(fd, "w+")) == NULL) {
-          if (fd != -1) {
-            unlink(sfn);
-            close(fd);
-          }
-       return "";
+    fd = mkstemp(sfn);
+    if (fd == -1) return "";
+
+    sfp = fdopen(fd, "w+");
+    if (sfp == NULL) {
+        unlink(sfn);
+        close(fd);
+        return "";
     }
 
     fprintf(sfp, "rank 0=10.0.2.4 slot=p0:%s\n", to.c_str());
