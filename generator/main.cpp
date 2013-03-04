@@ -29,11 +29,9 @@ namespace mpi = boost::mpi;
 // Forward declare methods to come
 void run_simple_mpi(int argc, char* argv[]);
 void build_mpi_from_stl(const char*, const char*);
-void build_rankfiles_from_deployment(const char*);
+void build_rankfiles_from_deployment();
+void generate_hostfile();
 
-// Simple usage: a.out <input_STG_file_path> <output_file_path> <input_SD_file_Path> <output_rank_file_path>
-
-// Usage: a.out <input.STG> <optimization.xml> <system.xml> <output_directory>
 //
 // Outputs:
 //    output_directory/
@@ -44,9 +42,9 @@ void build_rankfiles_from_deployment(const char*);
 
 
 // Declare all of the variables that will be parsed by tclap for us
-static std::string input_stg;
-static std::string input_dep;
-static std::string input_system;
+static std::string stg_path;
+static std::string deployment_xml_path;
+static std::string system_xml_path;
 static std::string outdir;
 static bool DEBUG_LOG = false;
 static bool should_generate_hostfile = false;
@@ -68,9 +66,9 @@ static void parse_options(int argc, char *argv[]) {
   cmd.xorAdd(gen_hostfile, copy_hostfile);
  
   cmd.parse(argc, argv);
-  input_stg = stg_arg.getValue();
-  input_dep = dep_arg.getValue();
-  input_system = sys_arg.getValue();
+  stg_path = stg_arg.getValue();
+  deployment_xml_path = dep_arg.getValue();
+  system_xml_path = sys_arg.getValue();
   outdir = dir_arg.getValue();
   DEBUG_LOG = debug_arg.getValue();
   should_generate_hostfile = gen_hostfile.getValue();
@@ -92,14 +90,39 @@ int main(int argc, char* argv[])
     std::cerr << "error: " << e.error() << " for arg " << e.argId() << std::endl;
     exit(EXIT_SUCCESS);
   }
-  
-  build_rankfiles_from_deployment(input_dep.c_str());
-  
+ 
+  if (should_generate_hostfile)
+    generate_hostfile();
+ 
+  build_rankfiles_from_deployment();
   std::string output_stg_cpp_path = outdir.append("/stg_impl.cpp");
-  build_mpi_from_stl(input_stg.c_str(),
+  build_mpi_from_stl(stg_path.c_str(),
                      output_stg_cpp_path.c_str());
   
   return 0;
+}
+
+void generate_hostfile() {
+  rapidxml::file<> xml_system(system_xml_path.c_str());
+  rapidxml::xml_document<> sys_doc;
+  sys_doc.parse<0>(xml_system.data());
+  
+  std::string dest = outdir;
+  dest.append("hostfile.txt");
+  std::ofstream  hosts(dest.c_str());
+
+  rapidxml::xml_node<>* nodes = sys_doc.first_node("system")->first_node("nodes");
+  for (rapidxml::xml_node<> *node = nodes->first_node(); 
+       node; 
+       node = node->next_sibling()) {
+    std::string ip = node->first_attribute("ip")->value();
+    int slotcount = 0;
+    for (rapidxml::xml_node<> *proc = node->first_node(); proc; 
+         proc = proc->next_sibling()) 
+      slotcount++;
+    
+    hosts << ip << " slots=" << slotcount << std::endl;
+  } 
 }
 
 // From http://stackoverflow.com/questions/5465227/recursion-problem-in-parsing-with-
@@ -133,7 +156,7 @@ void parse_ids_from_system_xml(std::string logical_id,
         std::string &hostname, 
         std::string &ip) {
 
-  rapidxml::file<> xml_system(input_system.c_str());
+  rapidxml::file<> xml_system(system_xml_path.c_str());
   rapidxml::xml_document<> sys_doc;
   sys_doc.parse<0>(xml_system.data());
   
@@ -170,11 +193,11 @@ void write_rank_core(std::ofstream& out, int rank, std::string host, int procpid
   out << "rank " << rank << "=" << host << " slot=p" << procpid << ":" << corepid << std::endl;
 }
 
-void build_rankfiles_from_deployment(const char* deployment_path) {
+void build_rankfiles_from_deployment() {
 
   // Load XML files
   rapidxml::xml_document<> dep_doc;
-  rapidxml::file<> xml_deployment(deployment_path);
+  rapidxml::file<> xml_deployment(deployment_xml_path.c_str());
   dep_doc.parse<0>(xml_deployment.data());
   
   // Pull out the mapping we are using and translate
