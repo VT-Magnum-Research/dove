@@ -1,7 +1,4 @@
-
-
 <optimization name="SAACO">
-
 
 <mapping to="cores" />
 <!-- Other options: 

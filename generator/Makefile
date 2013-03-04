@@ -5,7 +5,7 @@
 IMPLCPP=impl.cpp
 IMPLO=impl
 
-CFLAGS= -O3 -I/usr/include/openmpi-x86_64
+CFLAGS= -g -ggdb -I/usr/include/openmpi-x86_64
 LD_LIBRARY_PATH=/usr/local/lib:/usr/lib64/openmpi/lib
 LDFLAGS=-L/usr/local/lib -L/usr/lib64/openmpi/lib
 LIBS = $(LDFLAGS) -lmpi -lmpi_cxx -lboost_serialization -lboost_mpi 

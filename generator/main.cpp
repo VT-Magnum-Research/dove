@@ -92,11 +92,11 @@ int main(int argc, char* argv[])
 // rapidxml-c-class-pointers-side-effect
 rapidxml::xml_node<>* get_child_with_id(rapidxml::xml_node<> *inputNode, std::string id)
 {
-	// cycles every child
+  // cycles every child
   for (rapidxml::xml_node<> *nodeChild = inputNode->first_node(); nodeChild; nodeChild = nodeChild->next_sibling())
   {
     if (strcmp(nodeChild->first_attribute("id")->value(), id.c_str()) == 0)
-	return nodeChild;
+  return nodeChild;
     
     rapidxml::xml_node<>* x = get_child_with_id(nodeChild, id);
     if (x) 
@@ -112,38 +112,41 @@ rapidxml::xml_node<>* get_child_with_id(rapidxml::xml_node<> *inputNode, std::st
 // of a processor will result in only outputs for the physical ID of the
 // node and the processor
 void parse_ids_from_system_xml(std::string logical_id,
-				int &node_pid, 
-				int &proc_pid, 
-				int &core_pid, 
-				int &hwth_pid, 
-				std::string &hostname, 
-				std::string &ip) {
+        int &node_pid, 
+        int &proc_pid, 
+        int &core_pid, 
+        int &hwth_pid, 
+        std::string &hostname, 
+        std::string &ip) {
 
   rapidxml::file<> xml_system(input_system.c_str());
   rapidxml::xml_document<> sys_doc;
   sys_doc.parse<0>(xml_system.data());
   
-  rapidxml::xml_node<>* nodes = sys_doc.first_node("nodes");
+  rapidxml::xml_node<>* nodes = sys_doc.first_node("system")->
+  first_node("nodes");
   rapidxml::xml_node<>* node = get_child_with_id(nodes, logical_id);
   
   // While we have not returned to the root
   while (strcmp(node->name(), "nodes") != 0) {
-  	std::string name = node->name();
-		int pindex = atoi( node->first_attribute("pindex")->value() );
-    if (name.compare("pu"))
-			hwth_pid = pindex;
-		else if (name.compare("core"))
-			core_pid = pindex;
-		else if (name.compare("socket")) 
-			proc_pid = pindex;
-		else if (name.compare("node")) {
-			node_pid = pindex;
-			ip = node->first_attribute("ip")->value();
-			hostname = node->first_attribute("hostname")->value();
-		}
-		else
-			throw "Unknown tag in XML. Valid values underneath 'nodes' are node,socket,core,pu";
-  }
+    std::string name = node->name();
+    int pindex = atoi( node->first_attribute("pindex")->value() );
+    if (name.compare("pu") == 0)
+      hwth_pid = pindex;
+    else if (name.compare("core") == 0)
+      core_pid = pindex;
+    else if (name.compare("socket") == 0) 
+      proc_pid = pindex;
+    else if (name.compare("node") == 0) {
+      node_pid = pindex;
+      ip = node->first_attribute("ip")->value();
+      hostname = node->first_attribute("hostname")->value();
+    }
+    else
+      throw "Unknown tag in XML. Valid values underneath 'nodes' are node,socket,core,pu";
+    
+    node = node->parent();
+  }   
 }
 
 void build_rankfiles_from_deployment(const char* deployment_path) {
@@ -155,7 +158,8 @@ void build_rankfiles_from_deployment(const char* deployment_path) {
   
   // Pull out the mapping we are using and translate
   // that into a proper rankfile format
-  std::string mapping = dep_doc.first_node("mapping")->first_attribute("to")->value();
+  std::string mapping = dep_doc.first_node("optimization")->
+  first_node("mapping")->first_attribute("to")->value();
   const char* format = "";
   if (mapping.compare("cores") == 0) {
     // rank 1=10.0.2.4 slot=p1:8
@@ -182,7 +186,8 @@ void build_rankfiles_from_deployment(const char* deployment_path) {
   
 
   // Locate all deployments
-  rapidxml::xml_node<>* deps = dep_doc.first_node("deployments");
+  rapidxml::xml_node<>* deps = dep_doc.first_node("optimization")->
+  first_node("deployments");
   for (rapidxml::xml_node<>* deployment = deps->first_node();
        deployment;
        deployment = deployment->next_sibling()) {
@@ -197,7 +202,11 @@ void build_rankfiles_from_deployment(const char* deployment_path) {
     for (rapidxml::xml_node<>* mapping = deployment->first_node();
          mapping;
          mapping = mapping->next_sibling()) {
-      
+     
+      // Skip anything that's not a 'deploy' tag
+      if (strcmp(mapping->name(), "deploy") != 0)
+        continue;
+
       std::string rank = mapping->first_attribute("t")->value();
       std::string logical_id = mapping->first_attribute("u")->value();
       
@@ -214,10 +223,10 @@ void build_rankfiles_from_deployment(const char* deployment_path) {
       // Then use format string to write them to buffer, and
       // finally push the buffer out to a file
       
-      printf("rank %s=%s slot=p%d:%d", rank.c_str(), hostname.c_str(), 
-	proc_pid, core_pid);
-    }
-  }
+      printf("rank %s=%s slot=p%d:%d\n", rank.c_str(), hostname.c_str(), 
+  proc_pid, core_pid);
+    } // Done with mappings for one deployment
+  } // Done with all deployments
   
   std::cout << "Done";
 
