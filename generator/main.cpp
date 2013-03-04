@@ -58,7 +58,7 @@ static void parse_options(int argc, char *argv[]) {
   cmd.add(dep_arg);
   TCLAP::ValueArg<std::string> sys_arg("y", "system", "path to XML file containing a description of the final deployment system hardware. Used to understand the ID's of processing units used in the deployment XML file", true, "", "system XML");
   cmd.add(sys_arg);
-  TCLAP::ValueArg<std::string> dir_arg("o", "output", "path to a directory where output will be placed. Output directory should contain the stg_impl.cpp, Makefile, rankfile.{0..} (one for each deployment) and a sample run_mpi.sh showing how to phrase the running of all the MPI code", true, "", "output dirpath");
+  TCLAP::ValueArg<std::string> dir_arg("o", "output", "path to a directory where output will be placed. Output directory should contain the stg_impl.cpp, Makefile, rankfile.{0..} (one for each deployment) and a sample run_mpi.sh showing how to phrase the running of all the MPI code. This directory should already exist, and the passed parameter should include the final backslash", true, "", "output dirpath");
   cmd.add(dir_arg);
   TCLAP::SwitchArg debug_arg("", "debug", "Include println statements in the generated stg.cpp code (slows down MPI execution)");
   
@@ -149,6 +149,13 @@ void parse_ids_from_system_xml(std::string logical_id,
   }   
 }
 
+void write_rank_core(std::ofstream& out, int rank, std::string host, int procpid, int corepid) {
+  // Cores are "rank %s=%s slot=p%d:%d\n" 
+  // rank 1=10.0.2.4 slot=p1:8
+  // references physical socket 1 and physical core 8
+  out << "rank " << rank << "=" << host << " slot=p" << procpid << ":" << corepid << std::endl;
+}
+
 void build_rankfiles_from_deployment(const char* deployment_path) {
 
   // Load XML files
@@ -160,31 +167,19 @@ void build_rankfiles_from_deployment(const char* deployment_path) {
   // that into a proper rankfile format
   std::string mapping = dep_doc.first_node("optimization")->
   first_node("mapping")->first_attribute("to")->value();
-  const char* format = "";
-  if (mapping.compare("cores") == 0) {
-    // rank 1=10.0.2.4 slot=p1:8
-    // references physical socket 1 and physical core 8
-    format = "rank %d=%s slot=p%d:%d";
-  } else if (mapping.compare("nodes") == 0){
-    format = "%dsdf";
+  void (*write_rank_line) (std::ofstream&, int, std::string, int, int);
+
+  if (mapping.compare("cores") == 0) 
+    write_rank_line = &write_rank_core;
+  else if (mapping.compare("nodes") == 0){
     throw "only cores supported now";
   } else if (mapping.compare("hw-threads") == 0) {
-    format = "%dewr";
     throw "only cores supported now";
   } else if (mapping.compare("processors") == 0) {
-    format = "%dasdf";
     throw "only cores supported now";
   } else
     throw "The provided mapping was not recognized. Use one of cores,nodes,processors,hw-threads";
   
-  char buffer [50];
-  int rank = 0;
-  const char* ip = "10.0.2.4";
-  int socket = 1;
-  int core = 8;
-  sprintf(buffer, format, rank, ip, socket, core);
-  
-
   // Locate all deployments
   rapidxml::xml_node<>* deps = dep_doc.first_node("optimization")->
   first_node("deployments");
@@ -194,7 +189,8 @@ void build_rankfiles_from_deployment(const char* deployment_path) {
     
     // Start writing the rankfile
     std::string id = deployment->first_attribute("id")->value();
-    std::string rankfile = outdir.append(".").append(id);
+    std::string rankfile = outdir;
+    rankfile.append("rankfile.").append(id);
     std::ofstream rf;
     rf.open(rankfile.c_str());
     
@@ -207,7 +203,7 @@ void build_rankfiles_from_deployment(const char* deployment_path) {
       if (strcmp(mapping->name(), "deploy") != 0)
         continue;
 
-      std::string rank = mapping->first_attribute("t")->value();
+      int rank = atoi( mapping->first_attribute("t")->value() );
       std::string logical_id = mapping->first_attribute("u")->value();
       
       std::string hostname;
@@ -220,12 +216,12 @@ void build_rankfiles_from_deployment(const char* deployment_path) {
       // This function fills in all other data given the physical ID
       parse_ids_from_system_xml(logical_id, node_pid, proc_pid, core_pid, hwth_pid, hostname, ip);
       
-      // Then use format string to write them to buffer, and
-      // finally push the buffer out to a file
-      
-      printf("rank %s=%s slot=p%d:%d\n", rank.c_str(), hostname.c_str(), 
-  proc_pid, core_pid);
+      // Then write them to the file
+      write_rank_line(rf, rank, hostname, proc_pid, core_pid);
+
     } // Done with mappings for one deployment
+       
+    rf.close();
   } // Done with all deployments
   
   std::cout << "Done";
