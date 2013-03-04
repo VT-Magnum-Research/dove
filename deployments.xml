@@ -1,5 +1,6 @@
 
-\<optimization name="SAACO">
+
+<optimization name="SAACO">
 
 
 <mapping to="cores" />
@@ -9,8 +10,10 @@
 <mapping to="hw-threads" /> -->
 
 <deployments>
-<!-- To save space, here's the mapping: 
-     t == task, u == unit -->
+<!-- All task numbers (t) are determined by the STG file
+     that describes the software model. All processing 
+     unit numbers (u) are determined by the logical ids
+     stored inside the system xml -->
     <deployment id="0">
         <deploy t="1" u="5" />
         <deploy t="2" u="6" />

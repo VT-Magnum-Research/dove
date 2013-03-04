@@ -88,7 +88,63 @@ int main(int argc, char* argv[])
   return 0;
 }
 
-void parse_ids_from_system_xml(int &node_pid, int &proc_pid, int &core_pid, int &hwth_pid, std::string &hostname, std::string &ip);
+// From http://stackoverflow.com/questions/5465227/recursion-problem-in-parsing-with-
+// rapidxml-c-class-pointers-side-effect
+rapidxml::xml_node<>* get_child_with_id(rapidxml::xml_node<> *inputNode, std::string id)
+{
+	// cycles every child
+  for (rapidxml::xml_node<> *nodeChild = inputNode->first_node(); nodeChild; nodeChild = nodeChild->next_sibling())
+  {
+    if (strcmp(nodeChild->first_attribute("id")->value(), id.c_str()) == 0)
+	return nodeChild;
+    
+    rapidxml::xml_node<>* x = get_child_with_id(nodeChild, id);
+    if (x) 
+      return x;
+  }
+  return 0;
+}
+
+// Given a single logical ID, this function searches through the XML until
+// that logical ID is located and outputs the physical ID values for node,
+// processor, core, and hardware thread that match that logical ID. For
+// many inputs the output will be blank e.g. passing in the logical ID
+// of a processor will result in only outputs for the physical ID of the
+// node and the processor
+void parse_ids_from_system_xml(std::string logical_id,
+				int &node_pid, 
+				int &proc_pid, 
+				int &core_pid, 
+				int &hwth_pid, 
+				std::string &hostname, 
+				std::string &ip) {
+
+  rapidxml::file<> xml_system(input_system.c_str());
+  rapidxml::xml_document<> sys_doc;
+  sys_doc.parse<0>(xml_system.data());
+  
+  rapidxml::xml_node<>* nodes = sys_doc.first_node("nodes");
+  rapidxml::xml_node<>* node = get_child_with_id(nodes, logical_id);
+  
+  // While we have not returned to the root
+  while (strcmp(node->name(), "nodes") != 0) {
+  	std::string name = node->name();
+		int pindex = atoi( node->first_attribute("pindex")->value() );
+    if (name.compare("pu"))
+			hwth_pid = pindex;
+		else if (name.compare("core"))
+			core_pid = pindex;
+		else if (name.compare("socket")) 
+			proc_pid = pindex;
+		else if (name.compare("node")) {
+			node_pid = pindex;
+			ip = node->first_attribute("ip")->value();
+			hostname = node->first_attribute("hostname")->value();
+		}
+		else
+			throw "Unknown tag in XML. Valid values underneath 'nodes' are node,socket,core,pu";
+  }
+}
 
 void build_rankfiles_from_deployment(const char* deployment_path) {
 
@@ -143,7 +199,7 @@ void build_rankfiles_from_deployment(const char* deployment_path) {
          mapping = mapping->next_sibling()) {
       
       std::string rank = mapping->first_attribute("t")->value();
-      std::string physical_id = mapping->first_attribute("u")->value();
+      std::string logical_id = mapping->first_attribute("u")->value();
       
       std::string hostname;
       std::string ip;
@@ -152,43 +208,20 @@ void build_rankfiles_from_deployment(const char* deployment_path) {
       int core_pid;
       int hwth_pid;
       // TODO Call helper function here to fill in the values above
-      //parse_ids_from_system_xml(node_pid, proc_pid, core_pid, hwth_pid, hostname, ip);
+      // This function fills in all other data given the physical ID
+      parse_ids_from_system_xml(logical_id, node_pid, proc_pid, core_pid, hwth_pid, hostname, ip);
       
       // Then use format string to write them to buffer, and
       // finally push the buffer out to a file
       
+      printf("rank %s=%s slot=p%d:%d", rank.c_str(), hostname.c_str(), 
+	proc_pid, core_pid);
     }
   }
-  
-
-  
-  // Try to add a unit
-  // rapidxml::xml_node<> *unit = doc.allocate_node(rapidxml::node_element, "unit");
-  // node->append_node(unit);
-  // rapidxml::xml_attribute<> *attr = doc.allocate_attribute("type", "GPP");
-  // unit->append_attribute(attr);
-  // std::cout << doc;
   
   std::cout << "Done";
 
 }
-
-void parse_ids_from_system_xml(int id, 
-                               int &node_pid, int &proc_pid,
-                               int &core_pid, int &hwth_pid,
-                               std::string &hostname,
-                               std::string &ip) {
-  rapidxml::file<> xml_system(input_system.c_str());
-  rapidxml::xml_document<> sys_doc;
-  sys_doc.parse<0>(xml_system.data());
-  
-  //dep_doc.first_node("deployments");
-  
-  
-  
-}
-
-
 
 void build_mpi_case_for_task(unsigned int tid, unsigned int exectime, std::vector<unsigned int>& pre, std::vector<unsigned int>& post, std::ofstream& out);
 void build_mpi_from_stl(const char* stg_path,
