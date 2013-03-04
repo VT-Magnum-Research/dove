@@ -49,6 +49,7 @@ static std::string input_dep;
 static std::string input_system;
 static std::string outdir;
 static bool DEBUG_LOG = false;
+static bool should_generate_hostfile = false;
 
 static void parse_options(int argc, char *argv[]) {
   TCLAP::CmdLine cmd("Multi-core Deployment Optimization Model --> MPI Code Generator ", ' ', "0.1");
@@ -62,12 +63,25 @@ static void parse_options(int argc, char *argv[]) {
   cmd.add(dir_arg);
   TCLAP::SwitchArg debug_arg("", "debug", "Include println statements in the generated stg.cpp code (slows down MPI execution)");
   
+  TCLAP::SwitchArg gen_hostfile("", "genhosts", "Automatically generate the hosts file from the system XML description");
+  TCLAP::ValueArg<std::string> copy_hostfile("", "hostfile", "Hostfile to copy into the output directory", true, "hostfile", "filename");
+  cmd.xorAdd(gen_hostfile, copy_hostfile);
+ 
   cmd.parse(argc, argv);
   input_stg = stg_arg.getValue();
   input_dep = dep_arg.getValue();
   input_system = sys_arg.getValue();
   outdir = dir_arg.getValue();
   DEBUG_LOG = debug_arg.getValue();
+  should_generate_hostfile = gen_hostfile.getValue();
+  if (!should_generate_hostfile)
+  {
+     std::ifstream  src(copy_hostfile.getValue().c_str());
+     std::string dest = outdir;
+     dest.append("hostfile.txt");
+     std::ofstream  dst(dest.c_str());
+     dst << src.rdbuf();
+  }
 }
 
 int main(int argc, char* argv[])
