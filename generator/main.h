@@ -9,6 +9,18 @@
 #ifndef DeploymentOptimization_main_h
 #define DeploymentOptimization_main_h
 
+const char *default_makefile = ""
+"CFLAGS= -O3 -I/usr/include/openmpi-x86_64\n"
+"LD_LIBRARY_PATH=/usr/local/lib:/usr/lib64/openmpi/lib\n"
+"LDFLAGS=-L/usr/local/lib -L/usr/lib64/openmpi/lib\n"
+"LIBS = $(LDFLAGS) -lmpi -lmpi_cxx -lboost_serialization -lboost_mpi \n"
+"\n"
+"all:\n"
+"\tg++ $(CFLAGS) $(LIBS) stg_impl.cpp -o impl\n"
+"\n"
+"clean:\n"
+"\trm -f impl\n\n";
+
 #include "libs/graph.h"
 
 struct Task {

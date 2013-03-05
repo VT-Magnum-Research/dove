@@ -15,7 +15,7 @@
 #include <fstream>
 #include <stdio.h>
 
-// Includes Task and STG parser
+// Includes STG parser and default Makefile
 #include "main.h"
 #include "libs/rapidxml.hpp"
 #include "libs/rapidxml_utils.hpp"
@@ -26,9 +26,10 @@
 namespace mpi = boost::mpi;
 
 
+
 // Forward declare methods to come
 void run_simple_mpi(int argc, char* argv[]);
-void build_mpi_from_stl(const char*, const char*);
+void build_mpi_from_stl();
 void build_rankfiles_from_deployment();
 void generate_hostfile();
 
@@ -80,6 +81,7 @@ static void parse_options(int argc, char *argv[]) {
      std::ofstream  dst(dest.c_str());
      dst << src.rdbuf();
   }
+
 }
 
 int main(int argc, char* argv[])
@@ -94,11 +96,22 @@ int main(int argc, char* argv[])
   if (should_generate_hostfile)
     generate_hostfile();
  
+  // TODO verify that deployment only uses IDs from the mapping it
+  // claims
   build_rankfiles_from_deployment();
-  std::string output_stg_cpp_path = outdir.append("/stg_impl.cpp");
-  build_mpi_from_stl(stg_path.c_str(),
-                     output_stg_cpp_path.c_str());
+  build_mpi_from_stl();
   
+  // Write out the default Makefile  
+  std::string dest = outdir;
+  dest.append("Makefile");
+  std::ofstream  dst(dest.c_str());
+  dst << default_makefile;
+  
+  //if (should_attempt_build) {
+
+
+  //}
+
   return 0;
 }
 
@@ -266,13 +279,14 @@ void build_rankfiles_from_deployment() {
 }
 
 void build_mpi_case_for_task(unsigned int tid, unsigned int exectime, std::vector<unsigned int>& pre, std::vector<unsigned int>& post, std::ofstream& out);
-void build_mpi_from_stl(const char* stg_path,
-                        const char* impl_cpp_outpath) {
+void build_mpi_from_stl() {
   DirectedAcyclicGraph* task_precedence = NULL;
-  std::vector<Task>* tasks = parse_stg(stg_path, task_precedence);
-  std::ofstream out;
-  out.open(impl_cpp_outpath);
+  std::vector<Task>* tasks = parse_stg(stg_path.c_str(), task_precedence);
   
+  std::string dest = outdir;
+  dest.append("stg_impl.cpp");
+  std::ofstream  out(dest.c_str());
+
   // Write header
   const char * header =
     "#include <boost/mpi.hpp>\n"
