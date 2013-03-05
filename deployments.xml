@@ -16,6 +16,8 @@
         <deploy t="2" u="2" />
         <deploy t="0" u="8" />
         <deploy t="3" u="11" />
+        <deploy t="4" u="2" />
+        <deploy t="5" u="5" />
         <score makespan="232" physical_time="123" />
     </deployment>
     <deployment id="1">
@@ -23,6 +25,8 @@
         <deploy t="2" u="2" />
         <deploy t="0" u="5" />
         <deploy t="3" u="8" />
+        <deploy t="4" u="2" />
+        <deploy t="5" u="5" />
         <score makespan="232" physical_time="123" />
     </deployment>
     <deployment id="2">
@@ -30,6 +34,8 @@
         <deploy t="2" u="5" />
         <deploy t="0" u="2" />
         <deploy t="3" u="11" />
+        <deploy t="4" u="5" />
+        <deploy t="5" u="5" />
         <score makespan="232" physical_time="123" />
     </deployment>
 
