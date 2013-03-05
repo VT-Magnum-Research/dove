@@ -49,6 +49,7 @@ static std::string system_xml_path;
 static std::string outdir;
 static bool DEBUG_LOG = false;
 static bool should_generate_hostfile = false;
+static bool should_run_make = true;
 
 static void parse_options(int argc, char *argv[]) {
   TCLAP::CmdLine cmd("Multi-core Deployment Optimization Model --> MPI Code Generator ", ' ', "0.1");
@@ -65,12 +66,16 @@ static void parse_options(int argc, char *argv[]) {
   TCLAP::SwitchArg gen_hostfile("", "genhosts", "Automatically generate the hosts file from the system XML description");
   TCLAP::ValueArg<std::string> copy_hostfile("", "hostfile", "Hostfile to copy into the output directory", true, "hostfile", "filename");
   cmd.xorAdd(gen_hostfile, copy_hostfile);
+
+  TCLAP::SwitchArg should_make("r", "runmake", "Automatically try to build the stg_impl.cpp into an executable", true);
+  cmd.add(should_make);
  
   cmd.parse(argc, argv);
   stg_path = stg_arg.getValue();
   deployment_xml_path = dep_arg.getValue();
   system_xml_path = sys_arg.getValue();
   outdir = dir_arg.getValue();
+  should_run_make = should_make.getValue();
   DEBUG_LOG = debug_arg.getValue();
   should_generate_hostfile = gen_hostfile.getValue();
   if (!should_generate_hostfile)
@@ -106,11 +111,30 @@ int main(int argc, char* argv[])
   dest.append("Makefile");
   std::ofstream  dst(dest.c_str());
   dst << default_makefile;
-  
-  //if (should_attempt_build) {
+  dst.close();
+ 
+  // Run makefile to build impl from stg_impl.cpp 
+  if (should_run_make) {
+    std::string make = "make -C ";
+    make.append(outdir);
+    //make.append(" all");
+    std::cout << "Makefile is " << make << std::endl;
+    system(make.c_str());
+  }
 
+  // Copy over the input files so the output dir is the sum of all 
+  // project files
+  std::ifstream  src(deployment_xml_path.c_str());
+  dest = outdir;
+  dest.append("deployments.xml");
+  std::ofstream  ddst(dest.c_str());
+  ddst << src.rdbuf();
 
-  //}
+  std::ifstream  ssrc(system_xml_path.c_str());
+  dest = outdir;
+  dest.append("system.xml");
+  std::ofstream  sdst(dest.c_str());
+  sdst << ssrc.rdbuf();
 
   return 0;
 }

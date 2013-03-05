@@ -1,0 +1,5 @@
+The output MPI executable seems to require two more ranks than are shown in the 
+rankfile, likely for the initial source task and the final sink task. Someone
+needs to figure out if this guess is correct, and if it is then the rankfile 
+generation should be updated to address this by placing the source and 
+sink either randomly or semi-intelligently
