@@ -47,7 +47,7 @@ static std::string stg_path;
 static std::string deployment_xml_path;
 static std::string system_xml_path;
 static std::string outdir;
-static bool DEBUG_LOG = false;
+static bool debug_impl = false;
 static bool should_generate_hostfile = false;
 static bool should_run_make = true;
 
@@ -61,7 +61,8 @@ static void parse_options(int argc, char *argv[]) {
   cmd.add(sys_arg);
   TCLAP::ValueArg<std::string> dir_arg("o", "output", "path to a directory where output will be placed. Output directory should contain the stg_impl.cpp, Makefile, rankfile.{0..} (one for each deployment) and a sample run_mpi.sh showing how to phrase the running of all the MPI code. This directory should already exist, and the passed parameter should include the final backslash", true, "", "output dirpath");
   cmd.add(dir_arg);
-  TCLAP::SwitchArg debug_arg("", "debug", "Include println statements in the generated stg.cpp code (slows down MPI execution)");
+  TCLAP::SwitchArg debug_arg("", "debug", "Include println statements in the generated stg.cpp code (slows down MPI execution)", false);
+  cmd.add(debug_arg);
   
   TCLAP::SwitchArg gen_hostfile("", "genhosts", "Automatically generate the hosts file from the system XML description");
   TCLAP::ValueArg<std::string> copy_hostfile("", "hostfile", "Hostfile to copy into the output directory", true, "hostfile", "filename");
@@ -76,7 +77,8 @@ static void parse_options(int argc, char *argv[]) {
   system_xml_path = sys_arg.getValue();
   outdir = dir_arg.getValue();
   should_run_make = should_make.getValue();
-  DEBUG_LOG = debug_arg.getValue();
+  debug_impl = debug_arg.getValue();
+  std::cout << "Picked up debug as " << debug_impl << std::endl;
   should_generate_hostfile = gen_hostfile.getValue();
   if (!should_generate_hostfile)
   {
@@ -351,7 +353,7 @@ void build_mpi_case_for_task(unsigned int tid, unsigned int exectime, std::vecto
   // ========= Case Header
   out <<
     "    case " << tid << ": {\n";
-  if (DEBUG_LOG)
+  if (debug_impl)
     out <<
       "      std::cout << \"" << tid << ": Awake\" << std::endl;\n";
 
@@ -365,9 +367,10 @@ void build_mpi_case_for_task(unsigned int tid, unsigned int exectime, std::vecto
     out <<
       "      mpi::wait_all(req, req + " << pre.size() << ");\n";
 
-    for (int p = 0; p < pre.size(); p++)
-      out <<
-        "      std::cout << \"" << tid << ": Recv notice from pred " << pre[p] << "\" << std::endl;\n";
+    if (debug_impl)
+      for (int p = 0; p < pre.size(); p++)
+        out <<
+          "      std::cout << \"" << tid << ": Recv notice from pred " << pre[p] << "\" << std::endl;\n";
   }
 
 
@@ -376,12 +379,12 @@ void build_mpi_case_for_task(unsigned int tid, unsigned int exectime, std::vecto
     "      time_t start;\n"
     "      start = time(NULL);\n";
   
-  if (DEBUG_LOG)
+  if (debug_impl)
     out <<
     "      std::cout << \"" << tid << ": Started compute\" << std::endl;\n";
   out <<
    "      while ((time(NULL)-start) < " << exectime << ");\n";
-  if (DEBUG_LOG)
+  if (debug_impl)
     out <<
     "      std::cout << \"" << tid << ": Finished compute in \" << (time(NULL)-start) << std::endl;\n";
   
@@ -396,12 +399,14 @@ void build_mpi_case_for_task(unsigned int tid, unsigned int exectime, std::vecto
     out <<
     "      mpi::wait_all(sreq, sreq + " << post.size() << ");\n";
     
-    for (int p = 0; p < post.size(); p++)
-      out <<
-      "      std::cout << \"" << tid << ": Sent notice to succ " << post[p] << "\" << std::endl;\n";
+    if (debug_impl)
+      for (int p = 0; p < post.size(); p++)
+        out <<
+        "      std::cout << \"" << tid << ": Sent notice to succ " << post[p] << "\" << std::endl;\n";
   } else
-    out <<
-    "      std::cout << \"" << tid << ": DONE!!\" << std::endl;\n";
+    if (debug_impl)
+      out <<
+        "      std::cout << \"" << tid << ": DONE!!\" << std::endl;\n";
 
   // ========= Case Footer
   out <<
