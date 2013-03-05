@@ -21,6 +21,17 @@ const char *default_makefile = ""
 "clean:\n"
 "\trm -f impl\n\n";
 
+const char* default_run = ""
+"#!/bin/sh\n"
+"RANKS=$(wc -l rankfile.0 | cut --delimiter=\\  -f 1)\n"
+"for file in $(ls | grep -e \"rankfile.[0-9]*$\")\n"
+"do\n" 
+"  echo \"Running $file\"\n"
+"  PROC_TIME=$(time (mpirun --rankfile $file --hostfile hostfile.txt -np $RANKS impl >/dev/null 2>&1) 2>&1)\n"
+"  echo \"Took $PROC_TIME\"\n"
+"  echo $PROC_TIME > $file.time\n"
+"done\n";
+
 #include "libs/graph.h"
 
 struct Task {

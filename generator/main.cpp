@@ -78,7 +78,6 @@ static void parse_options(int argc, char *argv[]) {
   outdir = dir_arg.getValue();
   should_run_make = should_make.getValue();
   debug_impl = debug_arg.getValue();
-  std::cout << "Picked up debug as " << debug_impl << std::endl;
   should_generate_hostfile = gen_hostfile.getValue();
   if (!should_generate_hostfile)
   {
@@ -114,7 +113,13 @@ int main(int argc, char* argv[])
   std::ofstream  dst(dest.c_str());
   dst << default_makefile;
   dst.close();
- 
+
+  // Write out the default bash script  
+  dest = outdir;
+  dest.append("runmpi.sh");
+  std::ofstream  rmdst(dest.c_str());
+  rmdst << default_run;
+  
   // Run makefile to build impl from stg_impl.cpp 
   if (should_run_make) {
     std::string make = "make -C ";
@@ -300,7 +305,6 @@ void build_rankfiles_from_deployment() {
     rf.close();
   } // Done with all deployments
   
-  std::cout << "Done";
 
 }
 
