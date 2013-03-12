@@ -15,7 +15,12 @@
 #include <sys/time.h>
 #include <time.h>
 #define	NUMBER_REPS	1000
-#define DEBUG true
+
+#ifdef DEBUG_LATENCY
+ #define debug true
+#else
+ #define debug false
+#endif
 
 int main (int argc, char *argv[])
 {
@@ -49,10 +54,10 @@ reps = NUMBER_REPS;
 
 if (rank == 0) {
    /* round-trip latency timing test */
-   if (DEBUG) printf("task %d has started...\n", rank);
-   if (DEBUG) printf("Beginning latency timing test. Number of reps = %d.\n", reps);
-   if (DEBUG) printf("***************************************************\n");
-   if (DEBUG) printf("Rep#       T1               T2            deltaT\n");
+   if (debug) printf("task %d has started...\n", rank);
+   if (debug) printf("Beginning latency timing test. Number of reps = %d.\n", reps);
+   if (debug) printf("***************************************************\n");
+   if (debug) printf("Rep#       T1               T2            deltaT\n");
    dest = 1;
    source = 1;
    for (n = 1; n <= reps; n++) {
@@ -78,18 +83,18 @@ if (rank == 0) {
 
       /* calculate round trip time and print */
       deltaT = T2 - T1;
-      if (DEBUG) printf("%4d  %8.8f  %8.8f  %2.8f\n", n, T1, T2, deltaT);
+      if (debug) printf("%4d  %8.8f  %8.8f  %2.8f\n", n, T1, T2, deltaT);
          sumT += deltaT;
       }
    avgT = (sumT*1000000)/reps;
-   if (DEBUG) printf("***************************************************\n");
-   if (DEBUG) printf("\n*** Avg round trip time = %d microseconds\n", avgT);
-   if (DEBUG) printf("*** Avg one way latency = %d microseconds\n", avgT/2);
+   if (debug) printf("***************************************************\n");
+   if (debug) printf("\n*** Avg round trip time = %d microseconds\n", avgT);
+   if (debug) printf("*** Avg one way latency = %d microseconds\n", avgT/2);
    printf("%d\n", avgT);
    } 
 
 else if (rank == 1) {
-   if (DEBUG) printf("task %d has started...\n", rank);
+   if (debug) printf("task %d has started...\n", rank);
    dest = 0;
    source = 0;
    for (n = 1; n <= reps; n++) {

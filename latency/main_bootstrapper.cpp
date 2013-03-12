@@ -4,19 +4,32 @@
 #include <stdio.h>
 #include <stdlib.h> // mkstemp
 
+// Provides regex and exec 
 #include "helper.hpp"
 #include "main_bootstrapper.hpp"
 
+// Command line pasing
+#include "libs/tclap/CmdLine.h"
+static void parse_options(int argc, char *argv[]);
+static std::vector<int> sockets;
+static std::vector<int> cores;
+
 int main(int argc, char** argv) {
-    using namespace std;
-    for (int i = 1; i < argc; i++) {
-        for (int j = 1; j < argc; j++) {
-            if (i != j) {
-                cout << get_latency(argv[i], argv[j]) << endl;
-            }
-        }
-    }
-    return 0;
+  try {
+    parse_options(argc, argv);
+  } catch (TCLAP::ArgException &e) {
+    std::cerr << "error: " << e.error() << " for arg " << e.argId() << std::endl;
+    exit(EXIT_SUCCESS);
+  }
+  using namespace std;
+  for (int i = 1; i < argc; i++) {
+      for (int j = 1; j < argc; j++) {
+          if (i != j) {
+              cout << get_latency(argv[i], argv[j]) << endl;
+          }
+      }
+  }
+  return 0;
 }
 
 std::string get_latency(std::string from, std::string to) {
@@ -63,3 +76,21 @@ std::string make_rankfile(std::string to, std::string from) {
     // TODO: This isn't returning a value on the stack, is it?
     return std::string(sfn);
 }
+
+static void parse_options(int argc, char *argv[]) {
+  TCLAP::CmdLine cmd("Multi-core Deployment Optimization Model --> MPI Code Generator ", ' ', "0.1");
+  TCLAP::MultiArg<int> sock_arg("s", "socket", "Each socket(processor) that should "
+      "be tested. These should be the physical IDs of the sockets", true, 
+      "int");
+  cmd.add(sock_arg);
+  TCLAP::MultiArg<int> core_arg("c", "core", "Each core that should "
+      "be tested. These should be the physical IDs of the cores", true, 
+      "int");
+  cmd.add(core_arg);
+  
+  cmd.parse(argc, argv);
+  sockets = sock_arg.getValue();
+  cores = core_arg.getValue();
+}
+
+
