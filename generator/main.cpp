@@ -169,8 +169,7 @@ void generate_hostfile() {
   } 
 }
 
-// From http://stackoverflow.com/questions/5465227/recursion-problem-in-parsing-with-
-// rapidxml-c-class-pointers-side-effect
+// http://stackoverflow.com/questions/5465227
 rapidxml::xml_node<>* get_child_with_id(rapidxml::xml_node<> *inputNode, std::string id)
 {
   // cycles every child
