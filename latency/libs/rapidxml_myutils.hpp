@@ -19,9 +19,9 @@ namespace rapidxml
   // 0 is returned
   //
   // http://stackoverflow.com/questions/5465227
-  template<lass Ch>
+  template<class Ch>
   inline xml_node<Ch>* get_child_with_attribute(xml_node<Ch> *node, 
-    ::string attribute_name, std::string attribute_value)
+    std::string attribute_name, std::string attribute_value)
   {
     // Cycles every child
     for (xml_node<> *nodeChild = 
@@ -29,8 +29,8 @@ namespace rapidxml
         nodeChild; 
         nodeChild = nodeChild->next_sibling())
     {
-      xml_attribute<Ch>* attribute = nodeChild->first_attribute(attribute_name);
-      if (attribute != 0 && strcmp(attribute->value(), attribute_value) == 0)
+      xml_attribute<Ch>* attribute = nodeChild->first_attribute(attribute_name.c_str());
+      if (attribute != 0 && strcmp(attribute->value(), attribute_value.c_str()) == 0)
         return nodeChild;
 
       xml_node<Ch>* x = get_child_with_attribute(nodeChild, 
@@ -74,7 +74,7 @@ namespace dove
         proc_pid(-1), core_pid(-1),
         hwth_pid(-1), hostname(""),
         ip(""), type(UNKNOWN) { }
-  }
+  };
 
   // Given the system.xml and the logical ID of a tag within the system.xml, 
   // this returns all identifiers needed to uniquely identify the hardware 
@@ -88,7 +88,7 @@ namespace dove
   // core, but will return no identifying information about a hardware 
   // thread. 
   //
-  void parse_pids(rapid_xml::xml_document<char> system, 
+  void parse_pids(rapidxml::xml_document<char> &system, 
       std::string logical_id,
       int &node_pid, 
       int &proc_pid, 
@@ -124,12 +124,12 @@ namespace dove
     }   
   }
 
-  hardware_component parse_pids(rapid_xml::xml_document<char> system, 
+  hardware_component parse_pids(rapidxml::xml_document<char> &system, 
       std::string logical_id) {
     hardware_component com;
     parse_pids(system, logical_id, 
-        &(com.node_pid), &(com.proc_pid), &(com.core_pid),
-        &(com.hwth_pid), &(com.hostname), &(com.ip));
+        com.node_pid, com.proc_pid, com.core_pid,
+        com.hwth_pid, com.hostname, com.ip);
     return com;
   }
 
@@ -152,7 +152,7 @@ namespace dove
   // or processor, and builds the rankline appropriately. If for an 
   // entire host, then the rankline simply lists that the task can be 
   // bound to any available processor on that host
-  std::string build_rankline(rapidxml::xml_document<> system,
+  std::string build_rankline(rapidxml::xml_document<char> &system,
       int taskid, 
       std::string id) {
     hardware_component com = parse_pids(system, id);
@@ -181,4 +181,3 @@ namespace dove
 
 }
 
-#endif
