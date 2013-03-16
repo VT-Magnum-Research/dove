@@ -46,6 +46,36 @@ namespace rapidxml
 namespace dove 
 {
 
+  enum hardware_type { 
+    HOST      = 4, 
+    PROCESSOR = 3, 
+    PROC      = PROCESSOR,
+    SOCKET    = PROCESSOR,
+    SOCK      = PROCESSOR, 
+    CORE      = 2,
+    HW_THREAD = 1,
+    UNKNOWN   = 0
+  };
+
+  // Describes a hardware component as completely as 
+  // possible. For identifying a high-level hardware construct, 
+  // like a host, this will obviously have no information on
+  // processor/core
+  struct hardware_component {
+      int node_pid;
+      int proc_pid; 
+      int core_pid; 
+      int hwth_pid; 
+      std::string hostname; 
+      std::string ip;
+      hardware_type type;
+
+      hardware_component(): node_pid(-1),
+        proc_pid(-1), core_pid(-1),
+        hwth_pid(-1), hostname(""),
+        ip(""), type(UNKNOWN) { }
+  }
+
   // Given the system.xml and the logical ID of a tag within the system.xml, 
   // this returns all identifiers needed to uniquely identify the hardware 
   // component referenced by that tag. A component could be a host, processor, 
@@ -94,22 +124,61 @@ namespace dove
     }   
   }
 
-  // Describes a 
-  class hardware_component {
-      int node_pid;
-      int proc_pid; 
-      int core_pid; 
-      int hwth_pid; 
-      std::string hostname; 
+  hardware_component parse_pids(rapid_xml::xml_document<char> system, 
+      std::string logical_id) {
+    hardware_component com;
+    parse_pids(system, logical_id, 
+        &(com.node_pid), &(com.proc_pid), &(com.core_pid),
+        &(com.hwth_pid), &(com.hostname), &(com.ip));
+    return com;
   }
 
-  std::string build_rankline_core(int rank, std::string host, int procpid, int corepid) {
+  // Code to build rankfile lines from all different kinds of logical IDs 
+  std::string build_rankline_core(int task, hardware_component com) {
+    return build_rankline_core(task, com.hostname, com.proc_pid, com.core_pid);
+  }
+  std::string build_rankline_core(int task, std::string host, int procpid, int corepid) {
     // Cores are "rank %s=%s slot=p%d:%d\n" 
     // rank 1=10.0.2.4 slot=p1:8
     // references physical socket 1 and physical core 8
-    out << "rank " << rank << "=" << host << " slot=p" << procpid << ":" << corepid << std::endl;
+    out << "rank " << task << "=" << host << " slot=p" << procpid << ":" << corepid << std::endl;
   }
   
+  // Given a hardware component logical ID, the task number, and 
+  // the system.XML file, this will build the rankline to 
+  // properly deploy that task onto that hardware component. 
+  // 
+  // Automatically detects if the ID is for a core, hardware thread,
+  // or processor, and builds the rankline appropriately. If for an 
+  // entire host, then the rankline simply lists that the task can be 
+  // bound to any available processor on that host
+  std::string build_rankline(rapidxml::xml_document<> system,
+      int taskid, 
+      std::string id) {
+    hardware_component com = parse_pids(system, id);
+
+    int type = com.type;
+    switch (type) {
+    case UNKNOWN:
+      throw "Unknown hardware component type";
+    case HW_THREAD:
+      // TODO support threads
+      throw "Only supports cores for now";
+      break;
+    case CORE:
+      return build_rankline_core(task, com);
+    case SOCKET:
+      // TODO support sockets
+      throw "Only supports cores for now";
+      break;
+    case HOST: 
+      throw "Only supports cores for now";
+      // TODO support hosts
+      break;
+    }
+  }
+
+
 }
 
 #endif
