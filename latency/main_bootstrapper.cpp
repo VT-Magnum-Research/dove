@@ -72,13 +72,36 @@ int main(int argc, char** argv) {
 // are used to generate pair-pair combinations
 void build_main_filter(bool all, bool host, bool socket, bool core, 
     bool thread) {
+  typedef rapidxml::xml_node<char> xml_node
+  typedef std::vector<xml_node*> xml_node_vector 
+
   if (all || host) {
+    xml_node_vector xhosts = dove::get_all_hosts(xml);
+    for (xml_node_vector::iterator it = xhosts.begin();
+        it != xhosts.end();
+        ++it)
+    hosts.push_back(atoi((*it)->first_attribute("id")->value()));
   }
   if (all || socket) {
+    xml_node_vector procs = dove::get_all_processors(xml);
+    for (xml_node_vector::iterator it = procs.begin();
+        it != procs.end();
+        ++it)
+    procs.push_back(atoi((*it)->first_attribute("id")->value()));
   }
   if (all || core) {
+    xml_node_vector xcores = dove::get_all_cores(xml);
+    for (xml_node_vector::iterator it = xcores.begin();
+        it != xcores.end();
+        ++it)
+    cores.push_back(atoi((*it)->first_attribute("id")->value()));
   }
   if (all || thread) {
+    xml_node_vector xhw = dove::get_all_threads(xml);
+    for (xml_node_vector::iterator it = xhw.begin();
+        it != xhw.end();
+        ++it)
+    threads.push_back(atoi((*it)->first_attribute("id")->value()));
   }
 }
 
@@ -165,9 +188,9 @@ static void parse_options(int argc, char *argv[]) {
 
   // TODO Use the high-level filter (all, cores, etc) to read in the XML 
   // file and build a list of all items that need to be compared. 
-  //  build_main_filter(all_filter.getValue(), host_filter.getValue(), 
-  //      socket_filter.getValue(), core_filter.getValue(),
-  //      thread_filter.getValue());
+  build_main_filter(all_filter.getValue(), host_filter.getValue(), 
+      socket_filter.getValue(), core_filter.getValue(),
+      thread_filter.getValue());
   
   // TODO start by comparing the lowest level items and work up. E.g. 
   // for (threadpair in threads)

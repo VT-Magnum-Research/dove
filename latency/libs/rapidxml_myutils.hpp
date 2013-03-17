@@ -44,6 +44,8 @@ namespace rapidxml
 }
 
 #include <string.h>
+typedef rapidxml::xml_node<char> xml_node
+typedef std::vector<xml_node*> xml_node_vector 
 namespace dove 
 {
 
@@ -89,6 +91,7 @@ namespace dove
   // core, but will return no identifying information about a hardware 
   // thread. 
   //
+  //TODO make this set type on hardware component
   void parse_pids(rapidxml::xml_document<char> &system, 
       std::string logical_id,
       int &node_pid, 
@@ -107,8 +110,9 @@ namespace dove
     while (strcmp(node->name(), "nodes") != 0) {
       std::string name = node->name();
       int pindex = atoi( node->first_attribute("pindex")->value() );
-      if (name.compare("pu") == 0)
+      if (name.compare("pu") == 0) {
         hwth_pid = pindex;
+      }
       else if (name.compare("core") == 0)
         core_pid = pindex;
       else if (name.compare("socket") == 0) 
@@ -125,6 +129,7 @@ namespace dove
     }   
   }
 
+  // TODO make this set type on hardware component
   hardware_component parse_pids(rapidxml::xml_document<char> &system, 
       std::string logical_id) {
     hardware_component com;
@@ -188,6 +193,84 @@ namespace dove
     }
   }
 
+  std::vector<rapidxml::xml_node<char>*> get_all_hosts(
+      rapidxml::xml_document<char> &system) {
+    rapidxml::xml_node<>* nodes = system.first_node("system")->
+      first_node("nodes");
+    
+    std::vector<rapidxml::xml_node<char>*> result;
+    for (xml_node<> *child = nodes->first_node();
+        child;
+        child = child->next_sibling()) {
+      if (strcmp(child->name()->c_str(), "node")==0)
+        result.push_back(child);
+    }
+    
+    return result;
+  }
 
+ std::vector<rapidxml::xml_node<char>*> get_all_processors(
+      rapidxml::xml_document<char> &system) {
+ 
+    std::vector<rapidxml::xml_node<char>*> result;
+    std::vector<rapidxml::xml_node<char>*> hosts = 
+      get_all_hosts(system);
+    std::vector<rapidxml::xml_node<char>*>::iterator it;
+    for (it = hosts.begin();
+        it != hosts.end();
+        ++it) {
+      rapidxml::xml_node<char>* host = *it;
+      for (rapidxml::xml_node<char> proc = host->first_node();
+          proc;
+          proc = proc->next_sibling()) {
+        if (strcmp(proc->name()->c_str(), "socket")==0)
+          result.push_back(proc);
+      }
+    }
+    
+    return result;
+  }
+
+  std::vector<rapidxml::xml_node<char>*> get_all_cores(
+      rapidxml::xml_document<char> &system) {
+ 
+    xml_node_vector result;
+    xml_node_vector procs = get_all_processors(system);
+    xml_node_vector::iterator it;
+    for (it = procs.begin();
+        it != procs.end();
+        ++it) {
+      rapidxml::xml_node<char>* proc = *it;
+      for (rapidxml::xml_node<char> core = proc->first_node();
+          core;
+          core = core->next_sibling()) {
+        if (strcmp(core->name()->c_str(), "core")==0)
+          result.push_back(core);
+      }
+    }
+    
+    return result;
+  }
+
+  std::vector<rapidxml::xml_node<char>*> get_all_threads(
+      rapidxml::xml_document<char> &system) {
+ 
+    xml_node_vector result;
+    xml_node_vector cores = get_all_cores(system);
+    xml_node_vector::iterator it;
+    for (it = cores.begin();
+        it != cores.end();
+        ++it) {
+      rapidxml::xml_node<char>* core = *it;
+      for (rapidxml::xml_node<char> hwth = core->first_node();
+          hwth;
+          hwth = hwth->next_sibling()) {
+        if (strcmp(hwth->name()->c_str(), "pu")==0)
+          result.push_back(hwth);
+      }
+    }
+    
+    return result;
+  }
 }
 
