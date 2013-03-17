@@ -10,6 +10,7 @@
 
 #include "rapidxml.hpp"
 #include <string>
+#include <sstream>
 
 namespace rapidxml
 {
@@ -133,16 +134,24 @@ namespace dove
     return com;
   }
 
+  std::string build_rankline_core(int task, 
+      std::string host, int procpid, int corepid) {
+    // Cores are "rank %s=%s slot=p%d:%d\n" 
+    // rank 1=10.0.2.4 slot=p1:8
+    // references physical socket 1 and physical core 8
+    std::ostringstream out;
+    out << "rank " 
+      << task << "=" << host 
+      << " slot=p" << procpid << ":" 
+      << corepid << std::endl;
+
+    return out.str();
+  }
   // Code to build rankfile lines from all different kinds of logical IDs 
   std::string build_rankline_core(int task, hardware_component com) {
     return build_rankline_core(task, com.hostname, com.proc_pid, com.core_pid);
   }
-  std::string build_rankline_core(int task, std::string host, int procpid, int corepid) {
-    // Cores are "rank %s=%s slot=p%d:%d\n" 
-    // rank 1=10.0.2.4 slot=p1:8
-    // references physical socket 1 and physical core 8
-    out << "rank " << task << "=" << host << " slot=p" << procpid << ":" << corepid << std::endl;
-  }
+
   
   // Given a hardware component logical ID, the task number, and 
   // the system.XML file, this will build the rankline to 
@@ -159,14 +168,15 @@ namespace dove
 
     int type = com.type;
     switch (type) {
-    case UNKNOWN:
+      default: 
+      case UNKNOWN:
       throw "Unknown hardware component type";
     case HW_THREAD:
       // TODO support threads
       throw "Only supports cores for now";
       break;
     case CORE:
-      return build_rankline_core(task, com);
+      return build_rankline_core(taskid, com);
     case SOCKET:
       // TODO support sockets
       throw "Only supports cores for now";

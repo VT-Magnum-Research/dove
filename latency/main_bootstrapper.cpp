@@ -87,8 +87,7 @@ static void parse_options(int argc, char *argv[]) {
   TCLAP::ValueArg<std::string> xml_arg("x", "xml", "System XML file containing the "
       "logical IDs that are referenced from all other flags. Used to gather "
       "additional information about the system that is required for OpenMPI.",
-      true, "filepath");
-  cmd.add(xml_arg);
+      true, "system.xml", "filepath", cmd);
 
   // Setup the list of required filters
   TCLAP::SwitchArg all_filter("", "all", "Indicates that latency tests will "
@@ -113,7 +112,7 @@ static void parse_options(int argc, char *argv[]) {
       "XML file. "
       "Can be used with additional filters such as core, node, thread.",
       false);
-  std::vector<Arg*> filter_list;
+  std::vector<TCLAP::Arg*> filter_list;
   filter_list.push_back(&all_filter);
   filter_list.push_back(&host_filter);
   filter_list.push_back(&socket_filter);
@@ -155,12 +154,11 @@ static void parse_options(int argc, char *argv[]) {
 
   // Ensure that the given XML path is accessible by rapidxml
   try {
-    rapidxml::file<> xml_file(xml_arg.getValue());
+    rapidxml::file<> xml_file(xml_arg.getValue().c_str());
     xml.parse<0>(xml_file.data());
   } catch (rapidxml::parse_error err) {
     std::cout << "Could not parse XML file. Error was: " << std::endl;
     std::cout << err.what() << std::endl;
-    std::cout << err.where() << std::endl;
     TCLAP::ArgException e("Unable to parse XML", err.what());
     throw e;
   } 
