@@ -44,10 +44,12 @@ namespace rapidxml
 }
 
 #include <string.h>
-typedef rapidxml::xml_node<char> xml_node
-typedef std::vector<xml_node*> xml_node_vector 
+#include <vector>
 namespace dove 
 {
+
+  typedef rapidxml::xml_node<char> xml_node;
+  typedef std::vector<xml_node*> xml_node_vector; 
 
   enum hardware_type { 
     HOST      = 4, 
@@ -173,9 +175,6 @@ namespace dove
 
     int type = com.type;
     switch (type) {
-      default: 
-      case UNKNOWN:
-      throw "Unknown hardware component type";
     case HW_THREAD:
       // TODO support threads
       throw "Only supports cores for now";
@@ -190,7 +189,12 @@ namespace dove
       throw "Only supports cores for now";
       // TODO support hosts
       break;
+    case UNKNOWN:
+    default: 
+      throw "Unknown hardware component type";
+      break;
     }
+    throw "Unknown state";
   }
 
   std::vector<rapidxml::xml_node<char>*> get_all_hosts(
@@ -199,10 +203,10 @@ namespace dove
       first_node("nodes");
     
     std::vector<rapidxml::xml_node<char>*> result;
-    for (xml_node<> *child = nodes->first_node();
+    for (rapidxml::xml_node<char> *child = nodes->first_node();
         child;
         child = child->next_sibling()) {
-      if (strcmp(child->name()->c_str(), "node")==0)
+      if (strcmp(child->name(), "node")==0)
         result.push_back(child);
     }
     
@@ -220,10 +224,10 @@ namespace dove
         it != hosts.end();
         ++it) {
       rapidxml::xml_node<char>* host = *it;
-      for (rapidxml::xml_node<char> proc = host->first_node();
+      for (rapidxml::xml_node<char>* proc = host->first_node();
           proc;
           proc = proc->next_sibling()) {
-        if (strcmp(proc->name()->c_str(), "socket")==0)
+        if (strcmp(proc->name(), "socket")==0)
           result.push_back(proc);
       }
     }
@@ -241,10 +245,10 @@ namespace dove
         it != procs.end();
         ++it) {
       rapidxml::xml_node<char>* proc = *it;
-      for (rapidxml::xml_node<char> core = proc->first_node();
+      for (rapidxml::xml_node<char>* core = proc->first_node();
           core;
           core = core->next_sibling()) {
-        if (strcmp(core->name()->c_str(), "core")==0)
+        if (strcmp(core->name(), "core")==0)
           result.push_back(core);
       }
     }
@@ -262,10 +266,10 @@ namespace dove
         it != cores.end();
         ++it) {
       rapidxml::xml_node<char>* core = *it;
-      for (rapidxml::xml_node<char> hwth = core->first_node();
+      for (rapidxml::xml_node<char>* hwth = core->first_node();
           hwth;
           hwth = hwth->next_sibling()) {
-        if (strcmp(hwth->name()->c_str(), "pu")==0)
+        if (strcmp(hwth->name(), "pu")==0)
           result.push_back(hwth);
       }
     }

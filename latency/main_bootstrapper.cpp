@@ -21,6 +21,9 @@
 // DOVE codebase (incl some rapidXML extensions)
 #include "libs/rapidxml_myutils.hpp"
 
+// Enable or disable debug statement printing
+#define DEBUG true
+
 // Everything that is below this line and before main either 
 // enables command line parsing or are variables initialized 
 // during the parsing of arguments
@@ -72,8 +75,8 @@ int main(int argc, char** argv) {
 // are used to generate pair-pair combinations
 void build_main_filter(bool all, bool host, bool socket, bool core, 
     bool thread) {
-  typedef rapidxml::xml_node<char> xml_node
-  typedef std::vector<xml_node*> xml_node_vector 
+  typedef rapidxml::xml_node<char> xml_node;
+  typedef std::vector<xml_node*> xml_node_vector; 
 
   if (all || host) {
     xml_node_vector xhosts = dove::get_all_hosts(xml);
@@ -83,11 +86,11 @@ void build_main_filter(bool all, bool host, bool socket, bool core,
     hosts.push_back(atoi((*it)->first_attribute("id")->value()));
   }
   if (all || socket) {
-    xml_node_vector procs = dove::get_all_processors(xml);
-    for (xml_node_vector::iterator it = procs.begin();
-        it != procs.end();
+    xml_node_vector xprocs = dove::get_all_processors(xml);
+    for (xml_node_vector::iterator it = xprocs.begin();
+        it != xprocs.end();
         ++it)
-    procs.push_back(atoi((*it)->first_attribute("id")->value()));
+    sockets.push_back(atoi((*it)->first_attribute("id")->value()));
   }
   if (all || core) {
     xml_node_vector xcores = dove::get_all_cores(xml);
@@ -102,6 +105,13 @@ void build_main_filter(bool all, bool host, bool socket, bool core,
         it != xhw.end();
         ++it)
     threads.push_back(atoi((*it)->first_attribute("id")->value()));
+  }
+
+  if (DEBUG) {
+    std::cerr << "Size of host: " << hosts.size() << std::endl;
+    std::cerr << "Size of socket: " << sockets.size() << std::endl;
+    std::cerr << "Size of core: " << cores.size() << std::endl;
+    std::cerr << "Size of thread: " << threads.size() << std::endl;
   }
 }
 
