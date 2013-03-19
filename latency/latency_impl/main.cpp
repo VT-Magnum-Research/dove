@@ -90,7 +90,7 @@ if (rank == 0) {
    if (debug) printf("***************************************************\n");
    if (debug) printf("\n*** Avg round trip time = %d microseconds\n", avgT);
    if (debug) printf("*** Avg one way latency = %d microseconds\n", avgT/2);
-   printf("%d\n", avgT);
+   printf("%d", avgT);
    } 
 
 else if (rank == 1) {

@@ -24,6 +24,9 @@
 // Enable or disable debug statement printing
 #define DEBUG true
 
+// Function declarations
+void calculate_latency(std::vector<int> ids);
+
 // Everything that is below this line and before main either 
 // enables command line parsing or are variables initialized 
 // during the parsing of arguments
@@ -59,16 +62,92 @@ int main(int argc, char** argv) {
     exit(EXIT_SUCCESS);
   }
 
+  calculate_latency(cores);
+
+  // TODO start by comparing the lowest level items and work up. E.g. 
+  // for (threadpair in threads)
+  //     resolve all pieces of thread
+  //     for (filter in filters)
+  //        returnif (filter not passed)
+  //
+  
+  // TODO build a model of progress by calculating the total number of 
+  // permutations for each hardwrae component type e.g. (# cores P 2)
+  
   // TODO build logic for after-parsing options
   //using namespace std;
-  //for (int i = 1; i < argc; i++) {
-  //    for (int j = 1; j < argc; j++) {
-  //        if (i != j) {
-  //            cout << get_latency(argv[i], argv[j]) << endl;
-  //        }
-  //    }
-  //}
+  
   //return 0;
+}
+std::string make_rankfile(std::string to, std::string from) {
+    char sfn[21] = ""; FILE* sfp; int fd = -1;
+     
+    strncpy(sfn, "/tmp/rankfile.XXXXXX", sizeof sfn);
+    fd = mkstemp(sfn);
+    if (fd == -1) return "";
+
+    sfp = fdopen(fd, "w+");
+    if (sfp == NULL) {
+        unlink(sfn);
+        close(fd);
+        return "";
+    }
+
+    fprintf(sfp, "rank 0=10.0.2.4 slot=p0:%s\n", to.c_str());
+    fprintf(sfp, "rank 1=10.0.2.4 slot=p0:%s\n", from.c_str());
+
+    // TODO: This isn't returning a value on the stack, is it?
+    return std::string(sfn);
+}
+std::string get_latency(std::string from, std::string to) {
+    using namespace std;
+
+    string mpirun_bin = "mpirun";
+    string rankfile = make_rankfile(to, from);
+    string mpiflags = "-np 2 --rankfile " + rankfile;
+    string latency_bin = "latency_impl/latency";
+    // TODO move this to a global variable at the top
+#   ifdef LATENCY_BIN
+        latency_bin = LATENCY_BIN;
+#   endif
+    string command = mpirun_bin + " " + mpiflags + " " + latency_bin;
+    string result("-1");
+// TODO make this a command-line option
+#define DRY_RUN false
+    if (DRY_RUN)
+      cout << command << endl;
+    else
+      result = exec(command);
+    // TODO somehow deal with both cases e.g. latency_bin built with and 
+    // without DEBUG
+    //string regex_line = "Avg round trip time = [0-9]+";
+    //string regex_number = "[0-9]+";
+    //string microsec_line = match(result, regex_line);
+    //string microsec_str = match(microsec_line, regex_number);
+    remove(rankfile.c_str());
+    return "<cd f=\"" + from +
+           "\"  t=\""   + to +
+           "\"  v=\""   + result + "\" />";
+}
+
+void calculate_latency(std::vector<int> ids) {
+  // TODO make previous functions accept integers 
+  // First step is to calculate all permutations
+  for (unsigned int i = 0; i < ids.size(); i++) {
+      for (unsigned int j = 0; j < ids.size(); j++) {
+          if (i != j) {
+            std::stringstream si;
+            std::stringstream sj;
+            si << ids[i];
+            sj << ids[j];
+            std::string ssi(si.str());
+            std::string ssj(sj.str());
+            std::cout << get_latency(ssi,ssj) << std::endl;
+          }
+      }
+  }
+
+
 }
 
 // Given parsed command-line options, this builds the lists that 
@@ -196,65 +275,13 @@ static void parse_options(int argc, char *argv[]) {
     throw e;
   } 
 
-  // TODO Use the high-level filter (all, cores, etc) to read in the XML 
+  // Use the high-level filter (all, cores, etc) to read in the XML 
   // file and build a list of all items that need to be compared. 
   build_main_filter(all_filter.getValue(), host_filter.getValue(), 
       socket_filter.getValue(), core_filter.getValue(),
       thread_filter.getValue());
   
-  // TODO start by comparing the lowest level items and work up. E.g. 
-  // for (threadpair in threads)
-  //     resolve all pieces of thread
-  //     for (filter in filters)
-  //        returnif (filter not passed)
-  //
-  // 
+   
   
 }
-
-/*std::string get_latency(std::string from, std::string to) {
-    using namespace std;
-
-    string mpirun_bin = "mpirun";
-    string rankfile = make_rankfile(to, from);
-    string mpiflags = "-np 2 --rankfile " + rankfile;
-    string latency_bin = "latency_impl/latency";
-#   ifdef LATENCY_BIN
-        latency_bin = LATENCY_BIN;
-#   endif
-    string command = mpirun_bin + " " + mpiflags + " " + latency_bin;
-
-    string result = exec(command);
-
-    string regex_line = "Avg round trip time = [0-9]+";
-    string regex_number = "[0-9]+";
-    string microsec_line = match(result, regex_line);
-    string microsec_str = match(microsec_line, regex_number);
-    remove(rankfile.c_str());
-    return "<cd f=\"" + from +
-           "\"  t=\""   + to +
-           "\"  v=\""   + microsec_str + "\" />";
-}
-
-std::string make_rankfile(std::string to, std::string from) {
-    char sfn[21] = ""; FILE* sfp; int fd = -1;
-     
-    strncpy(sfn, "/tmp/rankfile.XXXXXX", sizeof sfn);
-    fd = mkstemp(sfn);
-    if (fd == -1) return "";
-
-    sfp = fdopen(fd, "w+");
-    if (sfp == NULL) {
-        unlink(sfn);
-        close(fd);
-        return "";
-    }
-
-    fprintf(sfp, "rank 0=10.0.2.4 slot=p0:%s\n", to.c_str());
-    fprintf(sfp, "rank 1=10.0.2.4 slot=p0:%s\n", from.c_str());
-
-    // TODO: This isn't returning a value on the stack, is it?
-    return std::string(sfn);
-}
-*/
 
