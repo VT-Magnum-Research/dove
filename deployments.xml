@@ -1,4 +1,4 @@
-<optimization name="SAACO">
+<optimization name="SAACO" desc="description">
 
 <mapping to="cores" />
 <!-- Other options: 
