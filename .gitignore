@@ -2,7 +2,13 @@
 *.xcuserstate
 *.xc*
 *.plist
+
+# Generator is a special case as it generates .cpp code that
+# needs to be ignored
 generator/impl
 generator/impl.cpp
 generator/gen/*
 generator/bin/*
+
+# Ignore object files everywhere
+**/*.o
