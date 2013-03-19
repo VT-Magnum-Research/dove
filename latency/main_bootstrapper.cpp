@@ -44,15 +44,16 @@ static std::vector<int> sockets;
 static std::vector<int> cores;
 static std::vector<int> threads;
 
+// TODO re-enable after programming options
 // If these are non-empty after options have been parsed, then they are 
 // white filters for any values generated from the pair-pair combinations
 // above. For example, cores may be {2, 15, 7}, but if core 2 is situated 
 // on node 5, and node 5 is not contained within the list below, then
 // any pair-pair combination containing core 2 will be skipped
-static std::vector<int> host_filter;
-static std::vector<int> sock_filter;
-static std::vector<int> core_filter;
-static std::vector<int> thread_filter;
+//static std::vector<int> host_filter;
+//static std::vector<int> sock_filter;
+//static std::vector<int> core_filter;
+//static std::vector<int> thread_filter;
 
 int main(int argc, char** argv) {
   try {
@@ -62,9 +63,16 @@ int main(int argc, char** argv) {
     exit(EXIT_SUCCESS);
   }
 
+  // TODO update rapidxml_myutils to enable building of 
+  // ranklines for these other options
+  //
+  //calculate_latency(hosts);
+  //calculate_latency(sockets);
+  //calculate_latency(threads);
   calculate_latency(cores);
 
-  // TODO start by comparing the lowest level items and work up. E.g. 
+  // TODO for the low-level filters, start by comparing the 
+  // lowest level items and work up. E.g. 
   // for (threadpair in threads)
   //     resolve all pieces of thread
   //     for (filter in filters)
@@ -74,11 +82,10 @@ int main(int argc, char** argv) {
   // TODO build a model of progress by calculating the total number of 
   // permutations for each hardwrae component type e.g. (# cores P 2)
   
-  // TODO build logic for after-parsing options
-  //using namespace std;
-  
-  //return 0;
+  exit(EXIT_SUCCESS);
 }
+
+// TODO accept int, int
 std::string make_rankfile(std::string to, std::string from) {
     char sfn[21] = ""; FILE* sfp; int fd = -1;
      
@@ -93,12 +100,16 @@ std::string make_rankfile(std::string to, std::string from) {
         return "";
     }
 
+    // TODO either use the logic in rapidxml_myutils.hpp to 
+    // build ranklines, or move this logic there
     fprintf(sfp, "rank 0=10.0.2.4 slot=p0:%s\n", to.c_str());
     fprintf(sfp, "rank 1=10.0.2.4 slot=p0:%s\n", from.c_str());
 
     // TODO: This isn't returning a value on the stack, is it?
     return std::string(sfn);
 }
+
+// TODO accept int, int
 std::string get_latency(std::string from, std::string to) {
     using namespace std;
 
@@ -106,7 +117,7 @@ std::string get_latency(std::string from, std::string to) {
     string rankfile = make_rankfile(to, from);
     string mpiflags = "-np 2 --rankfile " + rankfile;
     string latency_bin = "latency_impl/latency";
-    // TODO move this to a global variable at the top
+    // TODO move this to a global variable at the top of file
 #   ifdef LATENCY_BIN
         latency_bin = LATENCY_BIN;
 #   endif
@@ -118,8 +129,10 @@ std::string get_latency(std::string from, std::string to) {
       cout << command << endl;
     else
       result = exec(command);
+    
     // TODO somehow deal with both cases e.g. latency_bin built with and 
     // without DEBUG
+    //
     //string regex_line = "Avg round trip time = [0-9]+";
     //string regex_number = "[0-9]+";
     //string microsec_line = match(result, regex_line);
@@ -146,8 +159,6 @@ void calculate_latency(std::vector<int> ids) {
           }
       }
   }
-
-
 }
 
 // Given parsed command-line options, this builds the lists that 
@@ -186,6 +197,8 @@ void build_main_filter(bool all, bool host, bool socket, bool core,
     threads.push_back(atoi((*it)->first_attribute("id")->value()));
   }
 
+  // TODO using tclaps multi-switch, add the -d, -dd, -ddd flags for
+  // varying the level of debug output
   if (DEBUG) {
     std::cerr << "Size of host: " << hosts.size() << std::endl;
     std::cerr << "Size of socket: " << sockets.size() << std::endl;
@@ -194,6 +207,10 @@ void build_main_filter(bool all, bool host, bool socket, bool core,
   }
 }
 
+// TODO add flag for output
+// TODO program logic for sub-filter (e.g. run_latency --cores -n 1 -n 2 
+// would run all cores, but only those that reside on nodes 1 and two). 
+// Once this logic is programmed re-enable all of the options
 static void parse_options(int argc, char *argv[]) {
   TCLAP::CmdLine cmd("Latency Analyzer", ' ', "0.1");
   TCLAP::ValueArg<std::string> xml_arg("x", "xml", "System XML file containing the "
@@ -233,7 +250,7 @@ static void parse_options(int argc, char *argv[]) {
   cmd.xorAdd(filter_list);
 
   // List all of the partial filters that are possible
-  TCLAP::MultiArg<int> node_arg("n", "node", "An additional filter for "
+  /*TCLAP::MultiArg<int> node_arg("n", "node", "An additional filter for "
       "limiting the nodes eligible for node-nodepairs to the ones "
       "explicitely listed using this option. Can be listed multiple times "
       "e.g. `-n 3 -n 2` to specify multiple nodes. All IDs are the "
@@ -261,7 +278,7 @@ static void parse_options(int argc, char *argv[]) {
       "logical IDs provided by the XML file. Note that providing only one "
       "value will do nothing, as there are zero pairs possible. ", false, 
       "int", cmd);
- 
+  */
   cmd.parse(argc, argv);
 
   // Ensure that the given XML path is accessible by rapidxml
@@ -279,9 +296,7 @@ static void parse_options(int argc, char *argv[]) {
   // file and build a list of all items that need to be compared. 
   build_main_filter(all_filter.getValue(), host_filter.getValue(), 
       socket_filter.getValue(), core_filter.getValue(),
-      thread_filter.getValue());
-  
-   
-  
+      thread_filter.getValue()); 
 }
+
 
