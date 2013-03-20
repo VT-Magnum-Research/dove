@@ -7,8 +7,11 @@
 //
 
 #include "rapidxml.hpp"
+#include "rapidxml_print.hpp"
 #include <string>
 #include <sstream>
+#include <fstream>
+#include <iostream>
 
 // We extend rapidxml with some high-level functions
 namespace rapidxml
@@ -50,7 +53,6 @@ namespace dove
   typedef rapidxml::xml_node<char> node;
   typedef std::vector<xml_node*> xml_node_vector; 
   typedef rapidxml::xml_attribute<char> attr;
-  typedef rapidxml::node_element node_element
 
   // Hardware component types
   enum hwcom_type { 
@@ -313,24 +315,24 @@ namespace dove
     
     private: 
       // First is task ID, second is hardware logical ID
-      std::vector<std::pair<int, int> > deployment;
+      std::vector<std::pair<int, int> > plan;
       std::vector<std::pair<std::string, std::string> > metrics;
-      rapidxml::xml_document<> doc;
-      hwprofile profile;
+      rapidxml::xml_document<char>* doc;
+      hwprofile* profile;
      
       // Builds a 'safe' string for rapidxml
       inline char* s(const char* unsafe) {
-        return rapidxml::doc.allocate_string(unsafe);
+        return doc->allocate_string(unsafe);
       }
       char* s(int unsafe) {
-        std::string st = std::to_string(unsafe);
+        std::string st = std::to_string(static_cast<long long>(unsafe));
         return s(st.c_str());
       } 
 
     public: 
       
-      deployment(hwprofile prof, 
-          rapidxml::xml_document<char> &system) {
+      deployment(hwprofile* prof, 
+          rapidxml::xml_document<char>* system) {
         profile = prof;
         doc = system;
       }
@@ -338,15 +340,15 @@ namespace dove
       // Builds the xml to represent this deployment
       // TODO add metrics to the XML :-)
       node* get_xml() {  
-        node* deployment_xml = doc.allocate_node(node_element, s("deployment"));
+        node* deployment_xml = doc->allocate_node(rapidxml::node_element, s("deployment"));
         
         std::vector<std::pair<int, int> >::iterator it;
-        for (it = deployment.begin();
-            it != deployment.end();
+        for (it = plan.begin();
+            it != plan.end();
             it++) {
-          node* deploy = doc.allocate_node(node_element, s("deploy"));
-          attr* task = doc.allocate_attribute(s("t"), s((*it).first));
-          attr* unit = doc.allocate_attribute(s("u"), s((*it).second));
+          node* deploy = doc->allocate_node(rapidxml::node_element, s("deploy"));
+          attr* task = doc->allocate_attribute(s("t"), s((*it).first));
+          attr* unit = doc->allocate_attribute(s("u"), s((*it).second));
           deploy->append_attribute(task);
           deploy->append_attribute(unit);
           deployment_xml->append_node(deploy);
@@ -360,9 +362,9 @@ namespace dove
       // to describe hardware components
       void add_task_deploment(int task, int hardware) {
         // TODO handle exceptions here if the hardware id is bad
-        int logical_id = profile.get_logical_id(hardware);
+        int logical_id = profile->get_logical_id(hardware);
         std::pair<int, int> map = std::make_pair (task, logical_id);
-        deployment.push_back(map);
+        plan.push_back(map);
       }
 
       // While an algorithm can add any metrics desired, there are 
@@ -395,14 +397,14 @@ namespace dove
   class deployment_optimization {
 
     private:
-      hwprofile profile;
+      hwprofile* profile;
       int task_count;
-      const char* output;
-      rapidxml::xml_document<> doc;
+      const char* output_filename;
+      rapidxml::xml_document<char> doc;
 
       // Builds a 'safe' string for rapidxml
       inline char* s(const char* unsafe) {
-        return rapidxml::doc.allocate_string(unsafe);
+        return doc.allocate_string(unsafe);
       }
 
     public: 
@@ -412,27 +414,28 @@ namespace dove
         hwcom_type compute_type,
         const char* output_filename,
         const char* algorithm_name,
-        const char* algortihm_desc = "",
-        rapidxml::xml_document<> &system) {
-         
+        rapidxml::xml_document<char> &system,
+        const char* algorithm_desc = "") {
+
+        this->output_filename = output_filename;
         task_count = tasks;
-        profile = hwprofile(compute_type, compute_units, system);
+        profile = new hwprofile(compute_type, compute_units, system);
         
-        node *root = doc.allocate_node(node_element, s("optimization"));
+        node *root = doc.allocate_node(rapidxml::node_element, s("optimization"));
         doc.append_node(root);
         attr *name = doc.allocate_attribute(s("name"), s(algorithm_name));
         root->append_attribute(name);
         attr *desc = doc.allocate_attribute(s("desc"), s(algorithm_desc));
         root->append_attribute(desc);
-        node *deployments = doc.allocate_node(node_element, s("deployments"));
-        root.append_node(deployments);
+        node *deployments = doc.allocate_node(rapidxml::node_element, s("deployments"));
+        root->append_node(deployments);
       }
     
       // Dove allocates [0...compute_units] computation units 
       // when created. This function returns the real routing delay
       // from one unit to another
       long get_routing_delay(int from, int to) {
-        return profile.get_routing_delay(from, to);
+        return profile->get_routing_delay(from, to);
       }
 
       // An algorithm must inform dove of each deployment. This
@@ -440,23 +443,23 @@ namespace dove
       // can then fill with it's task to hardware mappings and any
       // calculated metrics 
       deployment get_empty_deployment() {
-        return deployment(profile);
+        return deployment(profile, &doc);
       }
       
       // An algorithm must inform dove of each deployment. This
       // adds a single deployment plan to this optimization
       void add_deployment(deployment d) {
-        node* = doc.first_node("deployments");
-        node->append_node(d.get_xml());
+        node* deps = doc.first_node("deployments");
+        deps->append_node(d.get_xml());
       }
-   
+  
       // Informs dove that the algorithm has completed and all 
       // data should be written to file
       void complete() {
-        std::stream output;
-        output.open (output_filename, ios::out | ios::trunc);
+        std::ofstream output;
+        output.open (output_filename, std::ios::out | std::ios::trunc);
 
-        rapidxml::print(output, doc);
+        output << doc;
       }
   };
 }
