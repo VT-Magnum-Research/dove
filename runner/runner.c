@@ -4,6 +4,8 @@
 #include <string.h>
 #include <stdlib.h>
 
+#include "libs/tclap/CmdLine.h"
+
 #define NUM_EVENTS 1
 
 //returns number of lines in a rankfile
