@@ -325,8 +325,9 @@ namespace dove
         return doc->allocate_string(unsafe);
       }
       char* s(int unsafe) {
-        std::string st = std::to_string(static_cast<long long>(unsafe));
-        return s(st.c_str());
+        std::stringstream st;
+        st << unsafe;
+        return s(st.str().c_str());
       } 
 
     public: 
