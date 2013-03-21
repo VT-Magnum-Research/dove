@@ -1,12 +1,13 @@
 
 
 
-CFLAGS=-c -std=c++0x
-LIBS =-Ilibs/rapidxml-1.13/
+CFLAGS :=
+INC    :=-Ilibs/rapidxml-1.13
  
 all: 
-	g++ $(CFLAGS) $(LIBS) -o dove.o dove.hpp
-	ar rcs libdove.a dove.o
+	$(CXX) -c $(CFLAGS) $(INC) -o dove.o dove.cpp
+	ar rvs libdove.a dove.o
+	ranlib libdove.a
 
 # --- remove binary and executable files
 clean:
