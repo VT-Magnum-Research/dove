@@ -9,6 +9,7 @@
 #include "ants.h"
 
 #include "mps.h"
+#include "dove.h"
 
 enum StagnationMeasureType { STAG_NONE, STAG_VARIATION_COEFFICIENT, STAG_LAMBDA_BRANCHING_FACTOR };
 

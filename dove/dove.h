@@ -1,10 +1,16 @@
 #ifndef __DOVE_H_INCLUDED__
 #define __DOVE_H_INCLUDED__
 
+// Forward-declare what we can
+namespace rapidxml {
+  template <typename T> class xml_node;
+  template <typename T> class xml_attribute;
+  template <typename T> class xml_document;
+}
+
 #include <vector>
-#include "rapidxml.hpp"
-#include "rapidxml_print.hpp"
-  
+#include <string>
+
 typedef rapidxml::xml_node<char> xml_node;
 typedef rapidxml::xml_node<char> node;
 typedef std::vector<xml_node*> xml_node_vector; 
@@ -171,7 +177,7 @@ namespace dove {
       hwprofile* profile;
       int task_count;
       const char* output_filename;
-      rapidxml::xml_document<char> doc;
+      rapidxml::xml_document<char>* doc;
 
       // Builds a 'safe' string for rapidxml
       char* s(const char* unsafe);

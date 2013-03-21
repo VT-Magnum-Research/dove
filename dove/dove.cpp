@@ -14,6 +14,10 @@
 #include <iostream>
 #include <string.h>
 
+#include "rapidxml.hpp"
+#include "rapidxml_print.hpp"
+#include "rapidxml_utils.hpp"
+
 // We extend rapidxml with some high-level functions
 namespace rapidxml
 {
@@ -284,7 +288,7 @@ void dove::deployment::add_metric(std::string name, std::string value) {
 }
 
 char* dove::deployment_optimization::s(const char* unsafe) {
-  return doc.allocate_string(unsafe);
+  return doc->allocate_string(unsafe);
 }
 
 dove::deployment_optimization::deployment_optimization(int tasks, 
@@ -298,14 +302,15 @@ dove::deployment_optimization::deployment_optimization(int tasks,
   this->output_filename = output_filename;
   task_count = tasks;
   profile = new hwprofile(compute_type, compute_units, system);
-  
-  node *root = doc.allocate_node(rapidxml::node_element, s("optimization"));
-  doc.append_node(root);
-  attr *name = doc.allocate_attribute(s("name"), s(algorithm_name));
+ 
+  doc = &system;
+  node *root = doc->allocate_node(rapidxml::node_element, s("optimization"));
+  doc->append_node(root);
+  attr *name = doc->allocate_attribute(s("name"), s(algorithm_name));
   root->append_attribute(name);
-  attr *desc = doc.allocate_attribute(s("desc"), s(algorithm_desc));
+  attr *desc = doc->allocate_attribute(s("desc"), s(algorithm_desc));
   root->append_attribute(desc);
-  node *deployments = doc.allocate_node(rapidxml::node_element, s("deployments"));
+  node *deployments = doc->allocate_node(rapidxml::node_element, s("deployments"));
   root->append_node(deployments);
 }
     
@@ -314,11 +319,11 @@ long dove::deployment_optimization::get_routing_delay(int from, int to) {
 }
 
 dove::deployment dove::deployment_optimization::get_empty_deployment() {
-  return deployment(profile, &doc);
+  return deployment(profile, doc);
 }
 
 void dove::deployment_optimization::add_deployment(deployment d) {
-  node* deps = doc.first_node("deployments");
+  node* deps = doc->first_node("deployments");
   deps->append_node(d.get_xml());
 }
 
