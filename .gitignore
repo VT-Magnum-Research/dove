@@ -12,3 +12,13 @@ generator/bin/*
 
 # Ignore object files everywhere
 **/*.o
+
+# Compiled Object file
+*.o
+
+# Compiled Dynamic libraries
+*.so
+*.dylib
+
+# Compiled Static libraries
+*.a
