@@ -11,6 +11,7 @@
 
 #include <iostream>
 #include <cstdlib>
+#include <cstdio>
 #include <map>
 #include <exception>
 #include <string>

@@ -18,8 +18,7 @@
 #include "libs/rapidxml_utils.hpp"
 #include "libs/rapidxml_print.hpp"
 
-// DOVE codebase (incl some rapidXML extensions)
-#include "libs/rapidxml_myutils.hpp"
+#include "dove.hpp"
 
 // Enable or disable debug statement printing
 #define DEBUG true
