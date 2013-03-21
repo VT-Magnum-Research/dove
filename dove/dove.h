@@ -144,7 +144,7 @@ namespace dove {
       // Add a deployment of a task to a hardware compute
       // unit, using the 0..N-1 id's from the hardware profile
       // to describe hardware components
-      void add_task_deploment(int task, int hardware);
+      void add_task_deployment(int task, int hardware);
 
       // While an algorithm can add any metrics desired, there are 
       // some common metrics that allow dove to automatically 
@@ -189,6 +189,14 @@ namespace dove {
         const char* output_filename,
         const char* algorithm_name,
         rapidxml::xml_document<char> &system,
+        const char* algorithm_desc = "");
+
+      deployment_optimization(int tasks, 
+        int compute_units,
+        hwcom_type compute_type,
+        const char* output_filename,
+        const char* algorithm_name,
+        const char* system_xml_path,
         const char* algorithm_desc = "");
 
       // Dove allocates [0...compute_units] computation units 

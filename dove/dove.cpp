@@ -276,7 +276,7 @@ node* dove::deployment::get_xml() {
     return deployment_xml;
 }
 
-void dove::deployment::add_task_deploment(int task, int hardware) {
+void dove::deployment::add_task_deployment(int task, int hardware) {
   // TODO handle exceptions here if the hardware id is bad
   int logical_id = profile->get_logical_id(hardware);
   std::pair<int, int> map = std::make_pair (task, logical_id);
@@ -289,6 +289,34 @@ void dove::deployment::add_metric(std::string name, std::string value) {
 
 char* dove::deployment_optimization::s(const char* unsafe) {
   return doc->allocate_string(unsafe);
+}
+
+dove::deployment_optimization::deployment_optimization(int tasks, 
+        int compute_units,
+        hwcom_type compute_type,
+        const char* output_filename,
+        const char* algorithm_name,
+        const char* system_xml_path,
+        const char* algorithm_desc) {
+  
+  this->output_filename = output_filename;
+  task_count = tasks;
+    
+  rapidxml::file<char> xmlFile(system_xml_path);
+  rapidxml::xml_document<char>* xml = new rapidxml::xml_document<char>();
+  xml->parse<0>(xmlFile.data());
+  // TODO I am 100% leaking this memory 
+  doc = xml;
+  profile = new hwprofile(compute_type, compute_units, *doc);
+  node *root = doc->allocate_node(rapidxml::node_element, s("optimization"));
+  doc->append_node(root);
+  attr *name = doc->allocate_attribute(s("name"), s(algorithm_name));
+  root->append_attribute(name);
+  attr *desc = doc->allocate_attribute(s("desc"), s(algorithm_desc));
+  root->append_attribute(desc);
+  node *deployments = doc->allocate_node(rapidxml::node_element, s("deployments"));
+  root->append_node(deployments);
+
 }
 
 dove::deployment_optimization::deployment_optimization(int tasks, 

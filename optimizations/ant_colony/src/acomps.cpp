@@ -11,6 +11,9 @@
 #include "mps.h"
 #include "dove.h"
 
+static dove::deployment_optimization test(10, 10, dove::CORE, "test", "SAACO", "/home/hamiltont/cores/ataack.xml");
+static dove::deployment d = test.get_empty_deployment();
+
 enum StagnationMeasureType { STAG_NONE, STAG_VARIATION_COEFFICIENT, STAG_LAMBDA_BRANCHING_FACTOR };
 
 static std::string filepath;
@@ -326,6 +329,9 @@ unsigned int unifRand(double a, double b)
 }
 
 int main(int argc, char *argv[]) {
+  d.add_task_deploment(0,2);
+  d.get_xml();
+  
   signal(SIGINT, terminate);
   try {
     parse_options(argc, argv);
