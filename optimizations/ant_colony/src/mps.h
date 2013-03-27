@@ -160,6 +160,7 @@ public:
   const char *what() const throw();
 };
 
+// TODO move this into dove framework
 namespace Parser {
   // Assumptions: There should be one start node, which has a path to all other 'nodes'. This avoids
   // situations with independent chains of priority e.g. 1-->2-->3<--2<--1 (a 2 is valid to run after a 1 completes,

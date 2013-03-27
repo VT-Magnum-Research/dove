@@ -14,7 +14,7 @@
 
 enum StagnationMeasureType { STAG_NONE, STAG_VARIATION_COEFFICIENT, STAG_LAMBDA_BRANCHING_FACTOR };
 
-static std::string filepath;
+// Arguments for ant colony
 static unsigned int ants = 10;
 static unsigned int iterations = UINT_MAX;
 static double alpha = 1.0;
@@ -31,24 +31,29 @@ static bool elitist_as_flag = false;
 static bool rank_as_flag = false;
 static bool maxmin_as_flag = false;
 static bool acs_as_flag = false;
+static double elitist_weight = 2.0;
+static unsigned int ranked_ants = 1;
+static unsigned int maxmin_frequency = 5;
+static double maxmin_a = 2.0;
+static double acs_q0 = 0.5;
+static double acs_xi = 0.1;
 
+// Arguments for deployment optimization
+static std::string stg_filepath;
 static unsigned int cores_used = 2;
 static unsigned int processor_heterogenity = 1;
 static unsigned int routing_heterogenity = 1;
 static unsigned int routing_default=0;
 static unsigned int task_heterogenity = 1;
 
-static double elitist_weight = 2.0;
-static unsigned int ranked_ants = 1;
-
-static unsigned int maxmin_frequency = 5;
-static double maxmin_a = 2.0;
-
-static double acs_q0 = 0.5;
-static double acs_xi = 0.1;
-
+// Data structures for optimization
+std::vector<Task>* tasks = NULL;
+DirectedAcyclicGraph* task_precedence = NULL;
 static AntColony<Ant> *colony;
 static MpsProblem* mpsproblem;
+
+// Data structures for validation
+dove::deployment_optimization* validation = NULL;
 
 static void parse_options(int argc, char *argv[]) {
   TCLAP::CmdLine cmd("Ant Colony Optimization for the Multiprocessor Scheduling Problem", ' ', "0.1");
@@ -122,35 +127,12 @@ static void parse_options(int argc, char *argv[]) {
 
   cmd.parse(argc, argv);
   
-  // If DOVE is requested, set it up
-  std::string dove = dove_arg.getValue();
-  if (dove.compare("") != 0)
-  {
-    // TODO eventually move this check to dove framework by throwing exceptions
-    std::string temp = dove;
-    temp.append("system.xml");
-    std::ifstream ifile(temp.c_str());
-    if (!ifile) 
-      throw TCLAP::ArgException("<dove>/system.xml not found");
-    temp = dove;
-    temp.append("software.stg");
-    std::ifstream ifile2(temp.c_str());
-    if (!ifile2)
-      throw TCLAP::ArgException("<dove>/software.stg not found");
-
-    // Create and store new DOVE here
-    
-  }
-  
-  // Ensure the system.xml can be parsed by rapidxml
-
   ants = ants_arg.getValue();
   iterations = iterations_arg.getValue();
   alpha = alpha_arg.getValue();
   beta = beta_arg.getValue();
   rho = rho_arg.getValue();
   initial_pheromone = initial_pheromone_arg.getValue();
-  filepath = filepath_arg.getValue();
   print_tour_flag = print_tour_arg.getValue();
   stag_variance_flag = stag_variance_arg.getValue();
   stag_lambda_flag = stag_lambda_arg.getValue();
@@ -172,7 +154,37 @@ static void parse_options(int argc, char *argv[]) {
   routing_default=routing_def_arg.getValue();
   task_heterogenity = task_harg.getValue();
 
+  // If DOVE is requested, set it up
+  std::string dove = dove_arg.getValue();
+  std::string sys = dove;
+  sys.append("system.xml");
+  std::string stg = dove;
+  stg.append("software.stg");
+  std::string deps = dove;
+  deps.append("deployments.xml");
+  if (dove.compare("") != 0)
+  {
+    // TODO eventually move this check to dove framework by throwing exceptions
+    std::ifstream ifile(sys.c_str());
+    if (!ifile) 
+      throw TCLAP::ArgException("<dove>/system.xml not found");
+    std::ifstream ifile2(stg.c_str());
+    if (!ifile2)
+      throw TCLAP::ArgException("<dove>/software.stg not found"); 
 
+    stg_filepath = stg;
+  } else {
+    stg_filepath = filepath_arg.getValue();
+  }
+
+  tasks = Parser::parse_stg(stg_filepath.c_str(), task_precedence);
+  
+  validation = new dove::deployment_optimization(tasks->size(), 
+    cores_used,
+    dove::CORE, 
+    deps.c_str(),
+    "Ant Colony Optimization",
+    sys.c_str());
   
   if(stag_variance_arg.isSet()) {
     stagnation_measure = STAG_VARIATION_COEFFICIENT;
@@ -245,6 +257,7 @@ static void terminate(int signal) {
   //mpsproblem->print_tour(colony->get_best_tour());
   //std::cout << std::endl;
   delete colony;
+  delete validation;
   exit(EXIT_FAILURE);
 }
 
@@ -366,7 +379,13 @@ int main(int argc, char *argv[]) {
     exit(EXIT_SUCCESS);
   }
   
-  std::vector<Core> touse(cores_used);
+  // TODO potentially make DOVE internally contain all of the options to 
+  // randomly generate a system? 
+  // Before DOVE, this was used to store all of the cores.
+  // TODO add a way to get descriptive name from a component in dove, and 
+  // add a way to set a descriptive name for a component in dove, so that 
+  // tracking program flow is easier. 
+  /*std::vector<Core> touse(cores_used);
   for (int i = 0; i < cores_used; i++)
   {
     std::ostringstream oss;
@@ -375,27 +394,38 @@ int main(int argc, char *argv[]) {
     touse[i].speed_multiplier_ = 1;
     if (processor_heterogenity != 1.0)
       touse[i].speed_multiplier_ *= unifRand(1, processor_heterogenity);
-  }
+  }*/
   
-
-  DirectedAcyclicGraph* task_precedence = NULL;
-  std::vector<Task>* tasks = Parser::parse_stg(filepath.c_str(), task_precedence);
+  // tasks was created in parse_options
   for (int i =0; i<tasks->size(); i++)
-    tasks->at(i).execution_time_ = tasks->at(i).execution_time_ * unifRand(1, task_heterogenity);
+    // Before DOVE, this was multiplied by  
+    //* unifRand(1, task_heterogenity);
+    tasks->at(i).execution_time_ = tasks->at(i).execution_time_; 
   
   std::sort(tasks->begin(), tasks->end(), identifier_sort);
   
-  SymmetricMatrix<unsigned int>* routing_costs = new SymmetricMatrix<unsigned int>((int) touse.size(), routing_default);
-  for (int i =0; i<cores_used; i++)
-      for (int j =0; j<cores_used; j++)
-        (*routing_costs)[i][j] *= routing_default * unifRand(1, routing_heterogenity);
-  
+  SymmetricMatrix<unsigned int>* routing_costs = 
+    new SymmetricMatrix<unsigned int>(cores_used, routing_default);
+  for (int i =0; i < cores_used; i++)
+      for (int j =0; j < cores_used; j++) {
+        (*routing_costs)[i][j] = validation->get_routing_delay(i, j);
+
+        // Before DOVE, routing costs were created like so
+        // TODO make it so this can run both with and without dove
+        // (*routing_costs)[i][j] *= routing_default * unifRand(1, routing_heterogenity);
+      }
   
   // Build the run times by combining information about cores and tasks
-  Matrix<unsigned int>* run_times = new Matrix<unsigned int>((int) tasks->size(), (int) touse.size(), 0);
+  Matrix<unsigned int>* run_times = 
+    new Matrix<unsigned int>((int) tasks->size(), cores_used, 0);
   for (int task = 0; task < tasks->size(); task++)
-    for (int core = 0; core < touse.size(); core++)
-      (*run_times)[task][core] = tasks->at(task).execution_time_ * touse[core].speed_multiplier_;
+    for (int core = 0; core < cores_used; core++)
+      // Before DOVE
+      // (*run_times)[task][core] = tasks->at(task).execution_time_ * touse[core].speed_multiplier_;
+
+      // With DOVE, there is no multiplier currently because the generator creates an amount 
+      // of time delay, not an amount of work
+      (*run_times)[task][core] = tasks->at(task).execution_time_;  
 
   // Initially reorder tasks by precedence to create at least a simple but somewhat reasonable sorting order
   // then flatten into scheduling order
@@ -405,37 +435,9 @@ int main(int argc, char *argv[]) {
     scheduling_order[task] = tasks->at(task).int_identifier_;
   run_entire_aco(task_precedence, routing_costs, run_times, &scheduling_order);
 
-  /* Methods for hybrid
-  // Create a number of large-scale exploration steps to guide the ACO
-  srand ( (int) time(NULL) );
-  for (int i = 0; i < 400; i++) {
-    // Randomly shuffle items, not allowing precedence overlap in sorting order
-    unsigned int current_pred = 2;
-    while (current_pred != tasks->back().pred_level_ - 1) {
-      // Find the first task that has current pred
-      std::vector<Task>::iterator begin = tasks->begin();
-      while (begin->pred_level_ != current_pred)
-        ++begin;
-      
-      std::vector<Task>::iterator end(begin);
-      while (end->pred_level_ != current_pred + 1)
-        ++end;
-      --end;
-      
-      std::random_shuffle(begin, end);
-      ++current_pred;
-    }
-    
-    std::vector<unsigned int> scheduling_order(tasks->size());
-    for (int task = 0; task < tasks->size(); task++)
-      scheduling_order[task] = tasks->at(task).int_identifier_;
-    
-    run_entire_aco(task_precedence, routing_costs, run_times, &scheduling_order);
-  }*/
-
   delete task_precedence;
   delete routing_costs;
   delete run_times;
-  
+  delete validation;  
   delete colony;
 }
