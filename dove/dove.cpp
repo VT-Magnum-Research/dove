@@ -18,6 +18,23 @@
 #include "rapidxml_print.hpp"
 #include "rapidxml_utils.hpp"
 
+// Set log_level as high as you want to enable that logging level
+// and all below it. 999 will be very verbose
+#define LOG_LEVEL 999
+#define LOG_ERROR  10
+#define LOG_DEBUG  30
+#define LOG_INFO  100
+
+void log(const char* msg, int level) {
+  if (level <= LOG_LEVEL)
+    std::cout << "dove: " << msg << std::endl;
+}
+
+void info(const char* msg) { log(msg, LOG_INFO); }
+void error(const char* msg) { log(msg, LOG_ERROR); }
+void debug(const char* msg) { log(msg, LOG_DEBUG); }
+
+
 // We extend rapidxml with some high-level functions
 namespace rapidxml
 {
@@ -50,34 +67,35 @@ namespace rapidxml
   }
 }
 
+
 // TODO make this set type on hardware component
 void dove::parse_pids(rapidxml::xml_document<char> &system, 
-    std::string logical_id,
-    int &node_pid, 
-    int &proc_pid, 
-    int &core_pid, 
-    int &hwth_pid, 
-    std::string &hostname, 
-    std::string &ip) {
+  std::string logical_id,
+  int &node_pid, 
+  int &proc_pid, 
+  int &core_pid, 
+  int &hwth_pid, 
+  std::string &hostname, 
+  std::string &ip) {
 
-  rapidxml::xml_node<>* nodes = system.first_node("system")->
-    first_node("nodes");
-  rapidxml::xml_node<>* node = get_child_with_attribute(nodes, "id", 
-      logical_id);
-  
-  // While we have not returned to the root
-  while (strcmp(node->name(), "nodes") != 0) {
-    std::string name = node->name();
-    int pindex = atoi( node->first_attribute("pindex")->value() );
-    if (name.compare("pu") == 0) {
-      hwth_pid = pindex;
-    }
-    else if (name.compare("core") == 0)
-      core_pid = pindex;
-    else if (name.compare("socket") == 0) 
-      proc_pid = pindex;
-    else if (name.compare("node") == 0) {
-      node_pid = pindex;
+rapidxml::xml_node<>* nodes = system.first_node("system")->
+  first_node("nodes");
+rapidxml::xml_node<>* node = get_child_with_attribute(nodes, "id", 
+    logical_id);
+
+// While we have not returned to the root
+while (strcmp(node->name(), "nodes") != 0) {
+  std::string name = node->name();
+  int pindex = atoi( node->first_attribute("pindex")->value() );
+  if (name.compare("pu") == 0) {
+    hwth_pid = pindex;
+  }
+  else if (name.compare("core") == 0)
+    core_pid = pindex;
+  else if (name.compare("socket") == 0) 
+    proc_pid = pindex;
+  else if (name.compare("node") == 0) {
+    node_pid = pindex;
       ip = node->first_attribute("ip")->value();
       hostname = node->first_attribute("hostname")->value();
     }
@@ -119,6 +137,7 @@ std::string dove::build_rankline_core(int task, dove::hwcom com) {
 std::string dove::build_rankline(rapidxml::xml_document<char> &system,
     int taskid, 
     std::string id) {
+  debug("Building rankline");
   dove::hwcom com = parse_pids(system, id);
 
   int type = com.type;
@@ -149,6 +168,7 @@ std::string dove::build_rankline(rapidxml::xml_document<char> &system,
 // helper functions into that namespace to keep it clean
 std::vector<rapidxml::xml_node<char>*> dove::get_all_hosts(
     rapidxml::xml_document<char> &system) {
+  debug("Getting all hosts from system.xml");
   rapidxml::xml_node<>* nodes = system.first_node("system")->
     first_node("nodes");
   
@@ -165,7 +185,7 @@ std::vector<rapidxml::xml_node<char>*> dove::get_all_hosts(
 
 std::vector<rapidxml::xml_node<char>*> dove::get_all_processors(
     rapidxml::xml_document<char> &system) {
-
+  debug("Getting all processors from system.xml");
   std::vector<rapidxml::xml_node<char>*> result;
   std::vector<rapidxml::xml_node<char>*> hosts = 
     get_all_hosts(system);
@@ -187,7 +207,7 @@ std::vector<rapidxml::xml_node<char>*> dove::get_all_processors(
 
 std::vector<rapidxml::xml_node<char>*> dove::get_all_cores(
     rapidxml::xml_document<char> &system) {
-
+  debug("Getting all cores from system.xml");
   xml_node_vector result;
   xml_node_vector procs = get_all_processors(system);
   xml_node_vector::iterator it;
@@ -208,7 +228,7 @@ std::vector<rapidxml::xml_node<char>*> dove::get_all_cores(
 
 std::vector<rapidxml::xml_node<char>*> dove::get_all_threads(
     rapidxml::xml_document<char> &system) {
-
+  debug("Getting all threads from system.xml");
   xml_node_vector result;
   xml_node_vector cores = get_all_cores(system);
   xml_node_vector::iterator it;
@@ -231,6 +251,7 @@ std::vector<rapidxml::xml_node<char>*> dove::get_all_threads(
 // components e.g. ones on the same machine, etc
 dove::hwprofile::hwprofile(hwcom_type type, int compute_units, 
     rapidxml::xml_document<char> &system) {
+  debug("Creating new hardware profile");
 }
 
 int dove::hwprofile::get_logical_id(int id) {
@@ -253,12 +274,14 @@ char* dove::deployment::s(int unsafe) {
 
 dove::deployment::deployment(hwprofile* prof, 
     rapidxml::xml_document<char>* system) {
+  debug("Creating new deployment");
   profile = prof;
   doc = system;
 }
 
 // TODO add metrics to the XML :-)
-node* dove::deployment::get_xml() {  
+node* dove::deployment::get_xml() {
+  debug("Getting XML for deployment");
   node* deployment_xml = doc->allocate_node(rapidxml::node_element, s("deployment"));
   
   std::vector<std::pair<int, int> >::iterator it;
@@ -276,7 +299,7 @@ node* dove::deployment::get_xml() {
     return deployment_xml;
 }
 
-void dove::deployment::add_task_deployment(int task, int hardware) {
+void dove::deployment::add_task_deployment(int task, int hardware) { 
   // TODO handle exceptions here if the hardware id is bad
   int logical_id = profile->get_logical_id(hardware);
   std::pair<int, int> map = std::make_pair (task, logical_id);
@@ -298,16 +321,21 @@ dove::deployment_optimization::deployment_optimization(int tasks,
         const char* algorithm_name,
         const char* system_xml_path,
         const char* algorithm_desc) {
-  
+  debug("Creating new deployment_optimization 1");
+
   this->output_filename = output_filename;
   task_count = tasks;
     
+  info("Testing if system xml can be parsed");
   rapidxml::file<char> xmlFile(system_xml_path);
   rapidxml::xml_document<char>* xml = new rapidxml::xml_document<char>();
   xml->parse<0>(xmlFile.data());
   // TODO I am 100% leaking this memory 
+  info("Storing system.xml into doc");
   doc = xml;
   profile = new hwprofile(compute_type, compute_units, *doc);
+  
+  info("Updating system.xml to include deployments");
   node *root = doc->allocate_node(rapidxml::node_element, s("optimization"));
   doc->append_node(root);
   attr *name = doc->allocate_attribute(s("name"), s(algorithm_name));
@@ -317,6 +345,7 @@ dove::deployment_optimization::deployment_optimization(int tasks,
   node *deployments = doc->allocate_node(rapidxml::node_element, s("deployments"));
   root->append_node(deployments);
 
+  debug("Done creating deployment_optimization");
 }
 
 dove::deployment_optimization::deployment_optimization(int tasks, 
@@ -326,6 +355,7 @@ dove::deployment_optimization::deployment_optimization(int tasks,
   const char* algorithm_name,
   rapidxml::xml_document<char> &system,
   const char* algorithm_desc) {
+  debug("Creating new deployment_optimization 2");
 
   this->output_filename = output_filename;
   task_count = tasks;
@@ -356,6 +386,7 @@ void dove::deployment_optimization::add_deployment(deployment d) {
 }
 
 void dove::deployment_optimization::complete() {
+  debug("Complete was called on deployment_optimization");
   std::ofstream output;
   output.open (output_filename, std::ios::out | std::ios::trunc);
 

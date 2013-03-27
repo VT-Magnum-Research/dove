@@ -8,8 +8,10 @@ namespace rapidxml {
   template <typename T> class xml_document;
 }
 
+#include <iostream>
 #include <vector>
 #include <string>
+
 
 typedef rapidxml::xml_node<char> xml_node;
 typedef rapidxml::xml_node<char> node;
@@ -17,6 +19,7 @@ typedef std::vector<xml_node*> xml_node_vector;
 typedef rapidxml::xml_attribute<char> attr;
 
 namespace dove {
+
 
   // Hardware component types
   enum hwcom_type { 
@@ -198,6 +201,16 @@ namespace dove {
         const char* algorithm_name,
         const char* system_xml_path,
         const char* algorithm_desc = "");
+
+      // TODO create constructor that accepts the 
+      // <dove> directory, checks for system.xml, software.stg, 
+      // and plans to output deployments.xml. Should read in the
+      // STG to automatically figure out how many tasks
+
+      // TODO create debug arguments for DOVE. Perhaps use an int
+      // called DEBUG_LEVEL and write functions for log/debug/verbose
+      // that automatically set DEBUG_LEVEL properly and then internally
+      // call log(const char*, int)
 
       // Dove allocates [0...compute_units] computation units 
       // when created. This function returns the real routing delay
