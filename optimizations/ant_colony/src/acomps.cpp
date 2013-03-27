@@ -5,14 +5,12 @@
 #include <cfloat>
 #include <climits>
 #include <csignal>
+#include <fstream>
 #include "tclap/CmdLine.h"
 #include "ants.h"
 
 #include "mps.h"
 #include "dove.h"
-
-static dove::deployment_optimization test(10, 10, dove::CORE, "test", "SAACO", "/home/hamiltont/cores/ataack.xml");
-static dove::deployment d = test.get_empty_deployment();
 
 enum StagnationMeasureType { STAG_NONE, STAG_VARIATION_COEFFICIENT, STAG_LAMBDA_BRANCHING_FACTOR };
 
@@ -56,33 +54,47 @@ static void parse_options(int argc, char *argv[]) {
   TCLAP::CmdLine cmd("Ant Colony Optimization for the Multiprocessor Scheduling Problem", ' ', "0.1");
   TCLAP::ValueArg<unsigned int> ants_arg ("m", "ants", "number of ants", false, ants, "integer");
   TCLAP::ValueArg<unsigned int> iterations_arg ("i", "iterations", "number of iterations", false, iterations, "positive integer");
-  TCLAP::ValueArg<double> alpha_arg ("a", "alpha", "alpha (influence of pheromone trails)", false, alpha, "double");
-  TCLAP::ValueArg<double> beta_arg("b", "beta", "beta (influence of heuristic information)", false, beta, "double");
-  TCLAP::ValueArg<double> rho_arg("r", "rho", "pheromone trail evaporation rate", false, rho, "double");
-  TCLAP::ValueArg<double> initial_pheromone_arg("p", "pheromone", "initial pheromone value", false, initial_pheromone, "double");
+  TCLAP::ValueArg<double>       alpha_arg ("a", "alpha", "alpha (influence of pheromone trails)", false, alpha, "double");
+  TCLAP::ValueArg<double>       beta_arg("b", "beta", "beta (influence of heuristic information)", false, beta, "double");
+  TCLAP::ValueArg<double>       rho_arg("r", "rho", "pheromone trail evaporation rate", false, rho, "double");
+  TCLAP::ValueArg<double>       initial_pheromone_arg("p", "pheromone", "initial pheromone value", false, initial_pheromone, "double");
   std::vector<unsigned int> allowed;
   allowed.push_back(0);
   allowed.push_back(1);
   TCLAP::ValuesConstraint<unsigned int> allowed_values( allowed );
-  TCLAP::ValueArg<std::string> filepath_arg("f", "file", "path to the input file", true, "", "filepath");
-  TCLAP::ValueArg<unsigned int> cores_used_arg("c", "cores", "number of homogeneous processing cores. Defaults to 2", false, 2, "positive integer");
-  TCLAP::ValueArg<unsigned int> processor_h_arg("","core_heter", "Processor heterogeneity. 1 specifies homogeneous processors, <int> specifies a limit on processor upper bound that is randomly queried to build a set of heterogeneous processors. Default is 1", false, 1, "positive integer");
-  TCLAP::SwitchArg print_tour_arg("o", "printord", "print best elimination ordering in iteration");
+  TCLAP::ValueArg<std::string>  dove_arg("d", "dove", "Path to DOVE directory. "  
+      "Provide this if you want to use the deployment optimization validation "
+      "engine to validate that your arguments + this algorithm are in fact "
+      "resulting in optimizations on a real system."
+      "If provided, then the following files are assumed to exist: \n" 
+      "<dove>/system.xml - Contains accurate profile of the hardware system" 
+      "dove will use to validate the output of this algorithm. \n" 
+      "<dove>/software.stg - the software STG model.\n" 
+      "The <dove>/deployments.xml file will be created as this algorithm is " 
+      "executed. ", false, "", "dirpath");
+  TCLAP::ValueArg<std::string>  filepath_arg("f", "stg", "path to the input STG file", true, "", "filepath");
+  std::vector<TCLAP::Arg *> stg_variants;
+  stg_variants.push_back(&dove_arg);
+  stg_variants.push_back(&filepath_arg);
+  cmd.xorAdd(stg_variants);
+  TCLAP::ValueArg<unsigned int> cores_used_arg("c", "cores", "number of homogeneous processing cores. Defaults to 2", false, 2, "positive integer", cmd);
+  TCLAP::ValueArg<unsigned int> processor_h_arg("","core_heter", "Processor heterogeneity. 1 specifies homogeneous processors, <int> specifies a limit on processor upper bound that is randomly queried to build a set of heterogeneous processors. Default is 1", false, 1, "positive integer", cmd);
+  TCLAP::SwitchArg              print_tour_arg("o", "printord", "print best elimination ordering in iteration");
   TCLAP::ValueArg<unsigned int> task_harg("", "task_heter", "task heterogeneity. 1 specifies to leave task homogenity alone, <int> specifies a limit on the upper bound a task completion time can be multiplied by. Default is 1", false, 1, "positive integer");
   TCLAP::ValueArg<unsigned int> routing_h_arg("","routing_heter", "routing heterogeneity. 1 specifies homogeneous routing delay, <int> specifies a limit on routing delay upper bounds that is randomly queried to build a set of routing delays between the processors. Default is 1", false, 1, "positive integer");
   TCLAP::ValueArg<unsigned int> routing_def_arg("","route_default", "base routing cost between cores. Default is 0", false, 0, "positive integer");
-  TCLAP::SwitchArg stag_variance_arg("", "stag_variance", "compute and print variation coefficient stagnation");
-  TCLAP::SwitchArg stag_lambda_arg("", "stag_lambda", "compute and print lambda branching factor stagnation");
-  TCLAP::ValueArg<double> time_limit_arg("t", "time", "terminate after n seconds (after last iteration is finished)", false, time_limit, "double");
-  TCLAP::SwitchArg simple_as_arg("", "simple", "use Simple Ant System");
-  TCLAP::ValueArg<double> elitist_as_arg("", "elitist", "use Elitist Ant System with given weight", false, elitist_weight, "double");
+  TCLAP::SwitchArg              stag_variance_arg("", "stag_variance", "compute and print variation coefficient stagnation");
+  TCLAP::SwitchArg              stag_lambda_arg("", "stag_lambda", "compute and print lambda branching factor stagnation");
+  TCLAP::ValueArg<double>       time_limit_arg("t", "time", "terminate after n seconds (after last iteration is finished)", false, time_limit, "double");
+  TCLAP::SwitchArg              simple_as_arg("", "simple", "use Simple Ant System");
+  TCLAP::ValueArg<double>       elitist_as_arg("", "elitist", "use Elitist Ant System with given weight", false, elitist_weight, "double");
   TCLAP::ValueArg<unsigned int> rank_as_arg("", "rank", "use Rank-Based Ant System and let the top n ants deposit pheromone", false, ranked_ants, "positive integer");
-  TCLAP::SwitchArg maxmin_as_arg("", "maxmin", "use Max-Min Ant System");
+  TCLAP::SwitchArg              maxmin_as_arg("", "maxmin", "use Max-Min Ant System");
   TCLAP::ValueArg<unsigned int> maxmin_frequency_arg("", "maxmin_frequency", "frequency of pheromone updates of best-so-far ant in Max-Min Ant System", false, maxmin_frequency, "double");
-  TCLAP::ValueArg<double> maxmin_a_arg("", "maxmin_a", "parameter a in Max-Min Ant System", false, maxmin_a, "double");
-  TCLAP::SwitchArg acs_as_arg("", "acs", "use Ant Colony System");
-  TCLAP::ValueArg<double> acs_q0_arg("", "acs_q0", "q0 parameter for Ant Colony System", false, acs_q0, "double");
-  TCLAP::ValueArg<double> acs_xi_arg("", "acs_xi", "xi parameter for Ant Colony System", false, acs_xi, "double");
+  TCLAP::ValueArg<double>       maxmin_a_arg("", "maxmin_a", "parameter a in Max-Min Ant System", false, maxmin_a, "double");
+  TCLAP::SwitchArg              acs_as_arg("", "acs", "use Ant Colony System");
+  TCLAP::ValueArg<double>       acs_q0_arg("", "acs_q0", "q0 parameter for Ant Colony System", false, acs_q0, "double");
+  TCLAP::ValueArg<double>       acs_xi_arg("", "acs_xi", "xi parameter for Ant Colony System", false, acs_xi, "double");
   std::vector<TCLAP::Arg *> as_variants;
   as_variants.push_back(&simple_as_arg);
   as_variants.push_back(&elitist_as_arg);
@@ -95,7 +107,6 @@ static void parse_options(int argc, char *argv[]) {
   cmd.add(beta_arg);
   cmd.add(rho_arg);
   cmd.add(initial_pheromone_arg);
-  cmd.add(filepath_arg);
   cmd.add(print_tour_arg);
   cmd.add(stag_variance_arg);
   cmd.add(stag_lambda_arg);
@@ -105,16 +116,34 @@ static void parse_options(int argc, char *argv[]) {
   cmd.add(acs_q0_arg);
   cmd.add(acs_xi_arg);
   cmd.xorAdd(as_variants);
-  
-  cmd.add(cores_used_arg);
-  cmd.add(processor_h_arg);
   cmd.add(routing_h_arg);
   cmd.add(routing_def_arg);
   cmd.add(task_harg);
 
   cmd.parse(argc, argv);
   
+  // If DOVE is requested, set it up
+  std::string dove = dove_arg.getValue();
+  if (dove.compare("") != 0)
+  {
+    // TODO eventually move this check to dove framework by throwing exceptions
+    std::string temp = dove;
+    temp.append("system.xml");
+    std::ifstream ifile(temp.c_str());
+    if (!ifile) 
+      throw TCLAP::ArgException("<dove>/system.xml not found");
+    temp = dove;
+    temp.append("software.stg");
+    std::ifstream ifile2(temp.c_str());
+    if (!ifile2)
+      throw TCLAP::ArgException("<dove>/software.stg not found");
+
+    // Create and store new DOVE here
+    
+  }
   
+  // Ensure the system.xml can be parsed by rapidxml
+
   ants = ants_arg.getValue();
   iterations = iterations_arg.getValue();
   alpha = alpha_arg.getValue();
@@ -329,9 +358,6 @@ unsigned int unifRand(double a, double b)
 }
 
 int main(int argc, char *argv[]) {
-  d.add_task_deploment(0,2);
-  d.get_xml();
-  
   signal(SIGINT, terminate);
   try {
     parse_options(argc, argv);
