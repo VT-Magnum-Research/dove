@@ -21,5 +21,5 @@ bin/AntHybrid: $(util_o)
 	$(CXX) $(CXXFLAGS) -o bin/AntHybrid build/*.o $(LIBS)
 
 clean: 
-	rm build/*.o
-	rm bin/AntHybrid
+	rm -f build/*.o
+	rm -f bin/AntHybrid

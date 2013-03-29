@@ -23,6 +23,12 @@ export LIBDOVE      := $(DOVE_ROOT)/libdove.a
 # Dove core requires C++11
 export CFLAGS=-std=c++0x
 
+custom: cust_clean libdove.a aco
+
+cust_clean:
+	cd $(DOVE_ROOT) && $(MAKE) clean
+	cd optimizations/ant_colony && $(MAKE) clean
+
 all: generator latency libdove.a
 
 # DOVE targets
@@ -39,6 +45,8 @@ latency:
 saaco: libdove.a
 	cd optimizations/saaco && $(MAKE)
 
+aco: libdove.a
+	cd optimizations/ant_colony && $(MAKE)
 
 # --- remove binary and executable files
 clean:

@@ -16,7 +16,7 @@ enum StagnationMeasureType { STAG_NONE, STAG_VARIATION_COEFFICIENT, STAG_LAMBDA_
 
 // Arguments for ant colony
 static unsigned int ants = 10;
-static unsigned int iterations = UINT_MAX;
+static unsigned int iterations = 100;
 static double alpha = 1.0;
 static double beta = 1.0;
 static double rho = 0.1;
@@ -53,7 +53,7 @@ static AntColony<Ant> *colony;
 static MpsProblem* mpsproblem;
 
 // Data structures for validation
-dove::deployment_optimization* validation = NULL;
+dove::validator* validation = NULL;
 
 static void parse_options(int argc, char *argv[]) {
   TCLAP::CmdLine cmd("Ant Colony Optimization for the Multiprocessor Scheduling Problem", ' ', "0.1");
@@ -179,7 +179,7 @@ static void parse_options(int argc, char *argv[]) {
 
   tasks = Parser::parse_stg(stg_filepath.c_str(), task_precedence);
   
-  validation = new dove::deployment_optimization(tasks->size(), 
+  validation = new dove::validator(tasks->size(), 
     cores_used,
     dove::CORE, 
     deps.c_str(),
@@ -319,6 +319,23 @@ void run_entire_aco(DirectedAcyclicGraph* task_precedence,
   timer2();
   for(unsigned int i=0;i<iterations && timer() < time_limit;i++) {
     colony->run();
+    std::vector<unsigned int> tour = colony->get_best_tour();
+    unsigned int task;
+    unsigned int core;
+    std::vector<unsigned int>::iterator it;
+    dove::deployment deployment = validation->get_empty_deployment();
+    for (it = tour.begin();
+        it != tour.end();
+        it++) {
+      problem->get_task_and_core_from_vertex(*it, task, core);
+      deployment.add_task_deployment(task, core);
+    }
+    double score = colony->get_best_tour_length();
+    std::stringstream strs;
+    strs << score;
+    deployment.add_metric("makespan", strs.str());
+    validation->add_deployment(deployment);
+
     *info << (i+1) << "\t";
     *info << timer() << "\t";
     *info << colony->get_best_tour_length() << "\t";
@@ -349,6 +366,8 @@ void run_entire_aco(DirectedAcyclicGraph* task_precedence,
   *info << colony->get_best_tour_length() << "," << timer2();
   std::cout << colony->get_best_tour_length() << "," << timer2();
   
+  validation->complete();
+
   //mpsproblem->print_tour(colony->get_best_tour());
   
   //MpSchedule schedule = mpsproblem->convert_tour_to_schedule(colony->get_best_tour());

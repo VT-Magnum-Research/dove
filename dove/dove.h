@@ -6,12 +6,13 @@ namespace rapidxml {
   template <typename T> class xml_node;
   template <typename T> class xml_attribute;
   template <typename T> class xml_document;
+  template <typename T> class file;
 }
 
 #include <iostream>
 #include <vector>
 #include <string>
-
+#include <map>
 
 typedef rapidxml::xml_node<char> xml_node;
 typedef rapidxml::xml_node<char> node;
@@ -19,7 +20,6 @@ typedef std::vector<xml_node*> xml_node_vector;
 typedef rapidxml::xml_attribute<char> attr;
 
 namespace dove {
-
 
   // Hardware component types
   enum hwcom_type { 
@@ -109,9 +109,14 @@ namespace dove {
   // (used in the system.xml) and the 0...N-1 count of "compute
   // units" that are traditionally used in optimization problems
   class hwprofile {
+    hwcom_type type_;
+    // Maps from 0...N to the actual logical ID
+    std::map<int, int> ids_;
+    rapidxml::xml_document<char>* system_;
+
     public:
       hwprofile(hwcom_type type, int compute_units, 
-        rapidxml::xml_document<char> &system);
+        rapidxml::xml_document<char>* system);
   
       // Given the 0...N-1 id, this will return the logical ID that
       // is used in the system.xml file. 
@@ -160,6 +165,8 @@ namespace dove {
       // iterations tend to yield a benefit that is below some 
       // threshold
       void add_metric(std::string name, std::string value);
+      // TODO override add_metric to support other types of 
+      // values
   };
 
   // Interfaces the DOVE validation suite with an optimization 
@@ -174,27 +181,20 @@ namespace dove {
   // an XML file that can be read into the rest of the DOVE 
   // codebase to generate a real STG implementation and 
   // validate the optimization algorithm results
-  class deployment_optimization {
+  class validator {
 
     private:
       hwprofile* profile;
       int task_count;
       const char* output_filename;
       rapidxml::xml_document<char>* doc;
-
+      // Must keep source text around
+      rapidxml::file<char>* xmldata;
       // Builds a 'safe' string for rapidxml
       char* s(const char* unsafe);
 
     public:
-      deployment_optimization(int tasks, 
-        int compute_units,
-        hwcom_type compute_type,
-        const char* output_filename,
-        const char* algorithm_name,
-        rapidxml::xml_document<char> &system,
-        const char* algorithm_desc = "");
-
-      deployment_optimization(int tasks, 
+      validator(int tasks, 
         int compute_units,
         hwcom_type compute_type,
         const char* output_filename,

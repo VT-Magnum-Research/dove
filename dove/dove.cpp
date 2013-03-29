@@ -8,11 +8,13 @@
 
 #include "dove.h"
 
+
 #include <string>
 #include <sstream>
 #include <fstream>
 #include <iostream>
 #include <string.h>
+#include <map>
 
 #include "rapidxml.hpp"
 #include "rapidxml_print.hpp"
@@ -250,16 +252,100 @@ std::vector<rapidxml::xml_node<char>*> dove::get_all_threads(
 // TODO add in a strategy for choosing specific hardware 
 // components e.g. ones on the same machine, etc
 dove::hwprofile::hwprofile(hwcom_type type, int compute_units, 
-    rapidxml::xml_document<char> &system) {
+    rapidxml::xml_document<char>* system) {
   debug("Creating new hardware profile");
+ 
+  system_ = system;
+  type_ = type;
+
+  std::vector<rapidxml::xml_node<char>*> nodes;
+  switch (type) {
+    case HOST: 
+      throw "Only cores are supported";
+      break;
+    case PROC:
+      throw "Only cores are supported";
+      break;
+    case CORE:
+      info("Getting all cores");
+      nodes = get_all_cores(*system_);
+      info("Done getting cores");
+      break;
+    case HW_THREAD:
+      throw "Only cores are supported";
+      break;
+    default:
+      throw "Hardware component type must be know to create a hardware profile";
+      break;
+  }
+  
+  // Our first 'strategy' for choosing the components is quite 
+  // simple: whichever ones appear first in the XML ;-)
+  if (nodes.size() < compute_units)
+    throw "There are not enough available compute units";
+  info("Choosing cores");
+  for (int u = 0; u < compute_units; u++) {
+    char* logid_str = nodes[u]->first_attribute("id")->value();
+    std::istringstream stream(logid_str);
+    int logid;
+    stream >> logid;
+    ids_[u] = logid;
+  }
 }
 
 int dove::hwprofile::get_logical_id(int id) {
-  return 0;
+  if (id >= ids_.size() || id < 0)
+    throw "Invalid ID passed to get_logical_id";
+  return ids_[id];
 }
 
 long dove::hwprofile::get_routing_delay(int from, int to) {
-  return 0;
+  info("Getting routing delay");
+  int lfrom = get_logical_id(from);
+  int lto = get_logical_id(to);
+  if (lfrom == lto)
+    return 0;
+  info("Getting system");
+  rapidxml::xml_node<>* system = system_->first_node("system");
+  if (system != 0)
+    info("Got system");
+  else
+    info("Tried to fetch system, but it was not returned");
+  rapidxml::xml_node<>* delays = system->last_node("routing_delays");
+  if (delays == 0)
+    info("Delays does not exist, expect segfaults next!");
+
+  for (rapidxml::xml_node<char> *delay = 
+        delays->first_node(); 
+        delay; 
+        delay = delay->next_sibling()) {
+    char* sfrom = delay->first_attribute("f")->value();
+    info("I see ...");
+    info(sfrom);
+    std::istringstream ssfrom(sfrom);
+    int from;
+    ssfrom >> from;
+    std::cout << "From is " << from << std::endl;
+    if (from != lfrom) {
+      std::cout<< "Lfrom is " << lfrom << " and there is no match" << std::endl;
+      continue;
+    }
+    info("Found a matching from value");
+    char* sto = delay->first_attribute("t")->value();
+    std::istringstream ssto(sto);
+    int to;
+    ssto >> to;
+    if (to == lto) {
+      info("Found a matching to value");
+      char* sval = delay->first_attribute("v")->value();
+      std::istringstream ssval(sval);
+      int val;
+      ssval >> val;
+      return val;
+    }
+  }
+
+  throw "No route was found between the two id's";
 }
       
 char* dove::deployment::s(const char* unsafe) {
@@ -310,11 +396,11 @@ void dove::deployment::add_metric(std::string name, std::string value) {
   metrics.push_back(std::make_pair(name, value));
 }
 
-char* dove::deployment_optimization::s(const char* unsafe) {
+char* dove::validator::s(const char* unsafe) {
   return doc->allocate_string(unsafe);
 }
 
-dove::deployment_optimization::deployment_optimization(int tasks, 
+dove::validator::validator(int tasks, 
         int compute_units,
         hwcom_type compute_type,
         const char* output_filename,
@@ -325,15 +411,14 @@ dove::deployment_optimization::deployment_optimization(int tasks,
 
   this->output_filename = output_filename;
   task_count = tasks;
-    
+  
+  // TODO I am 100% leaking all the new memory 
   info("Testing if system xml can be parsed");
-  rapidxml::file<char> xmlFile(system_xml_path);
-  rapidxml::xml_document<char>* xml = new rapidxml::xml_document<char>();
-  xml->parse<0>(xmlFile.data());
-  // TODO I am 100% leaking this memory 
+  xmldata = new rapidxml::file<char>(system_xml_path);
+  doc = new rapidxml::xml_document<char>();
+  doc->parse<0>(xmldata->data());
   info("Storing system.xml into doc");
-  doc = xml;
-  profile = new hwprofile(compute_type, compute_units, *doc);
+  profile = new hwprofile(compute_type, compute_units, doc);
   
   info("Updating system.xml to include deployments");
   node *root = doc->allocate_node(rapidxml::node_element, s("optimization"));
@@ -348,48 +433,26 @@ dove::deployment_optimization::deployment_optimization(int tasks,
   debug("Done creating deployment_optimization");
 }
 
-dove::deployment_optimization::deployment_optimization(int tasks, 
-  int compute_units,
-  hwcom_type compute_type,
-  const char* output_filename,
-  const char* algorithm_name,
-  rapidxml::xml_document<char> &system,
-  const char* algorithm_desc) {
-  debug("Creating new deployment_optimization 2");
-
-  this->output_filename = output_filename;
-  task_count = tasks;
-  profile = new hwprofile(compute_type, compute_units, system);
- 
-  doc = &system;
-  node *root = doc->allocate_node(rapidxml::node_element, s("optimization"));
-  doc->append_node(root);
-  attr *name = doc->allocate_attribute(s("name"), s(algorithm_name));
-  root->append_attribute(name);
-  attr *desc = doc->allocate_attribute(s("desc"), s(algorithm_desc));
-  root->append_attribute(desc);
-  node *deployments = doc->allocate_node(rapidxml::node_element, s("deployments"));
-  root->append_node(deployments);
-}
-    
-long dove::deployment_optimization::get_routing_delay(int from, int to) {
+long dove::validator::get_routing_delay(int from, int to) {
   return profile->get_routing_delay(from, to);
 }
 
-dove::deployment dove::deployment_optimization::get_empty_deployment() {
+dove::deployment dove::validator::get_empty_deployment() {
   return deployment(profile, doc);
 }
 
-void dove::deployment_optimization::add_deployment(deployment d) {
-  node* deps = doc->first_node("deployments");
+void dove::validator::add_deployment(deployment d) {
+  node* deps = doc->first_node("system")->first_node("deployments");
   deps->append_node(d.get_xml());
 }
 
-void dove::deployment_optimization::complete() {
+void dove::validator::complete() {
   debug("Complete was called on deployment_optimization");
   std::ofstream output;
   output.open (output_filename, std::ios::out | std::ios::trunc);
-
-  output << doc;
+  std::cout << "About to print all this" << std::endl;
+  std::cout << *doc << std::endl;
+  output << *doc;
+  output.close();
 }
 
