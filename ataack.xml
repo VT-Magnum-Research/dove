@@ -114,14 +114,11 @@
 
 
 <routing_delays>
-    <node_delay units="ms">
-        4>5:12
-    </node_delay>
+  <d f="2" t="5" v="2" />
+  <d f="5" t="2" v="1" />
+</routing_delays>
 
-    <core_delay units="ms">
-      <cd f="0" t="1" v="12" />
-      <cd f="1" t="0" v="12" />
-    </core_delay>
-</routings>
+<deployments>
+</deployments>
 
 </system>

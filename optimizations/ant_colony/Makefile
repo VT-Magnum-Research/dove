@@ -1,16 +1,25 @@
+
+
+DOVE_ROOT    ?= $(CURDIR)/../../dove
+LIBS         := -L$(DOVE_ROOT) -ldove
+INC          := -I$(DOVE_ROOT) -Isrc/utils
+CXXFLAGS     += -g 
+
 all: bin/AntHybrid
 
-bin/AntHybrid: utils	
-	g++ -Wall -Isrc/utils -c src/mps.cpp -o build/mps.o
-	g++ -Wall -Isrc/utils -c src/acomps.cpp -o build/acomps.o
-	g++ -Wall -o bin/AntHybrid build/*.o
+# The following variables and rules make 
+# the utils/ folder automatically
+#
+util_cpp := $(wildcard src/utils/*.cpp)
+util_o   := $(addprefix build/,$(notdir $(util_cpp:.cpp=.o)))
+build/%.o: src/utils/%.cpp
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c -o $@ $<
 
-utils:
-	g++ -Wall -c src/utils/ants.cpp -o build/ants.o
-	g++ -Wall -c src/utils/graph.cpp -o build/graph.o
-	g++ -Wall -c src/utils/localsearch.cpp -o build/localsearch.o
-	g++ -Wall -c src/utils/util.cpp -o build/util.o
+bin/AntHybrid: $(util_o)
+	$(CXX) $(CXXFLAGS) $(INC) -c -o build/mps.o src/mps.cpp 
+	$(CXX) $(CXXFLAGS) $(INC) -c -o build/acomps.o src/acomps.cpp
+	$(CXX) $(CXXFLAGS) -o bin/AntHybrid build/*.o $(LIBS)
 
-clean: .
-	rm build/*.o
-	rm bin/AntHybrid
+clean: 
+	rm -f build/*.o
+	rm -f bin/AntHybrid

@@ -10,5 +10,21 @@ generator/impl.cpp
 generator/gen/*
 generator/bin/*
 
+# Any swap files created by vim
+*.swp
+
+# Ignore any files from NFS
+.nfs*
+
 # Ignore object files everywhere
 **/*.o
+
+# Compiled Object file
+*.o
+
+# Compiled Dynamic libraries
+*.so
+*.dylib
+
+# Compiled Static libraries
+*.a

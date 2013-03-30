@@ -11,6 +11,7 @@
 
 #include <iostream>
 #include <cstdlib>
+#include <cstdio>
 #include <map>
 #include <exception>
 #include <string>
@@ -78,9 +79,9 @@ private:
   // of mappings between task&core, so this is the number of tasks that have been mapped
   int current_tour_length_;
   
-  // Used to cache the evaluation of our tour. Avoids having to recalculate the tour_evaluation
-  // after a local search is requested, because I know there is no local search being performed
-  // yet
+  // Used to cache the evaluation of our tour. Avoids having to recalculate 
+  // the tour_evaluation after a local search is requested, because I know there
+  // is no local search being performed yet
   bool local_search_requested_;
   
   // Used to cache the result of the tour
@@ -100,10 +101,6 @@ private:
     return core * task_size_ + task;
   }
   
-  inline void get_task_and_core_from_vertex(unsigned int vertex_id, unsigned int & task, unsigned int & core) {
-    task = vertex_id % task_size_;
-    core = vertex_id / task_size_;
-  }
   
   
   inline void _debug(const char *fmt, ...) __attribute__((format (printf, 2, 3)))
@@ -119,6 +116,11 @@ private:
   #define debug(fmt,...) _debug(fmt"\n", ##__VA_ARGS__)
   
 public:
+  
+  inline void get_task_and_core_from_vertex(unsigned int vertex_id, unsigned int & task, unsigned int & core) {
+    task = vertex_id % task_size_;
+    core = vertex_id / task_size_;
+  }
   
   void set_ant_colony(AntColony<Ant>* colony);
   
@@ -159,6 +161,7 @@ public:
   const char *what() const throw();
 };
 
+// TODO move this into dove framework
 namespace Parser {
   // Assumptions: There should be one start node, which has a path to all other 'nodes'. This avoids
   // situations with independent chains of priority e.g. 1-->2-->3<--2<--1 (a 2 is valid to run after a 1 completes,
