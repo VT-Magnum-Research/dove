@@ -133,18 +133,22 @@ namespace dove {
   class deployment {
     private: 
       // First is task ID, second is hardware logical ID
+      // TODO why did I make this a vector and not just a map? 
       std::vector<std::pair<int, int> > plan;
-      std::vector<std::pair<std::string, std::string> > metrics;
-      rapidxml::xml_document<char>* doc;
+      std::map<std::string, std::string> metrics;
+      rapidxml::xml_document<char>* system_;
+      rapidxml::xml_document<char>* deployments_;
       hwprofile* profile;
       
       // Builds a 'safe' string for rapidxml
       char* s(const char* unsafe);
       char* s(int unsafe);
+      char* s(std::string unsafe);
 
     public:
       deployment(hwprofile* prof, 
-          rapidxml::xml_document<char>* system);
+          rapidxml::xml_document<char>* system,
+          rapidxml::xml_document<char>* deployment);
       
       // Builds the xml to represent this deployment
       node* get_xml();
@@ -165,6 +169,10 @@ namespace dove {
       // iterations tend to yield a benefit that is below some 
       // threshold
       void add_metric(std::string name, std::string value);
+      void add_metric(const char* name, std::string value);
+      void add_metric(const char* name, const char* value);
+      void add_metric(const char* name, int value);
+
       // TODO override add_metric to support other types of 
       // values
   };
@@ -186,10 +194,14 @@ namespace dove {
     private:
       hwprofile* profile;
       int task_count;
-      const char* output_filename;
-      rapidxml::xml_document<char>* doc;
-      // Must keep source text around
+      rapidxml::xml_document<char>* system_;
+      // Must keep source text around for rapidxml
       rapidxml::file<char>* xmldata;
+      // Build the deployments.xml into this 
+      rapidxml::xml_document<char>* deployment_;
+      // So that it can eventually be printed into this
+      std::string deployment_filename;
+      
       // Builds a 'safe' string for rapidxml
       char* s(const char* unsafe);
 

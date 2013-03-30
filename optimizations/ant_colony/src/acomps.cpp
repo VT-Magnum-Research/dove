@@ -178,7 +178,7 @@ static void parse_options(int argc, char *argv[]) {
   }
 
   tasks = Parser::parse_stg(stg_filepath.c_str(), task_precedence);
-  
+
   validation = new dove::validator(tasks->size(), 
     cores_used,
     dove::CORE, 
@@ -333,7 +333,7 @@ void run_entire_aco(DirectedAcyclicGraph* task_precedence,
     double score = colony->get_best_tour_length();
     std::stringstream strs;
     strs << score;
-    deployment.add_metric("makespan", strs.str());
+    deployment.add_metric("makespan", strs.str().c_str());
     validation->add_deployment(deployment);
 
     *info << (i+1) << "\t";

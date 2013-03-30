@@ -349,9 +349,13 @@ long dove::hwprofile::get_routing_delay(int from, int to) {
 }
       
 char* dove::deployment::s(const char* unsafe) {
-  return doc->allocate_string(unsafe);
+  return system_->allocate_string(unsafe);
 }
-     
+
+char* dove::deployment::s(std::string unsafe) {
+  return system_->allocate_string(unsafe.c_str());
+}
+
 char* dove::deployment::s(int unsafe) {
   std::stringstream st;
   st << unsafe;
@@ -359,30 +363,47 @@ char* dove::deployment::s(int unsafe) {
 } 
 
 dove::deployment::deployment(hwprofile* prof, 
-    rapidxml::xml_document<char>* system) {
+    rapidxml::xml_document<char>* system,
+    rapidxml::xml_document<char>* deployment) {
   debug("Creating new deployment");
   profile = prof;
-  doc = system;
+  system_ = system;
+  deployments_ = deployment;
 }
 
 // TODO add metrics to the XML :-)
 node* dove::deployment::get_xml() {
   debug("Getting XML for deployment");
-  node* deployment_xml = doc->allocate_node(rapidxml::node_element, s("deployment"));
+  node* deployment_xml = system_->allocate_node(rapidxml::node_element,
+      s("deployment"));
   
   std::vector<std::pair<int, int> >::iterator it;
   for (it = plan.begin();
       it != plan.end();
       it++) {
-    node* deploy = doc->allocate_node(rapidxml::node_element, s("deploy"));
-    attr* task = doc->allocate_attribute(s("t"), s((*it).first));
-    attr* unit = doc->allocate_attribute(s("u"), s((*it).second));
-      deploy->append_attribute(task);
-      deploy->append_attribute(unit);
-      deployment_xml->append_node(deploy);
-    }
+    node* deploy = deployments_->allocate_node(rapidxml::node_element, 
+        s("deploy"));
+    attr* task = deployments_->allocate_attribute(s("t"), s((*it).first));
+    attr* unit = deployments_->allocate_attribute(s("u"), s((*it).second));
+    deploy->append_attribute(task);
+    deploy->append_attribute(unit);
+    deployment_xml->append_node(deploy);
+  }
 
-    return deployment_xml;
+  std::map<std::string, std::string>::iterator it2;
+  for (it2 = metrics.begin();
+      it2 != metrics.end();
+      it2++) {
+    node* metric = deployments_->allocate_node(rapidxml::node_element, 
+        s("metric"));
+    attr* name = deployments_->allocate_attribute(s("name"), s(it2->first));
+    attr* value = deployments_->allocate_attribute(s("value"), s(it2->second));
+    metric->append_attribute(name);
+    metric->append_attribute(value);
+    deployment_xml->append_node(metric);
+  }
+
+  return deployment_xml;
 }
 
 void dove::deployment::add_task_deployment(int task, int hardware) { 
@@ -393,41 +414,62 @@ void dove::deployment::add_task_deployment(int task, int hardware) {
 }
 
 void dove::deployment::add_metric(std::string name, std::string value) {
-  metrics.push_back(std::make_pair(name, value));
+  metrics[name] = value;
 }
 
+void dove::deployment::add_metric(const char* name, const char* value) {
+  std::string n(name);
+  std::string v(value);
+  add_metric(n, v);
+}
+
+void dove::deployment::add_metric(const char* name, std::string value) {
+  std::string n(name);
+  add_metric(n, value);
+}
+void dove::deployment::add_metric(const char* name, int value) {
+  std::string n(name);
+  std::ostringstream val;
+  val << value;
+  add_metric(n, val.str());
+}
+
+
 char* dove::validator::s(const char* unsafe) {
-  return doc->allocate_string(unsafe);
+  return system_->allocate_string(unsafe);
 }
 
 dove::validator::validator(int tasks, 
         int compute_units,
         hwcom_type compute_type,
-        const char* output_filename,
+        const char* deployment_output_filename,
         const char* algorithm_name,
         const char* system_xml_path,
         const char* algorithm_desc) {
   debug("Creating new deployment_optimization 1");
 
-  this->output_filename = output_filename;
+  // TODO I need to copy all of the char* i receive into my own memory, as 
+  // simply copying the pointer to that memory likely means that it will 
+  // go away soo
+  this->deployment_filename.assign(deployment_output_filename);
   task_count = tasks;
-  
   // TODO I am 100% leaking all the new memory 
   info("Testing if system xml can be parsed");
   xmldata = new rapidxml::file<char>(system_xml_path);
-  doc = new rapidxml::xml_document<char>();
-  doc->parse<0>(xmldata->data());
-  info("Storing system.xml into doc");
-  profile = new hwprofile(compute_type, compute_units, doc);
+  system_ = new rapidxml::xml_document<char>();
+  system_->parse<0>(xmldata->data());
+  info("Storing system.xml into system_");
+  profile = new hwprofile(compute_type, compute_units, system_);
   
-  info("Updating system.xml to include deployments");
-  node *root = doc->allocate_node(rapidxml::node_element, s("optimization"));
-  doc->append_node(root);
-  attr *name = doc->allocate_attribute(s("name"), s(algorithm_name));
+  info("Creating header for deployments");
+  deployment_ = new rapidxml::xml_document<char>();
+  node *root = deployment_->allocate_node(rapidxml::node_element, s("optimization"));
+  deployment_->append_node(root);
+  attr *name = deployment_->allocate_attribute(s("name"), s(algorithm_name));
   root->append_attribute(name);
-  attr *desc = doc->allocate_attribute(s("desc"), s(algorithm_desc));
+  attr *desc = deployment_->allocate_attribute(s("desc"), s(algorithm_desc));
   root->append_attribute(desc);
-  node *deployments = doc->allocate_node(rapidxml::node_element, s("deployments"));
+  node *deployments = deployment_->allocate_node(rapidxml::node_element, s("deployments"));
   root->append_node(deployments);
 
   debug("Done creating deployment_optimization");
@@ -438,21 +480,39 @@ long dove::validator::get_routing_delay(int from, int to) {
 }
 
 dove::deployment dove::validator::get_empty_deployment() {
-  return deployment(profile, doc);
+  return deployment(profile, system_, deployment_);
 }
 
 void dove::validator::add_deployment(deployment d) {
-  node* deps = doc->first_node("system")->first_node("deployments");
+  node* deps = deployment_->first_node("optimization")->
+    first_node("deployments");
   deps->append_node(d.get_xml());
 }
 
 void dove::validator::complete() {
   debug("Complete was called on deployment_optimization");
-  std::ofstream output;
-  output.open (output_filename, std::ios::out | std::ios::trunc);
-  std::cout << "About to print all this" << std::endl;
-  std::cout << *doc << std::endl;
-  output << *doc;
-  output.close();
+  std::ofstream output(deployment_filename.c_str(), 
+      std::ios::out | std::ios::trunc);
+  if (output.is_open())
+  {
+    info("About to write to file...");
+    info(deployment_filename.c_str());
+    output << *deployment_;
+    output.close();
+    info("File written");
+  } else {
+    error("Unable to save file to following location: ");
+    error(deployment_filename.c_str());
+    // TODO complete this by 
+    // 1) stripping any directory component, 
+    // 2) creating deployments.XXXXXX
+    // 3) using mkstemp to make that a unique path
+    // 4) Trying to write to that path...
+    //fd = mkstemp(sfn); 
+    //mkstemp(tmpname);
+    //ofstream f(tmpname);
+    //char tmpname[] = "tmp.XXXXXX";
+    //FILE *fpt = fdopen(mkstemp(tmpname), "w");
+  }
 }
 
