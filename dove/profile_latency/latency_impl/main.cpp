@@ -14,7 +14,10 @@
 #include <stdlib.h>
 #include <sys/time.h>
 #include <time.h>
-#define	NUMBER_REPS	1000
+// On Node b4 and b5, 1000 reps takes about 6 minutes to complete
+// By rough extrapolation, 1000*10 will take 6*10 minutes
+// and 1000*10*10 will take 6*10*10 minutes = 10 hours
+#define	NUMBER_REPS	100000
 
 #ifdef DEBUG_LATENCY
  #define debug true
@@ -22,6 +25,12 @@
  #define debug false
 #endif
 
+// TODO I'm not sure if there is such a thing as warming up the 
+// network when doing core-core routing, but if there is then we
+// are finding the average of 1000s of iterations, which effectively
+// removes any warmup effects. When doing an actual system, the
+// routing delay that's important is not the average delay, but the 
+// delay when routes are random 
 int main (int argc, char *argv[])
 {
 int reps,                   /* number of samples per test */
@@ -83,9 +92,14 @@ if (rank == 0) {
 
       /* calculate round trip time and print */
       deltaT = T2 - T1;
-      if (debug) printf("%4d  %8.8f  %8.8f  %2.8f\n", n, T1, T2, deltaT);
-         sumT += deltaT;
+      if (debug) 
+        printf("%4d  %8.8f  %8.8f  %2.8f\n", n, T1, T2, deltaT);
+      
+      sumT += deltaT;
       }
+   // TODO while all T's used are in seconds, it's unclear the resolution of MPI_Wtime
+   // and therefore we should be using MPI_wTick as well to determine how many 
+   // iterations should be run
    avgT = (sumT*1000000)/reps;
    if (debug) printf("***************************************************\n");
    if (debug) printf("\n*** Avg round trip time = %d microseconds\n", avgT);
