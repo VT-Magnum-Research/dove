@@ -129,20 +129,6 @@ int main(int argc, char* argv[])
     system(make.c_str());
   }
 
-  // Copy over the input files so the output dir is the sum of all 
-  // project files
-  std::ifstream  src(deployment_xml_path.c_str());
-  dest = outdir;
-  dest.append("deployments.xml");
-  std::ofstream  ddst(dest.c_str());
-  ddst << src.rdbuf();
-
-  std::ifstream  ssrc(system_xml_path.c_str());
-  dest = outdir;
-  dest.append("system.xml");
-  std::ofstream  sdst(dest.c_str());
-  sdst << ssrc.rdbuf();
-
   return 0;
 }
 
@@ -198,10 +184,21 @@ void parse_ids_from_system_xml(std::string logical_id,
         int &hwth_pid, 
         std::string &hostname, 
         std::string &ip) {
+  
+  // Using this over rapidxml::file because that approach destroys
+  // the original file for some reason. This is known to be a slow
+  // way to read in a file, so in the future it should be updated
+  /*std::ifstream t(system_xml_path.c_str());
+  std::stringstream buffer;
+  buffer << t.rdbuf();
+  t.close();
+  char *cstr = new char[buffer.str().length() + 1];
+  strcpy(cstr, buffer.str().c_str());
+  */
 
-  rapidxml::file<> xml_system(system_xml_path.c_str());
+  rapidxml::file<> sys_xml(system_xml_path.c_str());
   rapidxml::xml_document<> sys_doc;
-  sys_doc.parse<0>(xml_system.data());
+  sys_doc.parse<0>(sys_xml.data());
   
   rapidxml::xml_node<>* nodes = sys_doc.first_node("system")->
   first_node("nodes");
@@ -227,6 +224,8 @@ void parse_ids_from_system_xml(std::string logical_id,
     
     node = node->parent();
   }   
+
+ // delete [] cstr;
 }
 
 void write_rank_core(std::ofstream& out, int rank, std::string host, int procpid, int corepid) {
@@ -245,13 +244,14 @@ void build_rankfiles_from_deployment() {
   
   // Pull out the mapping we are using and translate
   // that into a proper rankfile format
-  std::string mapping = dep_doc.first_node("optimization")->
-  first_node("mapping")->first_attribute("to")->value();
+  //std::string mapping = dep_doc.first_node("optimization")->
+  //first_node("mapping")->first_attribute("to")->value();
   void (*write_rank_line) (std::ofstream&, int, std::string, int, int);
 
-  if (mapping.compare("cores") == 0) 
+  // TODO support other mappings
+  //if (mapping.compare("cores") == 0) 
     write_rank_line = &write_rank_core;
-  else if (mapping.compare("nodes") == 0){
+  /*else if (mapping.compare("nodes") == 0){
     throw "only cores supported now";
   } else if (mapping.compare("hw-threads") == 0) {
     throw "only cores supported now";
@@ -259,20 +259,33 @@ void build_rankfiles_from_deployment() {
     throw "only cores supported now";
   } else
     throw "The provided mapping was not recognized. Use one of cores,nodes,processors,hw-threads";
-  
+  */
+
   // Locate all deployments
   rapidxml::xml_node<>* deps = dep_doc.first_node("optimization")->
   first_node("deployments");
+  int deployment_id = 0;
   for (rapidxml::xml_node<>* deployment = deps->first_node();
        deployment;
        deployment = deployment->next_sibling()) {
     
     // Start writing the rankfile
-    std::string id = deployment->first_attribute("id")->value();
+    // TODO update the dove static library to spit out the ordering 
+    // that deployments were added. There should be documentation that
+    // the deployments are expected to come in an ordered fashion or 
+    // other parts of dove's output will be misunderstood
+    //std::string id = deployment->first_attribute("id")->value();
+    std::string id;
+    std::ostringstream convert;
+    convert << deployment_id; 
+    id = convert.str();
+    
     std::string rankfile = outdir;
-    rankfile.append("rankfile.").append(id);
+    rankfile.append("rankfile.").append(id.c_str());
     std::ofstream rf;
     rf.open(rankfile.c_str());
+
+    deployment_id++;
     
     // Iterate over every mapping in deployment
     for (rapidxml::xml_node<>* mapping = deployment->first_node();
@@ -292,9 +305,13 @@ void build_rankfiles_from_deployment() {
       int proc_pid;
       int core_pid;
       int hwth_pid;
-      // TODO Call helper function here to fill in the values above
-      // This function fills in all other data given the physical ID
-      parse_ids_from_system_xml(logical_id, node_pid, proc_pid, core_pid, hwth_pid, hostname, ip);
+      parse_ids_from_system_xml(logical_id, 
+          node_pid, 
+          proc_pid, 
+          core_pid, 
+          hwth_pid, 
+          hostname, 
+          ip);
       
       // Then write them to the file
       write_rank_line(rf, rank, hostname, proc_pid, core_pid);

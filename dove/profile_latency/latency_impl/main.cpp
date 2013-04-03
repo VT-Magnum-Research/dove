@@ -14,10 +14,11 @@
 #include <stdlib.h>
 #include <sys/time.h>
 #include <time.h>
-// On Node b4 and b5, 1000 reps takes about 6 minutes to complete
-// By rough extrapolation, 1000*10 will take 6*10 minutes
-// and 1000*10*10 will take 6*10*10 minutes = 10 hours
-#define	NUMBER_REPS	100000
+// On Node b4 and b5, some experiments: 
+// 1000              600 seconds to complete
+// 1000*10*10        750 seconds
+// 1000*100*100
+#define	NUMBER_REPS	10000000
 
 #ifdef DEBUG_LATENCY
  #define debug true

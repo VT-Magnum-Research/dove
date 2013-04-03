@@ -299,17 +299,15 @@ int dove::hwprofile::get_logical_id(int id) {
 }
 
 long dove::hwprofile::get_routing_delay(int from, int to) {
-  info("Getting routing delay");
   int lfrom = get_logical_id(from);
   int lto = get_logical_id(to);
   if (lfrom == lto)
     return 0;
-  info("Getting system");
   rapidxml::xml_node<>* system = system_->first_node("system");
-  if (system != 0)
-    info("Got system");
-  else
-    info("Tried to fetch system, but it was not returned");
+  //if (system != 0)
+  //  info("Got system");
+  //else
+  //  info("Tried to fetch system, but it was not returned");
   rapidxml::xml_node<>* delays = system->last_node("routing_delays");
   if (delays == 0)
     info("Delays does not exist, expect segfaults next!");
@@ -319,23 +317,16 @@ long dove::hwprofile::get_routing_delay(int from, int to) {
         delay; 
         delay = delay->next_sibling()) {
     char* sfrom = delay->first_attribute("f")->value();
-    info("I see ...");
-    info(sfrom);
     std::istringstream ssfrom(sfrom);
     int from;
     ssfrom >> from;
-    std::cout << "From is " << from << std::endl;
-    if (from != lfrom) {
-      std::cout<< "Lfrom is " << lfrom << " and there is no match" << std::endl;
+    if (from != lfrom) 
       continue;
-    }
-    info("Found a matching from value");
     char* sto = delay->first_attribute("t")->value();
     std::istringstream ssto(sto);
     int to;
     ssto >> to;
     if (to == lto) {
-      info("Found a matching to value");
       char* sval = delay->first_attribute("v")->value();
       std::istringstream ssval(sval);
       int val;
