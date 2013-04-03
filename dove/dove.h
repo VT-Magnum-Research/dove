@@ -177,7 +177,7 @@ namespace dove {
       // values
   };
 
-  void log(const char* msg, int level); 
+  void xlog(const char* msg, int level); 
   void xdebug(const char* msg);
   void info(const char* msg); 
   void error(const char* msg);

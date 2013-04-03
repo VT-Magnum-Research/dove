@@ -60,14 +60,14 @@ namespace rapidxml
 #define LOG_DEBUG  30
 #define LOG_INFO  100
 
-void dove::log(const char* msg, int level) {
+void dove::xlog(const char* msg, int level) {
   if (level <= LOG_LEVEL)
     std::cout << "dove: " << msg << std::endl;
 }
 
-void dove::info(const char* msg) { log(msg, LOG_INFO); }
-void dove::error(const char* msg) { log(msg, LOG_ERROR); }
-void dove::xdebug(const char* msg) { log(msg, LOG_DEBUG); }
+void dove::info(const char* msg) { xlog(msg, LOG_INFO); }
+void dove::error(const char* msg) { xlog(msg, LOG_ERROR); }
+void dove::xdebug(const char* msg) { xlog(msg, LOG_DEBUG); }
 
 // TODO make this set type on hardware component
 void dove::parse_pids(rapidxml::xml_document<char> &system, 
