@@ -20,22 +20,6 @@
 #include "rapidxml_print.hpp"
 #include "rapidxml_utils.hpp"
 
-// Set log_level as high as you want to enable that logging level
-// and all below it. 999 will be very verbose
-#define LOG_LEVEL 999
-#define LOG_ERROR  10
-#define LOG_DEBUG  30
-#define LOG_INFO  100
-
-void log(const char* msg, int level) {
-  if (level <= LOG_LEVEL)
-    std::cout << "dove: " << msg << std::endl;
-}
-
-void info(const char* msg) { log(msg, LOG_INFO); }
-void error(const char* msg) { log(msg, LOG_ERROR); }
-void debug(const char* msg) { log(msg, LOG_DEBUG); }
-
 
 // We extend rapidxml with some high-level functions
 namespace rapidxml
@@ -69,6 +53,21 @@ namespace rapidxml
   }
 }
 
+// Set log_level as high as you want to enable that logging level
+// and all below it. 999 will be very verbose
+#define LOG_LEVEL 999
+#define LOG_ERROR  10
+#define LOG_DEBUG  30
+#define LOG_INFO  100
+
+void dove::log(const char* msg, int level) {
+  if (level <= LOG_LEVEL)
+    std::cout << "dove: " << msg << std::endl;
+}
+
+void dove::info(const char* msg) { log(msg, LOG_INFO); }
+void dove::error(const char* msg) { log(msg, LOG_ERROR); }
+void dove::xdebug(const char* msg) { log(msg, LOG_DEBUG); }
 
 // TODO make this set type on hardware component
 void dove::parse_pids(rapidxml::xml_document<char> &system, 
@@ -139,7 +138,7 @@ std::string dove::build_rankline_core(int task, dove::hwcom com) {
 std::string dove::build_rankline(rapidxml::xml_document<char> &system,
     int taskid, 
     std::string id) {
-  debug("Building rankline");
+  xdebug("Building rankline");
   dove::hwcom com = parse_pids(system, id);
 
   int type = com.type;
@@ -170,7 +169,7 @@ std::string dove::build_rankline(rapidxml::xml_document<char> &system,
 // helper functions into that namespace to keep it clean
 std::vector<rapidxml::xml_node<char>*> dove::get_all_hosts(
     rapidxml::xml_document<char> &system) {
-  debug("Getting all hosts from system.xml");
+  xdebug("Getting all hosts from system.xml");
   rapidxml::xml_node<>* nodes = system.first_node("system")->
     first_node("nodes");
   
@@ -187,7 +186,7 @@ std::vector<rapidxml::xml_node<char>*> dove::get_all_hosts(
 
 std::vector<rapidxml::xml_node<char>*> dove::get_all_processors(
     rapidxml::xml_document<char> &system) {
-  debug("Getting all processors from system.xml");
+  xdebug("Getting all processors from system.xml");
   std::vector<rapidxml::xml_node<char>*> result;
   std::vector<rapidxml::xml_node<char>*> hosts = 
     get_all_hosts(system);
@@ -209,7 +208,7 @@ std::vector<rapidxml::xml_node<char>*> dove::get_all_processors(
 
 std::vector<rapidxml::xml_node<char>*> dove::get_all_cores(
     rapidxml::xml_document<char> &system) {
-  debug("Getting all cores from system.xml");
+  xdebug("Getting all cores from system.xml");
   xml_node_vector result;
   xml_node_vector procs = get_all_processors(system);
   xml_node_vector::iterator it;
@@ -230,7 +229,7 @@ std::vector<rapidxml::xml_node<char>*> dove::get_all_cores(
 
 std::vector<rapidxml::xml_node<char>*> dove::get_all_threads(
     rapidxml::xml_document<char> &system) {
-  debug("Getting all threads from system.xml");
+  xdebug("Getting all threads from system.xml");
   xml_node_vector result;
   xml_node_vector cores = get_all_cores(system);
   xml_node_vector::iterator it;
@@ -253,7 +252,7 @@ std::vector<rapidxml::xml_node<char>*> dove::get_all_threads(
 // components e.g. ones on the same machine, etc
 dove::hwprofile::hwprofile(hwcom_type type, int compute_units, 
     rapidxml::xml_document<char>* system) {
-  debug("Creating new hardware profile");
+  xdebug("Creating new hardware profile");
  
   system_ = system;
   type_ = type;
@@ -365,7 +364,7 @@ char* dove::deployment::s(int unsafe) {
 dove::deployment::deployment(hwprofile* prof, 
     rapidxml::xml_document<char>* system,
     rapidxml::xml_document<char>* deployment) {
-  debug("Creating new deployment");
+  xdebug("Creating new deployment");
   profile = prof;
   system_ = system;
   deployments_ = deployment;
@@ -373,7 +372,7 @@ dove::deployment::deployment(hwprofile* prof,
 
 // TODO add metrics to the XML :-)
 node* dove::deployment::get_xml() {
-  debug("Getting XML for deployment");
+  xdebug("Getting XML for deployment");
   node* deployment_xml = system_->allocate_node(rapidxml::node_element,
       s("deployment"));
   
@@ -446,7 +445,7 @@ dove::validator::validator(int tasks,
         const char* algorithm_name,
         const char* system_xml_path,
         const char* algorithm_desc) {
-  debug("Creating new deployment_optimization 1");
+  xdebug("Creating new deployment_optimization 1");
 
   // TODO I need to copy all of the char* i receive into my own memory, as 
   // simply copying the pointer to that memory likely means that it will 
@@ -472,7 +471,7 @@ dove::validator::validator(int tasks,
   node *deployments = deployment_->allocate_node(rapidxml::node_element, s("deployments"));
   root->append_node(deployments);
 
-  debug("Done creating deployment_optimization");
+  xdebug("Done creating deployment_optimization");
 }
 
 long dove::validator::get_routing_delay(int from, int to) {
@@ -490,7 +489,7 @@ void dove::validator::add_deployment(deployment d) {
 }
 
 void dove::validator::complete() {
-  debug("Complete was called on deployment_optimization");
+  xdebug("Complete was called on deployment_optimization");
   std::ofstream output(deployment_filename.c_str(), 
       std::ios::out | std::ios::trunc);
   if (output.is_open())

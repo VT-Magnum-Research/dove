@@ -177,6 +177,11 @@ namespace dove {
       // values
   };
 
+  void log(const char* msg, int level); 
+  void xdebug(const char* msg);
+  void info(const char* msg); 
+  void error(const char* msg);
+
   // Interfaces the DOVE validation suite with an optimization 
   // algorithm. An algorithm creates a deployment_optimization
   // object, requesting a number of compute units (e.g. 4 cores). 
@@ -243,6 +248,7 @@ namespace dove {
       // data should be written to file
       void complete();
   };
+
 
 } // End dove namespace
 
