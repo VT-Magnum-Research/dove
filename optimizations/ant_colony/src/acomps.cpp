@@ -41,10 +41,10 @@ static double acs_xi = 0.1;
 // Arguments for deployment optimization
 static std::string stg_filepath;
 static unsigned int cores_used = 2;
-static unsigned int processor_heterogenity = 1;
-static unsigned int routing_heterogenity = 1;
-static unsigned int routing_default=0;
-static unsigned int task_heterogenity = 1;
+//static unsigned int processor_heterogenity = 1;
+//static unsigned int routing_heterogenity = 1;
+//static unsigned int routing_default=0;
+//static unsigned int task_heterogenity = 1;
 
 // Data structures for optimization
 std::vector<Task>* tasks = NULL;
@@ -83,11 +83,11 @@ static void parse_options(int argc, char *argv[]) {
   stg_variants.push_back(&filepath_arg);
   cmd.xorAdd(stg_variants);
   TCLAP::ValueArg<unsigned int> cores_used_arg("c", "cores", "number of homogeneous processing cores. Defaults to 2", false, 2, "positive integer", cmd);
-  TCLAP::ValueArg<unsigned int> processor_h_arg("","core_heter", "Processor heterogeneity. 1 specifies homogeneous processors, <int> specifies a limit on processor upper bound that is randomly queried to build a set of heterogeneous processors. Default is 1", false, 1, "positive integer", cmd);
+//  TCLAP::ValueArg<unsigned int> processor_h_arg("","core_heter", "Processor heterogeneity. 1 specifies homogeneous processors, <int> specifies a limit on processor upper bound that is randomly queried to build a set of heterogeneous processors. Default is 1", false, 1, "positive integer", cmd);
   TCLAP::SwitchArg              print_tour_arg("o", "printord", "print best elimination ordering in iteration");
-  TCLAP::ValueArg<unsigned int> task_harg("", "task_heter", "task heterogeneity. 1 specifies to leave task homogenity alone, <int> specifies a limit on the upper bound a task completion time can be multiplied by. Default is 1", false, 1, "positive integer");
-  TCLAP::ValueArg<unsigned int> routing_h_arg("","routing_heter", "routing heterogeneity. 1 specifies homogeneous routing delay, <int> specifies a limit on routing delay upper bounds that is randomly queried to build a set of routing delays between the processors. Default is 1", false, 1, "positive integer");
-  TCLAP::ValueArg<unsigned int> routing_def_arg("","route_default", "base routing cost between cores. Default is 0", false, 0, "positive integer");
+//  TCLAP::ValueArg<unsigned int> task_harg("", "task_heter", "task heterogeneity. 1 specifies to leave task homogenity alone, <int> specifies a limit on the upper bound a task completion time can be multiplied by. Default is 1", false, 1, "positive integer");
+//  TCLAP::ValueArg<unsigned int> routing_h_arg("","routing_heter", "routing heterogeneity. 1 specifies homogeneous routing delay, <int> specifies a limit on routing delay upper bounds that is randomly queried to build a set of routing delays between the processors. Default is 1", false, 1, "positive integer");
+//  TCLAP::ValueArg<unsigned int> routing_def_arg("","route_default", "base routing cost between cores. Default is 0", false, 0, "positive integer");
   TCLAP::SwitchArg              stag_variance_arg("", "stag_variance", "compute and print variation coefficient stagnation");
   TCLAP::SwitchArg              stag_lambda_arg("", "stag_lambda", "compute and print lambda branching factor stagnation");
   TCLAP::ValueArg<double>       time_limit_arg("t", "time", "terminate after n seconds (after last iteration is finished)", false, time_limit, "double");
@@ -121,9 +121,9 @@ static void parse_options(int argc, char *argv[]) {
   cmd.add(acs_q0_arg);
   cmd.add(acs_xi_arg);
   cmd.xorAdd(as_variants);
-  cmd.add(routing_h_arg);
-  cmd.add(routing_def_arg);
-  cmd.add(task_harg);
+  //cmd.add(routing_h_arg);
+  //cmd.add(routing_def_arg);
+  //cmd.add(task_harg);
 
   cmd.parse(argc, argv);
   
@@ -149,10 +149,10 @@ static void parse_options(int argc, char *argv[]) {
   acs_q0 = acs_q0_arg.getValue();
   acs_xi = acs_xi_arg.getValue();
   cores_used = cores_used_arg.getValue();
-  processor_heterogenity=processor_h_arg.getValue();
-  routing_heterogenity=routing_h_arg.getValue();
-  routing_default=routing_def_arg.getValue();
-  task_heterogenity = task_harg.getValue();
+  //processor_heterogenity=processor_h_arg.getValue();
+  //routing_heterogenity=routing_h_arg.getValue();
+  //routing_default=routing_def_arg.getValue();
+  //task_heterogenity = task_harg.getValue();
 
   // If DOVE is requested, set it up
   std::string dove = dove_arg.getValue();
@@ -424,7 +424,7 @@ int main(int argc, char *argv[]) {
   std::sort(tasks->begin(), tasks->end(), identifier_sort);
   
   SymmetricMatrix<unsigned int>* routing_costs = 
-    new SymmetricMatrix<unsigned int>(cores_used, routing_default);
+    new SymmetricMatrix<unsigned int>(cores_used, 0); //routing_default);
   for (int i =0; i < cores_used; i++)
       for (int j =0; j < cores_used; j++) {
         (*routing_costs)[i][j] = validation->get_routing_delay(i, j);
