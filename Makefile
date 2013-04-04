@@ -24,10 +24,26 @@ export LIBDOVE      := $(DOVE_ROOT)/libdove.a
 export CFLAGS=-std=c++0x
 
 custom: cust_clean libdove.a aco
+	# Create working directory for dove
+	mkdir -p ~/dove2
+	# Skip profiling by using a saved profile
+	cp ~/cores/ataack.xml.complete ~/dove2/system.xml
+	# Choose a software model
+	cp stg-samples/diamond.stg ~/dove2/software.stg
+	# Run the optimization
+	cd optimizations/ant_colony && ./bin/AntHybrid -d ~/dove2/ --simple -c 2
+	# Run the generator on newly-created deployments.xml
+	cd dove/generate_mpi && ./bin/generator --genhosts -r -o ~/dove2/ -y ~/dove2/system.xml -d ~/dove2/deployments.xml -s ~/dove2/software.stg
+	# Build the executable from the generator code
+	cd ~/dove2 && $(MAKE)
+	# Run the (sample) runner on the newly-created rankfiles
+	cd ~/dove2 && sh runmpi.sh
+	# runner --rmrankfiles -l -d ~/dove2/
 
 cust_clean:
 	cd $(DOVE_ROOT) && $(MAKE) clean
 	cd optimizations/ant_colony && $(MAKE) clean
+	rm -f ~/dove2/*
 
 all: generator latency libdove.a
 
