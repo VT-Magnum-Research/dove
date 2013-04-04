@@ -200,6 +200,11 @@ namespace dove {
       hwprofile* profile;
       int task_count;
       rapidxml::xml_document<char>* system_;
+
+      // Keeps track of the number of times add_deployment has
+      // been called, so that we can append an ID to each deployment
+      int number_deployments_;
+
       // Must keep source text around for rapidxml
       rapidxml::file<char>* xmldata;
       // Build the deployments.xml into this 
@@ -224,6 +229,16 @@ namespace dove {
       // and plans to output deployments.xml. Should read in the
       // STG to automatically figure out how many tasks
 
+      // TODO make the above constructor also automatically 
+      // "own" the XML files in the associated directories, and 
+      // associated modifications to the dove data structures 
+      // will be reflected in the XML files. E.g. make all the 
+      // different little modules (generator, runner, etc) call
+      // through dove instead of having to manage rapidxml code
+      // on their own. Dove destructor can handle removing the 
+      // memory for the files. We will need a finish call to 
+      // write all modifications to disk
+
       // TODO create debug arguments for DOVE. Perhaps use an int
       // called DEBUG_LEVEL and write functions for log/debug/verbose
       // that automatically set DEBUG_LEVEL properly and then internally
@@ -241,7 +256,15 @@ namespace dove {
       deployment get_empty_deployment();
 
       // An algorithm must inform dove of each deployment. This
-      // adds a single deployment plan to this optimization
+      // adds a single deployment plan to this optimization. 
+      // 
+      // Note: There is an inherent assumption that most algorithms 
+      // using dove are iterative, and this function is first called
+      // with the initial deployment and then itertively called with
+      // all others. It assigns an increasing id number to each 
+      // passed deployment, which is later used to automatically 
+      // determine how many iterations should be run before the 
+      // deployment will terminate
       void add_deployment(deployment d);
 
       // Informs dove that the algorithm has completed and all 

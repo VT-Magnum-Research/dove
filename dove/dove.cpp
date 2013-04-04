@@ -355,15 +355,14 @@ char* dove::deployment::s(int unsafe) {
 dove::deployment::deployment(hwprofile* prof, 
     rapidxml::xml_document<char>* system,
     rapidxml::xml_document<char>* deployment) {
-  xdebug("Creating new deployment");
+  //xdebug("Creating new deployment");
   profile = prof;
   system_ = system;
   deployments_ = deployment;
 }
 
-// TODO add metrics to the XML :-)
 node* dove::deployment::get_xml() {
-  xdebug("Getting XML for deployment");
+  //xdebug("Getting XML for deployment");
   node* deployment_xml = system_->allocate_node(rapidxml::node_element,
       s("deployment"));
   
@@ -438,6 +437,8 @@ dove::validator::validator(int tasks,
         const char* algorithm_desc) {
   xdebug("Creating new deployment_optimization 1");
 
+  number_deployments_ = 0;
+
   // TODO I need to copy all of the char* i receive into my own memory, as 
   // simply copying the pointer to that memory likely means that it will 
   // go away soo
@@ -476,7 +477,14 @@ dove::deployment dove::validator::get_empty_deployment() {
 void dove::validator::add_deployment(deployment d) {
   node* deps = deployment_->first_node("optimization")->
     first_node("deployments");
-  deps->append_node(d.get_xml());
+  node* deployment = d.get_xml();
+  std::stringstream idtochar;
+  idtochar << number_deployments_;
+  number_deployments_++;
+  attr* id = deployment_->allocate_attribute(s("id"), 
+      s(idtochar.str().c_str()));
+  deployment->append_attribute(id);
+  deps->append_node(deployment);
 }
 
 void dove::validator::complete() {

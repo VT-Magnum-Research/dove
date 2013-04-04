@@ -270,16 +270,7 @@ void build_rankfiles_from_deployment() {
        deployment = deployment->next_sibling()) {
     
     // Start writing the rankfile
-    // TODO update the dove static library to spit out the ordering 
-    // that deployments were added. There should be documentation that
-    // the deployments are expected to come in an ordered fashion or 
-    // other parts of dove's output will be misunderstood
-    //std::string id = deployment->first_attribute("id")->value();
-    std::string id;
-    std::ostringstream convert;
-    convert << deployment_id; 
-    id = convert.str();
-    
+    std::string id = deployment->first_attribute("id")->value();
     std::string rankfile = outdir;
     rankfile.append("rankfile.").append(id.c_str());
     std::ofstream rf;
