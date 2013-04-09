@@ -13,7 +13,6 @@
 
 // Provides regex and exec 
 #include "helper.hpp"
-#include "main_bootstrapper.hpp"
 
 // XML parsing
 #include "libs/rapidxml.hpp"
@@ -35,6 +34,8 @@ void debug(const char* msg) { log(msg, 2); }
 
 // Function declarations
 void calculate_latency(std::vector<int> ids);
+std::string get_latency(std::string to, std::string from);
+std::string make_rankfile(std::string to, std::string from);
 
 // Everything that is below this line and before main either 
 // enables command line parsing or are variables initialized 
