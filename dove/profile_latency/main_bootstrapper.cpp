@@ -9,6 +9,7 @@
 #include <stdio.h>
 #include <stdlib.h> // mkstemp
 #include <iostream>
+#include <unistd.h> // unlink, close
 
 // Provides regex and exec 
 #include "helper.hpp"
