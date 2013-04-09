@@ -1,6 +1,6 @@
 
 CFLAGS= -O3 $(shell mpicc --showme:compile)
-LD_LIBRARY_PATH=/usr/local/lib:/usr/lib64/openmpi
+LD_LIBRARY_PATH=/usr/local/lib:/usr/lib64/openmpi/lib
 
 LDFLAGS=-L/usr/local/lib $(shell mpicc --showme:link)
 LIBS = $(LDFLAGS) -lmpi_cxx
