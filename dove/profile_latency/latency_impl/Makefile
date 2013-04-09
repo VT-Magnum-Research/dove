@@ -1,9 +1,9 @@
 
-CFLAGS= -O3 -I/usr/include/openmpi-x86_64
-LD_LIBRARY_PATH=/usr/local/lib:/usr/lib64/openmpi/lib
+CFLAGS= -O3 $(shell mpicc --showme:compile)
+LD_LIBRARY_PATH=/lib:/usr/lib64/openmpi
 
-LDFLAGS=-L/usr/local/lib -L/usr/lib64/openmpi/lib
-LIBS = $(LDFLAGS) -lmpi -lmpi_cxx 
+LDFLAGS=-L/lib $(shell mpicc --showme:link)
+LIBS = $(LDFLAGS) -lmpi_cxx
 
 # --- targets
 all:
