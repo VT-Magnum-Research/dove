@@ -121,6 +121,7 @@ std::map<unsigned int,double> MpsProblem::get_feasible_neighbours(unsigned int v
 // variables only. I have avoided this problem slightly by doing nothing in
 // cleanup, and instead doing all of my cleaning when libaco first calls
 // get_feasible_start_vertices()
+// TODO returns the makespan of the problem in seconds
 double MpsProblem::eval_tour(const std::vector<unsigned int> &tour){
   debug("MpsProblem::eval_tour");
   
@@ -131,8 +132,8 @@ double MpsProblem::eval_tour(const std::vector<unsigned int> &tour){
     return tour_evaluation_cache;
   }
   
-  std::vector<unsigned int> current_core_completion_time(core_size_, 0);
-  std::vector<unsigned int> current_task_completion_time(task_size_, 0);
+  std::vector<double> current_core_completion_time(core_size_, 0);
+  std::vector<double> current_task_completion_time(task_size_, 0);
   
   // Start at one to avoid first dummy task, and end at size-1 for the end dummy
   // node
@@ -142,15 +143,17 @@ double MpsProblem::eval_tour(const std::vector<unsigned int> &tour){
     get_task_and_core_from_vertex(tour[cur], task, core);
     
     // Have any predecessors delayed me?
-    unsigned int min_start_time = current_task_completion_time[task];
+    double min_start_time = current_task_completion_time[task];
 
     // Is my core already busy?
     min_start_time = std::max(min_start_time, current_core_completion_time[core]);
     
     // What's our running time?
-    unsigned int run_time = (*running_times_)[task][core];
+    double run_time = (*running_times_)[task][core];
+    // Assume that it's microseconds (TODO update dove generator to make this a config option)
+    run_time = run_time / 1000000;
 
-    unsigned int finish_time = min_start_time + run_time;
+    double finish_time = min_start_time + run_time;
     current_core_completion_time[core] = finish_time;
   
     // Delay all of our successors, except for the final dummy node
@@ -164,8 +167,11 @@ double MpsProblem::eval_tour(const std::vector<unsigned int> &tour){
       
       // What is the time to route from my core to theirs?
       unsigned int their_core = mapping_[cur];
-      unsigned int routing_time = (*routing_costs_)[core][their_core];
-      unsigned int earliest_start_time = finish_time + routing_time;
+      double routing_time = (*routing_costs_)[core][their_core];
+      // Assume all routing times are nanoseconds 
+      // TODO update dove
+      routing_time = routing_time / 1000000000;
+      double earliest_start_time = finish_time + routing_time;
       
       current_task_completion_time[cur] = std::max(current_task_completion_time[cur],
                                                    earliest_start_time);
@@ -175,12 +181,12 @@ double MpsProblem::eval_tour(const std::vector<unsigned int> &tour){
 
   // The maximum should be identical whether you consider tasks or
   // processors, so let's use the smaller
-  unsigned int completion_time = 0;
+  double completion_time = 0;
   for (int cur = 0; cur < current_core_completion_time.size(); cur++)
     completion_time = std::max(current_core_completion_time[cur], completion_time);
   
   debug("MpsProblem::eval_tour: %u", completion_time);
-  tour_evaluation_cache = (double) completion_time;
+  tour_evaluation_cache = completion_time;
 
   return tour_evaluation_cache;
 }

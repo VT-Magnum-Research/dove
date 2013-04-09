@@ -101,10 +101,10 @@ if (rank == 0) {
    // TODO while all T's used are in seconds, it's unclear the resolution of MPI_Wtime
    // and therefore we should be using MPI_wTick as well to determine how many 
    // iterations should be run
-   avgT = (sumT*1000000)/reps;
+   avgT = (sumT*1000000000)/reps;
    if (debug) printf("***************************************************\n");
-   if (debug) printf("\n*** Avg round trip time = %d microseconds\n", avgT);
-   if (debug) printf("*** Avg one way latency = %d microseconds\n", avgT/2);
+   if (debug) printf("\n*** Avg round trip time = %d nanoseconds\n", avgT);
+   if (debug) printf("*** Avg one way latency = %d nanoseconds\n", avgT/2);
    printf("%d", avgT);
    } 
 

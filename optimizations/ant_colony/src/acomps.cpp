@@ -319,7 +319,7 @@ void run_entire_aco(DirectedAcyclicGraph* task_precedence,
   timer2();
   for(unsigned int i=0;i<iterations && timer() < time_limit;i++) {
     colony->run();
-    std::vector<unsigned int> tour = colony->get_best_tour();
+    std::vector<unsigned int> tour = colony->get_best_tour_in_iteration();
     unsigned int task;
     unsigned int core;
     std::vector<unsigned int>::iterator it;
@@ -330,9 +330,9 @@ void run_entire_aco(DirectedAcyclicGraph* task_precedence,
       problem->get_task_and_core_from_vertex(*it, task, core);
       deployment.add_task_deployment(task, core);
     }
-    double score = colony->get_best_tour_length();
+    double score = colony->get_best_tour_length_in_iteration();
     std::stringstream strs;
-    strs << score;
+    strs << std::fixed << std::setprecision(19) << (score * 1000000000.0);
     deployment.add_metric("makespan", strs.str().c_str());
     validation->add_deployment(deployment);
 

@@ -1,13 +1,15 @@
 #include <stdio.h>
-#include <papi.h>
+//#include <papi.h>
 #include <dirent.h>
 #include <string.h>
 #include <stdlib.h>
 #include <cstdio>
+#include <signal.h>
 
 #include <iostream>
 #include <fstream>
 #include <string>
+#include <time.h>
 
 // XML parsing
 #include "rapidxml.hpp"
@@ -42,8 +44,19 @@ int get_rank_count();
 int get_rankfile_count();
 void kbest(int turn,int ranks,int k,int M,double E);
 
+
+void sighandler(int sig)
+{
+  exit(EXIT_FAILURE);
+}
+
+
 main(int argc,char* argv[])
 {
+  signal(SIGABRT, &sighandler);
+  signal(SIGTERM, &sighandler);
+  signal(SIGINT, &sighandler);
+
   try 
   {
     parse_options(argc, argv);
@@ -109,7 +122,8 @@ static void parse_options(int argc, char *argv[])
   TCLAP::ValueArg<int> k_arg("k", "kvalue", "minimum number of runs",false,3,"integer: k value of k best scheme", cmd); 
   TCLAP::ValueArg<int> m_arg("m", "maximum", "maximum number of runs",false,10,"integer: M value of k best scheme"); 
   cmd.add(m_arg);
-  TCLAP::ValueArg<double> e_arg("t", "tolerance", "tolerance required to stop runs",false,0.8,"double value for tolerance"); 
+  // Tolerance is 1/2 a microsecond. Routing delays are double that
+  TCLAP::ValueArg<double> e_arg("t", "tolerance", "tolerance required to stop runs",false,0.0000005,"double value for tolerance"); 
   cmd.add(e_arg);
   cmd.parse(argc, argv);
   rank_path = inp_arg.getValue();
@@ -231,15 +245,27 @@ void add_metric_to_deployment(int deployment_id,
   dep->append_node(rmetric);
 }
 
+timespec diff(timespec start, timespec end)
+{  timespec temp;
+   if ((end.tv_nsec-start.tv_nsec)<0) {
+     temp.tv_sec = end.tv_sec-start.tv_sec-1;
+     temp.tv_nsec = 1000000000+end.tv_nsec-start.tv_nsec;
+   } else {
+     temp.tv_sec = end.tv_sec-start.tv_sec;
+     temp.tv_nsec = end.tv_nsec-start.tv_nsec;
+     }
+  return temp;
+}
+
 void kbest(int turn,int ranks,int k,int M,double E)
 {
-  int times[1000]; 
+  double times[1000]; 
   string cmd;
   string fname;
 
   //prepare the mpi command to send to system	
   stringstream s_file,s_rank;
-  cmd = "mpirun --rankfile ";
+  cmd = "mpirun --mca opal_set_max_sys_limits 1 --rankfile ";
   cmd += dove_workspace;
   cmd += "rankfile.";
   s_file << turn;
@@ -257,15 +283,19 @@ void kbest(int turn,int ranks,int k,int M,double E)
   fname = dove_workspace + "rankfile." + s_file.str() + ".log";
   //configure the PAPI counters to be monitored
   
-  int Events[NUM_EVENTS]={PAPI_TOT_CYC};
-  int EventSet=PAPI_NULL;
-  long_long values[NUM_EVENTS];
+  // BIG TODO: If we are measuring hardware-level metrics in a 
+  // distributed system, then we absolutely must measure them on 
+  // multiple machines and then filter all of the metrics down to 
+  // one machine
+  //int Events[NUM_EVENTS]={PAPI_TOT_CYC};
+  //int EventSet=PAPI_NULL;
+  //long_long values[NUM_EVENTS];
   /* Initialize the Library */
-  int retval = PAPI_library_init(PAPI_VER_CURRENT);
+  //int retval = PAPI_library_init(PAPI_VER_CURRENT);
   /* Allocate space for the new eventset and do setup */
-  retval = PAPI_create_eventset(&EventSet);
+  //retval = PAPI_create_eventset(&EventSet);
   /* Add Flops and total cycles to the eventset */
-  retval = PAPI_add_events(EventSet,Events,NUM_EVENTS);
+  //retval = PAPI_add_events(EventSet,Events,NUM_EVENTS);
 
   //prepare the file to save the monitored events
   ofstream tf;
@@ -282,10 +312,13 @@ void kbest(int turn,int ranks,int k,int M,double E)
   for(i=0;i<M;i++)   //each iteration is one monitored run
   {   
     cerr << "run:" << i+1 << endl;     
-    retval = PAPI_start(EventSet);
+    //retval = PAPI_start(EventSet);
+    timespec start, end;
+    clock_gettime(CLOCK_MONOTONIC, &start);
     system(cmd.c_str());	//code to be evaluated
-    retval = PAPI_stop(EventSet,values);
-    times[i]=values[0];
+    clock_gettime(CLOCK_MONOTONIC, &end);
+    //retval = PAPI_stop(EventSet,values);
+    times[i]= diff(start, end).tv_sec*1000000000 + diff(start, end).tv_nsec;  //values[0];
     if (store_logs) 
       tf << i << "\t" << times[i] << endl; 
     //place new run time to its location in sorted array
@@ -293,15 +326,15 @@ void kbest(int turn,int ranks,int k,int M,double E)
     for(j=i-1;j>=0;j--,ii--)
       if(times[ii]<times[j]) //swap
       {
-          int t=times[ii];
+          double t=times[ii];
           times[ii]=times[j];
           times[j]=t;
       }
      
     //now we r sure execution times array is sorted
     //we can compare the best time to the kth best time
-    double range_of_top_k_scores = ((double)(times[k-1]-times[0])/times[0]);  
-    if(range_of_top_k_scores <= E)
+    double range_of_top_k_scores = (times[k-1]-times[0]) / times[0];  
+    if(i >= k-1 && range_of_top_k_scores <= E)
     {
       if (store_logs) {
         tf << "Number of runs = " << i+1 << endl;
@@ -321,9 +354,9 @@ void kbest(int turn,int ranks,int k,int M,double E)
 
 
   std::stringstream ktime;
-  ktime << times[0];
+  ktime << std::fixed << std::setprecision(19) << times[0];
   add_metric_to_deployment(turn, 
-      "total_cpu_cycles", ktime.str().c_str());
+      "time", ktime.str().c_str());
 
   if (store_logs) 
     tf.close();

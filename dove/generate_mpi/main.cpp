@@ -330,7 +330,18 @@ void build_mpi_from_stl() {
     "#include <boost/mpi/collectives.hpp>\n"
     "#include <boost/mpi/environment.hpp>\n"
     "#include <boost/mpi/communicator.hpp>\n"
-    "namespace mpi = boost::mpi;\n\n";
+    "#include <time.h>\n"
+    "namespace mpi = boost::mpi;\n\n"
+    "timespec diff(timespec start, timespec end)\n"
+    "{  timespec temp;\n"
+    "   if ((end.tv_nsec-start.tv_nsec)<0) {\n"
+    "     temp.tv_sec = end.tv_sec-start.tv_sec-1;\n"
+    "     temp.tv_nsec = 1000000000+end.tv_nsec-start.tv_nsec;\n"
+    "   } else {\n"
+    "     temp.tv_sec = end.tv_sec-start.tv_sec;\n"
+    "     temp.tv_nsec = end.tv_nsec-start.tv_nsec;\n"
+    "     }\n"
+    "  return temp;}\n\n";
   out << header;
 
   const char * start_main =
@@ -387,18 +398,39 @@ void build_mpi_case_for_task(unsigned int tid, unsigned int exectime, std::vecto
 
   // ========= Perform Computation
   out <<
-    "      time_t start;\n"
-    "      start = time(NULL);\n";
+    "      timespec start, end;\n"
+    "      clock_gettime(CLOCK_MONOTONIC, &start);\n";
   
   if (debug_impl)
     out <<
     "      std::cout << \"" << tid << ": Started compute\" << std::endl;\n";
   out <<
-   "      while ((time(NULL)-start) < " << exectime << ");\n";
+   "      do clock_gettime(CLOCK_MONOTONIC, &end);\n"
+   "      while (diff(start, end).tv_nsec < " << (exectime*1000000) << ");\n";
   if (debug_impl)
     out <<
-    "      std::cout << \"" << tid << ": Finished compute in \" << (time(NULL)-start) << std::endl;\n";
-  
+    "      std::cout << \"" << tid << ": Finished compute in \" << diff(start, end).tv_sec << \"s,\" << \n"
+    "        diff(start, end).tv_nsec << std::endl;\n";
+  // TODO see below comment for more, but the above code is interpreting all 
+  // execution times from the STG as though they were in microseconds
+
+  // TODO dynamically choose (or be instructed) the metric prefix needed
+  // for number of seconds of computation. If routing between cores (which are 
+  // 0-2 microseconds on one of our machines) then you probably want computation
+  // to be in microseconds so that routing delay has some effect on overall 
+  // time. However, this value has to agree with whatever interpretation the 
+  // optimization algorithm is using. We cannot have the 'computation delay'
+  // here be in mircoseconds, but the optimization algorihtm is expecting that
+  // both computation and routing delays are in seconds. 
+  //
+  // TODO update the above so that instead of running in seconds it runs
+  // in microseconds
+  // clock_gettime(CLOCK_REALTIME, &ts);
+  // If time is more than one second
+  //  do clock_gettime(CLOCK_MONOTONIC, &end);
+  //    while (diff(start, end).tv_sec < 2);
+  // If time is less than one second
+  //    while (diff(start, end).tv_nsec < 500000);
   
   // ========= Send to Successors
   if (post.size() != 0) {

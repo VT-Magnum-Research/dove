@@ -1,5 +1,5 @@
 CFLAGS= -g
-LIBS = -L/usr/local/lib -lpapi 
+LIBS = -L/usr/local/lib -lpapi -lrt 
 INC= -Ilibs/rapidxml
 
 all:
