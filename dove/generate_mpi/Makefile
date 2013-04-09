@@ -1,6 +1,6 @@
 CFLAGS= -g -ggdb $(shell mpicc --showme:compile)
 LD_LIBRARY_PATH=/usr/local/lib:/usr/lib64/openmpi/lib
-LDFLAGS=-L/lib $(shell mpicc --showme:link)
+LDFLAGS=-L/usr/local/lib $(shell mpicc --showme:link)
 LIBS = $(LDFLAGS) -lmpi_cxx -lboost_serialization -lboost_mpi 
 
 # Terminology: 
