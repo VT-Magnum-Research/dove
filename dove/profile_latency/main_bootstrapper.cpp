@@ -124,8 +124,7 @@ int main(int argc, char** argv) {
   exit(EXIT_SUCCESS);
 }
 
-// TODO accept int, int
-std::string make_rankfile(std::string to, std::string from) {
+std::string make_rankfile(int to, int from) {
     char sfn[21] = ""; FILE* sfp; int fd = -1;
      
     strncpy(sfn, "/tmp/rankfile.XXXXXX", sizeof sfn);
@@ -141,8 +140,8 @@ std::string make_rankfile(std::string to, std::string from) {
 
     // TODO either use the logic in rapidxml_myutils.hpp to 
     // build ranklines, or move this logic there
-    fprintf(sfp, "rank 0=10.0.2.4 slot=p0:%s\n", to.c_str());
-    fprintf(sfp, "rank 1=10.0.2.4 slot=p0:%s\n", from.c_str());
+    fprintf(sfp, "rank 0=10.0.2.5 slot=p0:%d\n", to);
+    fprintf(sfp, "rank 1=10.0.2.5 slot=p0:%d\n", from);
 
     return std::string(sfn);
 }
@@ -152,11 +151,9 @@ char* s(const char* unsafe) {
   return xml->allocate_string(unsafe);
 }
 
-// Given the two and from, this writes them into the XML file at
+// Given the to and from, this writes them into the XML file at
 // the proper location and also returns the XML string written
-//
-// TODO accept int, int
-std::string write_latency(std::string from, std::string to) {
+std::string write_latency(int to, int from) {
     using namespace std;
 
     string mpirun_bin = "mpirun";
@@ -186,9 +183,9 @@ std::string write_latency(std::string from, std::string to) {
       rapidxml::xml_node<char>* delay = xml->
         allocate_node(rapidxml::node_element, "d");
       rapidxml::xml_attribute<> *fattr = xml->allocate_attribute("f", 
-          s(from.c_str()));
+          s(to_string((long long) from).c_str()));
       rapidxml::xml_attribute<> *tattr = xml->allocate_attribute("t", 
-          s(to.c_str()));
+          s(to_string((long long) to).c_str()));
       rapidxml::xml_attribute<> *vattr = xml->allocate_attribute("v", 
           s(result.c_str()));
       delay->append_attribute(fattr);
@@ -219,9 +216,10 @@ std::string write_latency(std::string from, std::string to) {
     }
 
     // TODO update this to return the string without a value
-    return "<d f=\"" + from +
+    return "<d f=\"from\" t=\"to\" v=\"reslt\">";
+      /* "<d f=\"" + from +
       "\"  t=\""   + to +
-      "\"  v=\""   + result + "\" />";
+      "\"  v=\""   + result + "\" />"; */
 }
 
 void calculate_latency(std::vector<int> ids) {
@@ -237,13 +235,7 @@ void calculate_latency(std::vector<int> ids) {
   for (unsigned int i = 0; i < ids.size(); i++) {
       for (unsigned int j = 0; j < ids.size(); j++) {
           if (i != j) {
-            std::stringstream si;
-            std::stringstream sj;
-            si << ids[i];
-            sj << ids[j];
-            std::string ssi(si.str());
-            std::string ssj(sj.str());
-            info(write_latency(ssi,ssj).c_str());
+            info(write_latency(ids[i], ids[j]).c_str());
             progress++;
             if (print_progress)
             {
