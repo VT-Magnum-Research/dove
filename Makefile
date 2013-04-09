@@ -106,6 +106,7 @@ aco: libdove.a
 	cd optimizations/ant_colony && $(MAKE)
 
 # --- remove binary and executable files
+.PHONY: cleanall cleancore
 cleanall: cleancore
 	cd optimizations/ant_colony && $(MAKE) clean
 	cd optimizations/saaco      && $(MAKE) clean
