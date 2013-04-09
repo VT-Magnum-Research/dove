@@ -143,7 +143,6 @@ std::string make_rankfile(std::string to, std::string from) {
     fprintf(sfp, "rank 0=10.0.2.4 slot=p0:%s\n", to.c_str());
     fprintf(sfp, "rank 1=10.0.2.4 slot=p0:%s\n", from.c_str());
 
-    // TODO: This isn't returning a value on the stack, is it?
     return std::string(sfn);
 }
 
