@@ -12,5 +12,5 @@ utils:
 	g++ -Wall -c src/utils/util.cpp -o build/util.o
 
 clean: .
-	rm build/*.o
-	rm bin/AntHybrid
+	rm -f build/*.o
+	rm -f bin/AntHybrid
