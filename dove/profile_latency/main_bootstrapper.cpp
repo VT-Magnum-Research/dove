@@ -230,7 +230,6 @@ void calculate_latency(std::vector<int> ids) {
   unsigned long progress = 0;
   time_t start = time(0);
 
-  // TODO make previous functions accept integers 
   // First step is to calculate all permutations
   for (unsigned int i = 0; i < ids.size(); i++) {
       for (unsigned int j = 0; j < ids.size(); j++) {
