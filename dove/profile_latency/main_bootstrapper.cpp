@@ -54,6 +54,10 @@ static bool dry_run = false;
 // If true, progress will be printed as latency is calculated
 static bool print_progress = false;
 
+// The path to the `latency` binary.
+// Overwritten if LATENCY_BIN is defined.
+static std::string latency_bin = "latency_impl/latency";
+
 // Logical IDs of all hardware that should have
 // latency profiled. Each vector is used to generate
 // pair-pair combinations
@@ -74,6 +78,9 @@ static std::vector<int> threads;
 //static std::vector<int> thread_filter;
 
 int main(int argc, char** argv) {
+# ifdef LATENCY_BIN
+    latency_bin = LATENCY_BIN;
+# endif
   xml = new rapidxml::xml_document<char>();
   try {
     parse_options(argc, argv);
@@ -159,11 +166,6 @@ std::string write_latency(int to, int from) {
     string mpirun_bin = "mpirun";
     string rankfile = make_rankfile(to, from);
     string mpiflags = "-np 2 --rankfile " + rankfile;
-    string latency_bin = "latency_impl/latency";
-    // TODO move this to a global variable at the top of file
-#   ifdef LATENCY_BIN
-        latency_bin = LATENCY_BIN;
-#   endif
     string command = mpirun_bin + " " + mpiflags + " " + latency_bin;
     string result("-1");
     if (dry_run)
