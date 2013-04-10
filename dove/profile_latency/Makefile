@@ -4,7 +4,7 @@ DOVE_ROOT ?= $(CURDIR)/..
 XML_ROOT  ?= $(CURDIR)/../libs/rapidxml-1.13
 INC       := -I$(DOVE_ROOT) -I$(XML_ROOT)
 LIBS      := -L$(DOVE_ROOT) -ldove 
-CXXFLAGS  += -g
+CXXFLAGS  += -g -std=c++0x
 
 EXE=generate_latency
 LATENCY_BIN=latency_impl/latency
