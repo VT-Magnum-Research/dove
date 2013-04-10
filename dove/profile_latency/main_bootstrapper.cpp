@@ -132,9 +132,8 @@ int main(int argc, char** argv) {
 }
 
 std::string make_rankfile(int to, int from) {
-    char sfn[21] = ""; FILE* sfp; int fd = -1;
+    char sfn[21] = "/tmp/rankfile.XXXXXX"; FILE* sfp; int fd = -1;
      
-    strncpy(sfn, "/tmp/rankfile.XXXXXX", sizeof sfn);
     fd = mkstemp(sfn);
     if (fd == -1) return "";
 
