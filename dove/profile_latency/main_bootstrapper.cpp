@@ -217,10 +217,9 @@ std::string write_latency(int to, int from) {
     }
 
     // TODO update this to return the string without a value
-    return "<d f=\"from\" t=\"to\" v=\"reslt\">";
-      /* "<d f=\"" + from +
-      "\"  t=\""   + to +
-      "\"  v=\""   + result + "\" />"; */
+    return "<d f=\"" + std::to_string((long long) from) +
+      "\"  t=\""   + std::to_string((long long) to) +
+      "\"  v=\"-1\" />";
 }
 
 void calculate_latency(std::vector<int> ids) {
