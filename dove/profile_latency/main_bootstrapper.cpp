@@ -180,19 +180,20 @@ std::string write_latency(int to, int from) {
     //string microsec_line = match(result, regex_line);
     //string microsec_str = match(microsec_line, regex_number);
     remove(rankfile.c_str());
-    if (!dry_run) {
-      rapidxml::xml_node<char>* delay = xml->
-        allocate_node(rapidxml::node_element, "d");
-      rapidxml::xml_attribute<> *fattr = xml->allocate_attribute("f", 
-          s(to_string((long long) from).c_str()));
-      rapidxml::xml_attribute<> *tattr = xml->allocate_attribute("t", 
-          s(to_string((long long) to).c_str()));
-      rapidxml::xml_attribute<> *vattr = xml->allocate_attribute("v", 
-          s(result.c_str()));
-      delay->append_attribute(fattr);
-      delay->append_attribute(tattr);
-      delay->append_attribute(vattr);
 
+    rapidxml::xml_node<char>* delay = xml->
+      allocate_node(rapidxml::node_element, "d");
+    rapidxml::xml_attribute<> *fattr = xml->allocate_attribute("f", 
+        s(to_string((long long) from).c_str()));
+    rapidxml::xml_attribute<> *tattr = xml->allocate_attribute("t", 
+        s(to_string((long long) to).c_str()));
+    rapidxml::xml_attribute<> *vattr = xml->allocate_attribute("v", 
+        s(result.c_str()));
+    delay->append_attribute(fattr);
+    delay->append_attribute(tattr);
+    delay->append_attribute(vattr);
+
+    if (!dry_run) {
       // Find the right place in the XML
       rapidxml::xml_node<char>* system = xml->first_node("system");
       if (system == 0)
@@ -209,17 +210,12 @@ std::string write_latency(int to, int from) {
       }
     
       delays->append_node(delay);
-
-      // Print to string using output iterator
-      std::string s;
-      rapidxml::print(std::back_inserter(s), *delay, 0);
-      return s;
     }
 
-    // TODO update this to return the string without a value
-    return "<d f=\"" + std::to_string((long long) from) +
-      "\"  t=\""   + std::to_string((long long) to) +
-      "\"  v=\"-1\" />";
+    // Print to string using output iterator
+    std::string s;
+    rapidxml::print(std::back_inserter(s), *delay, 0);
+    return s;
 }
 
 void calculate_latency(std::vector<int> ids) {
