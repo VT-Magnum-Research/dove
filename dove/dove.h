@@ -14,6 +14,8 @@ namespace rapidxml {
 #include <string>
 #include <map>
 
+#include "libs/tclap/CmdLine.h"
+
 typedef rapidxml::xml_node<char> xml_node;
 typedef rapidxml::xml_node<char> node;
 typedef std::vector<xml_node*> xml_node_vector; 
@@ -51,6 +53,16 @@ namespace dove {
         hwth_pid(-1), hostname(""),
         ip(""), type(UNKNOWN) { }
   };
+
+  struct dove_config {
+    std::string stg_filepath;
+    std::string deps;
+    std::string sys;
+  };
+
+  // Given a TCLAP CmdLine pointer, `add_tclap` adds dove's command
+  // line options and returns the parsed filepath, dep, and sys.
+  dove_config add_tclap(TCLAP::CmdLine* cmd);
 
   // Given the system.xml and the logical ID of a tag within the system.xml, 
   // this returns all identifiers needed to uniquely identify the hardware 

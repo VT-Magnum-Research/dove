@@ -69,6 +69,51 @@ void dove::info(const char* msg) { xlog(msg, LOG_INFO); }
 void dove::error(const char* msg) { xlog(msg, LOG_ERROR); }
 void dove::xdebug(const char* msg) { xlog(msg, LOG_DEBUG); }
 
+dove::dove_config dove::add_tclap(TCLAP::CmdLine* cmd) {
+  dove::dove_config config;
+  TCLAP::ValueArg<std::string>* dove_arg =
+    new TCLAP::ValueArg<std::string>("d", "dove", "Path to DOVE directory. "  
+      "Provide this if you want to use the deployment optimization validation "
+      "engine to validate that your arguments + this algorithm are in fact "
+      "resulting in optimizations on a real system."
+      "If provided, then the following files are assumed to exist: \n" 
+      "<dove>/system.xml - Contains accurate profile of the hardware system" 
+      "dove will use to validate the output of this algorithm. \n" 
+      "<dove>/software.stg - the software STG model.\n" 
+      "The <dove>/deployments.xml file will be created as this algorithm is " 
+      "executed. ", false, "", "dirpath");
+  TCLAP::ValueArg<std::string>* filepath_arg = 
+    new TCLAP::ValueArg<std::string>
+    ("f", "stg", "path to the input STG file", true, "", "filepath");
+  std::vector<TCLAP::Arg *> stg_variants;
+  stg_variants.push_back(dove_arg);
+  stg_variants.push_back(filepath_arg);
+  cmd->xorAdd(stg_variants);
+
+  // If DOVE is requested, set it up
+  std::string dove = dove_arg->getValue();
+  config.sys = dove;
+  config.sys.append("system.xml");
+  std::string stg = dove;
+  stg.append("software.stg");
+  config.deps = dove;
+  config.deps.append("deployments.xml");
+  if (dove.compare("") != 0)
+  {
+    std::ifstream ifile(config.sys.c_str());
+    if (!ifile) 
+      throw TCLAP::ArgException("<dove>/system.xml not found");
+    std::ifstream ifile2(stg.c_str());
+    if (!ifile2)
+      throw TCLAP::ArgException("<dove>/software.stg not found"); 
+
+    config.stg_filepath = stg;
+  } else {
+    config.stg_filepath = filepath_arg->getValue();
+  }
+  return config;
+}
+
 // TODO make this set type on hardware component
 void dove::parse_pids(rapidxml::xml_document<char> &system, 
   std::string logical_id,
