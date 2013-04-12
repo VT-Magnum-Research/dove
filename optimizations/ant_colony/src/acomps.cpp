@@ -39,7 +39,8 @@ static double acs_q0 = 0.5;
 static double acs_xi = 0.1;
 
 // Arguments for deployment optimization
-static std::string stg_filepath;
+static dove::dove_config config;
+// static std::string stg_filepath;
 static unsigned int cores_used = 2;
 //static unsigned int processor_heterogenity = 1;
 //static unsigned int routing_heterogenity = 1;
@@ -67,21 +68,7 @@ static void parse_options(int argc, char *argv[]) {
   allowed.push_back(0);
   allowed.push_back(1);
   TCLAP::ValuesConstraint<unsigned int> allowed_values( allowed );
-  TCLAP::ValueArg<std::string>  dove_arg("d", "dove", "Path to DOVE directory. "  
-      "Provide this if you want to use the deployment optimization validation "
-      "engine to validate that your arguments + this algorithm are in fact "
-      "resulting in optimizations on a real system."
-      "If provided, then the following files are assumed to exist: \n" 
-      "<dove>/system.xml - Contains accurate profile of the hardware system" 
-      "dove will use to validate the output of this algorithm. \n" 
-      "<dove>/software.stg - the software STG model.\n" 
-      "The <dove>/deployments.xml file will be created as this algorithm is " 
-      "executed. ", false, "", "dirpath");
-  TCLAP::ValueArg<std::string>  filepath_arg("f", "stg", "path to the input STG file", true, "", "filepath");
-  std::vector<TCLAP::Arg *> stg_variants;
-  stg_variants.push_back(&dove_arg);
-  stg_variants.push_back(&filepath_arg);
-  cmd.xorAdd(stg_variants);
+  config = dove::add_tclap(&cmd);
   TCLAP::ValueArg<unsigned int> cores_used_arg("c", "cores", "number of homogeneous processing cores. Defaults to 2", false, 2, "positive integer", cmd);
 //  TCLAP::ValueArg<unsigned int> processor_h_arg("","core_heter", "Processor heterogeneity. 1 specifies homogeneous processors, <int> specifies a limit on processor upper bound that is randomly queried to build a set of heterogeneous processors. Default is 1", false, 1, "positive integer", cmd);
   TCLAP::SwitchArg              print_tour_arg("o", "printord", "print best elimination ordering in iteration");
@@ -154,37 +141,14 @@ static void parse_options(int argc, char *argv[]) {
   //routing_default=routing_def_arg.getValue();
   //task_heterogenity = task_harg.getValue();
 
-  // If DOVE is requested, set it up
-  std::string dove = dove_arg.getValue();
-  std::string sys = dove;
-  sys.append("system.xml");
-  std::string stg = dove;
-  stg.append("software.stg");
-  std::string deps = dove;
-  deps.append("deployments.xml");
-  if (dove.compare("") != 0)
-  {
-    // TODO eventually move this check to dove framework by throwing exceptions
-    std::ifstream ifile(sys.c_str());
-    if (!ifile) 
-      throw TCLAP::ArgException("<dove>/system.xml not found");
-    std::ifstream ifile2(stg.c_str());
-    if (!ifile2)
-      throw TCLAP::ArgException("<dove>/software.stg not found"); 
-
-    stg_filepath = stg;
-  } else {
-    stg_filepath = filepath_arg.getValue();
-  }
-
-  tasks = Parser::parse_stg(stg_filepath.c_str(), task_precedence);
+  tasks = Parser::parse_stg(config.stg_filepath.c_str(), task_precedence);
 
   validation = new dove::validator(tasks->size(), 
     cores_used,
     dove::CORE, 
-    deps.c_str(),
+    config.deps.c_str(),
     "Ant Colony Optimization",
-    sys.c_str());
+    config.sys.c_str());
   
   if(stag_variance_arg.isSet()) {
     stagnation_measure = STAG_VARIATION_COEFFICIENT;
