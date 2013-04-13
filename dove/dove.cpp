@@ -60,6 +60,9 @@ namespace rapidxml
 #define LOG_DEBUG  30
 #define LOG_INFO  100
 
+// TODO: Make logs outside of this main namespace?
+// Or, is the design idea to keep everything inside of here?
+// Java has made me keen on smaller-sized files.
 void dove::xlog(const char* msg, int level) {
   if (level <= LOG_LEVEL)
     std::cout << "dove: " << msg << std::endl;
@@ -212,91 +215,91 @@ std::string dove::build_rankline(rapidxml::xml_document<char> &system,
 
 // TODO consider creating dove::xml and moving all of my 
 // helper functions into that namespace to keep it clean
-std::vector<rapidxml::xml_node<char>*> dove::get_all_hosts(
-    rapidxml::xml_document<char> &system) {
-  xdebug("Getting all hosts from system.xml");
-  rapidxml::xml_node<>* nodes = system.first_node("system")->
-    first_node("nodes");
-  
-  std::vector<rapidxml::xml_node<char>*> result;
-  for (rapidxml::xml_node<char> *child = nodes->first_node();
-      child;
-      child = child->next_sibling()) {
-    if (strcmp(child->name(), "node")==0)
-      result.push_back(child);
-  }
-  
-  return result;
-}
-
-std::vector<rapidxml::xml_node<char>*> dove::get_all_processors(
-    rapidxml::xml_document<char> &system) {
-  xdebug("Getting all processors from system.xml");
-  std::vector<rapidxml::xml_node<char>*> result;
-  std::vector<rapidxml::xml_node<char>*> hosts = 
-    get_all_hosts(system);
-  std::vector<rapidxml::xml_node<char>*>::iterator it;
-  for (it = hosts.begin();
-      it != hosts.end();
-      ++it) {
-    rapidxml::xml_node<char>* host = *it;
-    for (rapidxml::xml_node<char>* proc = host->first_node();
-        proc;
-        proc = proc->next_sibling()) {
-      if (strcmp(proc->name(), "socket")==0)
-        result.push_back(proc);
-    }
-  }
-  
-  return result;
-}
-
-std::vector<rapidxml::xml_node<char>*> dove::get_all_cores(
-    rapidxml::xml_document<char> &system) {
-  xdebug("Getting all cores from system.xml");
-  xml_node_vector result;
-  xml_node_vector procs = get_all_processors(system);
-  xml_node_vector::iterator it;
-  for (it = procs.begin();
-      it != procs.end();
-      ++it) {
-    rapidxml::xml_node<char>* proc = *it;
-    for (rapidxml::xml_node<char>* core = proc->first_node();
-        core;
-        core = core->next_sibling()) {
-      if (strcmp(core->name(), "core")==0)
-        result.push_back(core);
-    }
-  }
-  
-  return result;
-}
-
-std::vector<rapidxml::xml_node<char>*> dove::get_all_threads(
-    rapidxml::xml_document<char> &system) {
-  xdebug("Getting all threads from system.xml");
-  xml_node_vector result;
-  xml_node_vector cores = get_all_cores(system);
-  xml_node_vector::iterator it;
-  for (it = cores.begin();
-      it != cores.end();
-      ++it) {
-    rapidxml::xml_node<char>* core = *it;
-    for (rapidxml::xml_node<char>* hwth = core->first_node();
-        hwth;
-        hwth = hwth->next_sibling()) {
-      if (strcmp(hwth->name(), "pu")==0)
-        result.push_back(hwth);
-    }
-  }
-  
-  return result;
-}
+// std::vector<rapidxml::xml_node<char>*> dove::get_all_hosts(
+//     rapidxml::xml_document<char> &system) {
+//   xdebug("Getting all hosts from system.xml");
+//   rapidxml::xml_node<>* nodes = system.first_node("system")->
+//     first_node("nodes");
+//   
+//   std::vector<rapidxml::xml_node<char>*> result;
+//   for (rapidxml::xml_node<char> *child = nodes->first_node();
+//       child;
+//       child = child->next_sibling()) {
+//     if (strcmp(child->name(), "node")==0)
+//       result.push_back(child);
+//   }
+//   
+//   return result;
+// }
+// 
+// std::vector<rapidxml::xml_node<char>*> dove::get_all_processors(
+//     rapidxml::xml_document<char> &system) {
+//   xdebug("Getting all processors from system.xml");
+//   std::vector<rapidxml::xml_node<char>*> result;
+//   std::vector<rapidxml::xml_node<char>*> hosts = 
+//     get_all_hosts(system);
+//   std::vector<rapidxml::xml_node<char>*>::iterator it;
+//   for (it = hosts.begin();
+//       it != hosts.end();
+//       ++it) {
+//     rapidxml::xml_node<char>* host = *it;
+//     for (rapidxml::xml_node<char>* proc = host->first_node();
+//         proc;
+//         proc = proc->next_sibling()) {
+//       if (strcmp(proc->name(), "socket")==0)
+//         result.push_back(proc);
+//     }
+//   }
+// 
+//   return result;
+// }
+// 
+// std::vector<rapidxml::xml_node<char>*> dove::get_all_cores(
+//     rapidxml::xml_document<char> &system) {
+//   xdebug("Getting all cores from system.xml");
+//   xml_node_vector result;
+//   xml_node_vector procs = get_all_processors(system);
+//   xml_node_vector::iterator it;
+//   for (it = procs.begin();
+//       it != procs.end();
+//       ++it) {
+//     rapidxml::xml_node<char>* proc = *it;
+//     for (rapidxml::xml_node<char>* core = proc->first_node();
+//         core;
+//         core = core->next_sibling()) {
+//       if (strcmp(core->name(), "core")==0)
+//         result.push_back(core);
+//     }
+//   }
+//   
+//   return result;
+// }
+// 
+// std::vector<rapidxml::xml_node<char>*> dove::get_all_threads(
+//     rapidxml::xml_document<char> &system) {
+//   xdebug("Getting all threads from system.xml");
+//   xml_node_vector result;
+//   xml_node_vector cores = get_all_cores(system);
+//   xml_node_vector::iterator it;
+//   for (it = cores.begin();
+//       it != cores.end();
+//       ++it) {
+//     rapidxml::xml_node<char>* core = *it;
+//     for (rapidxml::xml_node<char>* hwth = core->first_node();
+//         hwth;
+//         hwth = hwth->next_sibling()) {
+//       if (strcmp(hwth->name(), "pu")==0)
+//         result.push_back(hwth);
+//     }
+//   }
+//   
+//   return result;
+// }
 
 // TODO add in a strategy for choosing specific hardware 
 // components e.g. ones on the same machine, etc
 dove::hwprofile::hwprofile(hwcom_type type, int compute_units, 
-    rapidxml::xml_document<char>* system) {
+    system_xml system) {
   xdebug("Creating new hardware profile");
  
   system_ = system;
@@ -312,7 +315,7 @@ dove::hwprofile::hwprofile(hwcom_type type, int compute_units,
       break;
     case CORE:
       info("Getting all cores");
-      nodes = get_all_cores(*system_);
+      nodes = system_.get_all_cores();
       info("Done getting cores");
       break;
     case HW_THREAD:
@@ -348,47 +351,48 @@ long dove::hwprofile::get_routing_delay(int from, int to) {
   int lto = get_logical_id(to);
   if (lfrom == lto)
     return 0;
-  rapidxml::xml_node<>* system = system_->first_node("system");
-  //if (system != 0)
-  //  info("Got system");
-  //else
-  //  info("Tried to fetch system, but it was not returned");
-  rapidxml::xml_node<>* delays = system->last_node("routing_delays");
-  if (delays == 0)
-    info("Delays does not exist, expect segfaults next!");
-
-  for (rapidxml::xml_node<char> *delay = 
-        delays->first_node(); 
-        delay; 
-        delay = delay->next_sibling()) {
-    char* sfrom = delay->first_attribute("f")->value();
-    std::istringstream ssfrom(sfrom);
-    int from;
-    ssfrom >> from;
-    if (from != lfrom) 
-      continue;
-    char* sto = delay->first_attribute("t")->value();
-    std::istringstream ssto(sto);
-    int to;
-    ssto >> to;
-    if (to == lto) {
-      char* sval = delay->first_attribute("v")->value();
-      std::istringstream ssval(sval);
-      int val;
-      ssval >> val;
-      return val;
-    }
-  }
-
-  throw "No route was found between the two id's";
+  
+//   rapidxml::xml_node<>* system = system_->first_node("system");
+//   //if (system != 0)
+//   //  info("Got system");
+//   //else
+//   //  info("Tried to fetch system, but it was not returned");
+//   rapidxml::xml_node<>* delays = system->last_node("routing_delays");
+//   if (delays == 0)
+//     info("Delays does not exist, expect segfaults next!");
+// 
+//   for (rapidxml::xml_node<char> *delay = 
+//         delays->first_node(); 
+//         delay; 
+//         delay = delay->next_sibling()) {
+//     char* sfrom = delay->first_attribute("f")->value();
+//     std::istringstream ssfrom(sfrom);
+//     int from;
+//     ssfrom >> from;
+//     if (from != lfrom) 
+//       continue;
+//     char* sto = delay->first_attribute("t")->value();
+//     std::istringstream ssto(sto);
+//     int to;
+//     ssto >> to;
+//     if (to == lto) {
+//       char* sval = delay->first_attribute("v")->value();
+//       std::istringstream ssval(sval);
+//       int val;
+//       ssval >> val;
+//       return val;
+//     }
+//   }
+//   throw "No route was found between the two id's";
+  return system_.get_routing_delay(from, to, lfrom, lto);
 }
       
 char* dove::deployment::s(const char* unsafe) {
-  return system_->allocate_string(unsafe);
+   return string_pool->allocate_string(unsafe);
 }
 
 char* dove::deployment::s(std::string unsafe) {
-  return system_->allocate_string(unsafe.c_str());
+  return s(unsafe.c_str());
 }
 
 char* dove::deployment::s(int unsafe) {
@@ -398,8 +402,7 @@ char* dove::deployment::s(int unsafe) {
 } 
 
 dove::deployment::deployment(hwprofile* prof, 
-    rapidxml::xml_document<char>* system,
-    rapidxml::xml_document<char>* deployment) {
+    system_xml system, deployment_xml deployment) {
   //xdebug("Creating new deployment");
   profile = prof;
   system_ = system;
@@ -408,17 +411,17 @@ dove::deployment::deployment(hwprofile* prof,
 
 node* dove::deployment::get_xml() {
   //xdebug("Getting XML for deployment");
-  node* deployment_xml = system_->allocate_node(rapidxml::node_element,
+  node* deployment_xml = system_.xml->allocate_node(rapidxml::node_element,
       s("deployment"));
   
   std::vector<std::pair<int, int> >::iterator it;
   for (it = plan.begin();
       it != plan.end();
       it++) {
-    node* deploy = deployments_->allocate_node(rapidxml::node_element, 
+    node* deploy = deployments_.xml->allocate_node(rapidxml::node_element, 
         s("deploy"));
-    attr* task = deployments_->allocate_attribute(s("t"), s((*it).first));
-    attr* unit = deployments_->allocate_attribute(s("u"), s((*it).second));
+    attr* task = deployments_.xml->allocate_attribute(s("t"), s((*it).first));
+    attr* unit = deployments_.xml->allocate_attribute(s("u"), s((*it).second));
     deploy->append_attribute(task);
     deploy->append_attribute(unit);
     deployment_xml->append_node(deploy);
@@ -428,10 +431,10 @@ node* dove::deployment::get_xml() {
   for (it2 = metrics.begin();
       it2 != metrics.end();
       it2++) {
-    node* metric = deployments_->allocate_node(rapidxml::node_element, 
+    node* metric = deployments_.xml->allocate_node(rapidxml::node_element, 
         s("metric"));
-    attr* name = deployments_->allocate_attribute(s("name"), s(it2->first));
-    attr* value = deployments_->allocate_attribute(s("value"), s(it2->second));
+    attr* name = deployments_.xml->allocate_attribute(s("name"), s(it2->first));
+    attr* value = deployments_.xml->allocate_attribute(s("value"), s(it2->second));
     metric->append_attribute(name);
     metric->append_attribute(value);
     deployment_xml->append_node(metric);
@@ -468,10 +471,9 @@ void dove::deployment::add_metric(const char* name, int value) {
   add_metric(n, val.str());
 }
 
-
-char* dove::validator::s(const char* unsafe) {
-  return system_->allocate_string(unsafe);
-}
+// char* dove::validator::s(const char* unsafe) {
+//   return system_->allocate_string(unsafe);
+// }
 
 dove::validator::validator(int tasks, 
         int compute_units,
@@ -491,23 +493,16 @@ dove::validator::validator(int tasks,
   task_count = tasks;
   // TODO I am 100% leaking all the new memory 
   info("Testing if system xml can be parsed");
-  xmldata = new rapidxml::file<char>(system_xml_path);
-  system_ = new rapidxml::xml_document<char>();
-  system_->parse<0>(xmldata->data());
+
+//   xmldata = new rapidxml::file<char>(system_xml_path);
+//   system_ = new system_xml();
+//   system_->parse<0>(xmldata->data());
+  system_.create(system_xml_path);
   info("Storing system.xml into system_");
   profile = new hwprofile(compute_type, compute_units, system_);
   
   info("Creating header for deployments");
-  deployment_ = new rapidxml::xml_document<char>();
-  node *root = deployment_->allocate_node(rapidxml::node_element, s("optimization"));
-  deployment_->append_node(root);
-  attr *name = deployment_->allocate_attribute(s("name"), s(algorithm_name));
-  root->append_attribute(name);
-  attr *desc = deployment_->allocate_attribute(s("desc"), s(algorithm_desc));
-  root->append_attribute(desc);
-  node *deployments = deployment_->allocate_node(rapidxml::node_element, s("deployments"));
-  root->append_node(deployments);
-
+  deployment_.create(algorithm_name, algorithm_desc);
   xdebug("Done creating deployment_optimization");
 }
 
@@ -519,43 +514,21 @@ dove::deployment dove::validator::get_empty_deployment() {
   return deployment(profile, system_, deployment_);
 }
 
+// TODO: This one's tricky to place in another class.
 void dove::validator::add_deployment(deployment d) {
-  node* deps = deployment_->first_node("optimization")->
+  node* deps = deployment_.xml->first_node("optimization")->
     first_node("deployments");
   node* deployment = d.get_xml();
   std::stringstream idtochar;
   idtochar << number_deployments_;
   number_deployments_++;
-  attr* id = deployment_->allocate_attribute(s("id"), 
-      s(idtochar.str().c_str()));
+  attr* id = deployment_.xml->allocate_attribute(
+      string_pool->allocate_string("id"), 
+      string_pool->allocate_string(idtochar.str().c_str()));
   deployment->append_attribute(id);
   deps->append_node(deployment);
 }
 
 void dove::validator::complete() {
-  xdebug("Complete was called on deployment_optimization");
-  std::ofstream output(deployment_filename.c_str(), 
-      std::ios::out | std::ios::trunc);
-  if (output.is_open())
-  {
-    info("About to write to file...");
-    info(deployment_filename.c_str());
-    output << *deployment_;
-    output.close();
-    info("File written");
-  } else {
-    error("Unable to save file to following location: ");
-    error(deployment_filename.c_str());
-    // TODO complete this by 
-    // 1) stripping any directory component, 
-    // 2) creating deployments.XXXXXX
-    // 3) using mkstemp to make that a unique path
-    // 4) Trying to write to that path...
-    //fd = mkstemp(sfn); 
-    //mkstemp(tmpname);
-    //ofstream f(tmpname);
-    //char tmpname[] = "tmp.XXXXXX";
-    //FILE *fpt = fdopen(mkstemp(tmpname), "w");
-  }
+  deployment_.complete(deployment_filename.c_str());
 }
-

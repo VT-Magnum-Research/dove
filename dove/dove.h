@@ -7,6 +7,7 @@ namespace rapidxml {
   template <typename T> class xml_attribute;
   template <typename T> class xml_document;
   template <typename T> class file;
+  template <typename T> class memory_pool;
 }
 
 #include <iostream>
@@ -15,6 +16,7 @@ namespace rapidxml {
 #include <map>
 
 #include "libs/tclap/CmdLine.h"
+#include "dove_xml.h"
 
 typedef rapidxml::xml_node<char> xml_node;
 typedef rapidxml::xml_node<char> node;
@@ -60,6 +62,8 @@ namespace dove {
     std::string sys;
   };
 
+  rapidxml::memory_pool<char>* string_pool;
+
   // Given a TCLAP CmdLine pointer, `add_tclap` adds dove's command
   // line options and returns the parsed filepath, dep, and sys.
   dove_config add_tclap(TCLAP::CmdLine* cmd);
@@ -104,14 +108,14 @@ namespace dove {
   std::string build_rankline(rapidxml::xml_document<char> &system,
       int taskid, 
       std::string id);
-  std::vector<rapidxml::xml_node<char>*> get_all_hosts(
-      rapidxml::xml_document<char> &system);
-  std::vector<rapidxml::xml_node<char>*> get_all_processors(
-      rapidxml::xml_document<char> &system);
-  std::vector<rapidxml::xml_node<char>*> get_all_cores(
-      rapidxml::xml_document<char> &system);
-  std::vector<rapidxml::xml_node<char>*> get_all_threads(
-      rapidxml::xml_document<char> &system);
+//   std::vector<rapidxml::xml_node<char>*> get_all_hosts(
+//       system_xml system);
+//   std::vector<rapidxml::xml_node<char>*> get_all_processors(
+//       system_xml system);
+//   std::vector<rapidxml::xml_node<char>*> get_all_cores(
+//       system_xml system);
+//   std::vector<rapidxml::xml_node<char>*> get_all_threads(
+//       system_xml system);
 
   // Allows an external codebase to request a number N of 
   // hardware components and the routing delay between these
@@ -124,11 +128,11 @@ namespace dove {
     hwcom_type type_;
     // Maps from 0...N to the actual logical ID
     std::map<int, int> ids_;
-    rapidxml::xml_document<char>* system_;
+    system_xml system_;
 
     public:
       hwprofile(hwcom_type type, int compute_units, 
-        rapidxml::xml_document<char>* system);
+        system_xml system);
   
       // Given the 0...N-1 id, this will return the logical ID that
       // is used in the system.xml file. 
@@ -148,8 +152,8 @@ namespace dove {
       // TODO why did I make this a vector and not just a map? 
       std::vector<std::pair<int, int> > plan;
       std::map<std::string, std::string> metrics;
-      rapidxml::xml_document<char>* system_;
-      rapidxml::xml_document<char>* deployments_;
+      system_xml system_;
+      deployment_xml deployments_; // TODO: Why is this plural?
       hwprofile* profile;
       
       // Builds a 'safe' string for rapidxml
@@ -159,8 +163,8 @@ namespace dove {
 
     public:
       deployment(hwprofile* prof, 
-          rapidxml::xml_document<char>* system,
-          rapidxml::xml_document<char>* deployment);
+          system_xml system,
+          deployment_xml deployment);
       
       // Builds the xml to represent this deployment
       node* get_xml();
@@ -211,16 +215,16 @@ namespace dove {
     private:
       hwprofile* profile;
       int task_count;
-      rapidxml::xml_document<char>* system_;
+      system_xml system_;
 
       // Keeps track of the number of times add_deployment has
       // been called, so that we can append an ID to each deployment
       int number_deployments_;
 
       // Must keep source text around for rapidxml
-      rapidxml::file<char>* xmldata;
+//       rapidxml::file<char>* xmldata;
       // Build the deployments.xml into this 
-      rapidxml::xml_document<char>* deployment_;
+      deployment_xml deployment_;
       // So that it can eventually be printed into this
       std::string deployment_filename;
       
