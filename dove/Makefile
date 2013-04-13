@@ -1,16 +1,18 @@
-
-
-
-CFLAGS := -g 
-INC    :=-Ilibs/rapidxml-1.13
+DEBUG=-g
+CFLAGS=$(DEBUG) 
+INC=-Ilibs/rapidxml-1.13
+SRC=dove.cpp dove_xml.cpp
+OBJ=$(SRC:.cpp=.o)
  
-all: 
-	$(CXX) -c $(CFLAGS) $(INC) -o dove.o dove.cpp
-	ar rvs libdove.a dove.o
-	ranlib libdove.a
+all: libdove.a
 
-# --- remove binary and executable files
+libdove.a: $(OBJ)
+	ar rvs $@ $(OBJ)
+	ranlib $@
+
+%.o: %.cpp
+	$(CXX) -c $(CFLAGS) $(INC) $^
+
+.PHONY: clean
 clean:
-	rm -f dove.o libdove.a
-
-
+	rm -f $(OBJ) libdove.a
