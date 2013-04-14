@@ -299,7 +299,7 @@ std::string dove::build_rankline(rapidxml::xml_document<char> &system,
 // TODO add in a strategy for choosing specific hardware 
 // components e.g. ones on the same machine, etc
 dove::hwprofile::hwprofile(hwcom_type type, int compute_units, 
-    system_xml system) {
+    dove::xml::system system) {
   xdebug("Creating new hardware profile");
  
   system_ = system;
@@ -387,22 +387,22 @@ long dove::hwprofile::get_routing_delay(int from, int to) {
   return system_.get_routing_delay(from, to, lfrom, lto);
 }
       
-char* dove::deployment::s(const char* unsafe) {
-   return string_pool->allocate_string(unsafe);
-}
-
-char* dove::deployment::s(std::string unsafe) {
-  return s(unsafe.c_str());
-}
-
-char* dove::deployment::s(int unsafe) {
-  std::stringstream st;
-  st << unsafe;
-  return s(st.str().c_str());
-} 
+// char* dove::deployment::s(const char* unsafe) {
+//    return string_pool->allocate_string(unsafe);
+// }
+// 
+// char* dove::deployment::s(std::string unsafe) {
+//   return s(unsafe.c_str());
+// }
+// 
+// char* dove::deployment::s(int unsafe) {
+//   std::stringstream st;
+//   st << unsafe;
+//   return s(st.str().c_str());
+// } 
 
 dove::deployment::deployment(hwprofile* prof, 
-    system_xml system, deployment_xml deployment) {
+    dove::xml::system system, dove::xml::deployment deployment) {
   //xdebug("Creating new deployment");
   profile = prof;
   system_ = system;
@@ -412,16 +412,18 @@ dove::deployment::deployment(hwprofile* prof,
 node* dove::deployment::get_xml() {
   //xdebug("Getting XML for deployment");
   node* deployment_xml = system_.xml->allocate_node(rapidxml::node_element,
-      s("deployment"));
+      dove::xml::s("deployment"));
   
   std::vector<std::pair<int, int> >::iterator it;
   for (it = plan.begin();
       it != plan.end();
       it++) {
     node* deploy = deployments_.xml->allocate_node(rapidxml::node_element, 
-        s("deploy"));
-    attr* task = deployments_.xml->allocate_attribute(s("t"), s((*it).first));
-    attr* unit = deployments_.xml->allocate_attribute(s("u"), s((*it).second));
+        dove::xml::s("deploy"));
+    attr* task = deployments_.xml->allocate_attribute(
+      dove::xml::s("t"), dove::xml::s((*it).first));
+    attr* unit = deployments_.xml->allocate_attribute(
+      dove::xml::s("u"), dove::xml::s((*it).second));
     deploy->append_attribute(task);
     deploy->append_attribute(unit);
     deployment_xml->append_node(deploy);
@@ -432,9 +434,11 @@ node* dove::deployment::get_xml() {
       it2 != metrics.end();
       it2++) {
     node* metric = deployments_.xml->allocate_node(rapidxml::node_element, 
-        s("metric"));
-    attr* name = deployments_.xml->allocate_attribute(s("name"), s(it2->first));
-    attr* value = deployments_.xml->allocate_attribute(s("value"), s(it2->second));
+        dove::xml::s("metric"));
+    attr* name = deployments_.xml->allocate_attribute(
+      dove::xml::s("name"), dove::xml::s(it2->first));
+    attr* value = deployments_.xml->allocate_attribute(
+      dove::xml::s("value"), dove::xml::s(it2->second));
     metric->append_attribute(name);
     metric->append_attribute(value);
     deployment_xml->append_node(metric);

@@ -128,11 +128,11 @@ namespace dove {
     hwcom_type type_;
     // Maps from 0...N to the actual logical ID
     std::map<int, int> ids_;
-    system_xml system_;
+    xml::system system_;
 
     public:
       hwprofile(hwcom_type type, int compute_units, 
-        system_xml system);
+        xml::system system);
   
       // Given the 0...N-1 id, this will return the logical ID that
       // is used in the system.xml file. 
@@ -152,8 +152,8 @@ namespace dove {
       // TODO why did I make this a vector and not just a map? 
       std::vector<std::pair<int, int> > plan;
       std::map<std::string, std::string> metrics;
-      system_xml system_;
-      deployment_xml deployments_; // TODO: Why is this plural?
+      xml::system system_;
+      xml::deployment deployments_; // TODO: Why is this plural?
       hwprofile* profile;
       
       // Builds a 'safe' string for rapidxml
@@ -163,8 +163,8 @@ namespace dove {
 
     public:
       deployment(hwprofile* prof, 
-          system_xml system,
-          deployment_xml deployment);
+          xml::system system,
+          xml::deployment deployment);
       
       // Builds the xml to represent this deployment
       node* get_xml();
@@ -215,7 +215,7 @@ namespace dove {
     private:
       hwprofile* profile;
       int task_count;
-      system_xml system_;
+      xml::system system_;
 
       // Keeps track of the number of times add_deployment has
       // been called, so that we can append an ID to each deployment
@@ -224,7 +224,7 @@ namespace dove {
       // Must keep source text around for rapidxml
 //       rapidxml::file<char>* xmldata;
       // Build the deployments.xml into this 
-      deployment_xml deployment_;
+      xml::deployment deployment_;
       // So that it can eventually be printed into this
       std::string deployment_filename;
       

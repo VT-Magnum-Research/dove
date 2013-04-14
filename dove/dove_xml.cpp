@@ -11,21 +11,21 @@
 #include "dove_xml.h"
 #include "dove.h"
 
-char* dove_xml::s(const char* unsafe) {
-   return xml->allocate_string(unsafe);
+char* dove::xml::s(const char* unsafe) {
+   return string_pool->allocate_string(unsafe);
 }
 
-char* dove_xml::s(std::string unsafe) {
+char* dove::xml::s(std::string unsafe) {
   return s(unsafe.c_str());
 }
 
-char* dove_xml::s(int unsafe) {
+char* dove::xml::s(int unsafe) {
   std::stringstream st;
   st << unsafe;
   return s(st.str().c_str());
 }
 
-void system_xml::create(const char* path) {
+void dove::xml::system::create(const char* path) {
  xmldata = new rapidxml::file<char>(path);
  xml = new rapidxml::xml_document<char>();
  xml->parse<0>(xmldata->data());
@@ -33,13 +33,13 @@ void system_xml::create(const char* path) {
 
 // TODO consider creating dove::xml and moving all of my 
 // helper functions into that namespace to keep it clean
-std::vector<rapidxml::xml_node<char>*> system_xml::get_all_hosts() {
+std::vector<node*> dove::xml::system::get_all_hosts() {
   dove::xdebug("Getting all hosts from system.xml");
   rapidxml::xml_node<>* nodes = xml->first_node("system")->
     first_node("nodes");
   
-  std::vector<rapidxml::xml_node<char>*> result;
-  for (rapidxml::xml_node<char> *child = nodes->first_node();
+  std::vector<node*> result;
+  for (node *child = nodes->first_node();
       child;
       child = child->next_sibling()) {
     if (strcmp(child->name(), "node")==0)
@@ -49,16 +49,16 @@ std::vector<rapidxml::xml_node<char>*> system_xml::get_all_hosts() {
   return result;
 }
 
-std::vector<rapidxml::xml_node<char>*> system_xml::get_all_processors() {
+std::vector<node*> dove::xml::system::get_all_processors() {
   dove::xdebug("Getting all processors from system.xml");
-  std::vector<rapidxml::xml_node<char>*> result;
-  std::vector<rapidxml::xml_node<char>*> hosts = get_all_hosts();
-  std::vector<rapidxml::xml_node<char>*>::iterator it;
+  std::vector<node*> result;
+  std::vector<node*> hosts = get_all_hosts();
+  std::vector<node*>::iterator it;
   for (it = hosts.begin();
       it != hosts.end();
       ++it) {
-    rapidxml::xml_node<char>* host = *it;
-    for (rapidxml::xml_node<char>* proc = host->first_node();
+    node* host = *it;
+    for (node* proc = host->first_node();
         proc;
         proc = proc->next_sibling()) {
       if (strcmp(proc->name(), "socket")==0)
@@ -69,7 +69,7 @@ std::vector<rapidxml::xml_node<char>*> system_xml::get_all_processors() {
   return result;
 }
 
-std::vector<rapidxml::xml_node<char>*> system_xml::get_all_cores() {
+std::vector<node*> dove::xml::system::get_all_cores() {
   dove::xdebug("Getting all cores from system.xml");
   xml_node_vector result;
   xml_node_vector procs = get_all_processors();
@@ -77,8 +77,8 @@ std::vector<rapidxml::xml_node<char>*> system_xml::get_all_cores() {
   for (it = procs.begin();
       it != procs.end();
       ++it) {
-    rapidxml::xml_node<char>* proc = *it;
-    for (rapidxml::xml_node<char>* core = proc->first_node();
+    node* proc = *it;
+    for (node* core = proc->first_node();
         core;
         core = core->next_sibling()) {
       if (strcmp(core->name(), "core")==0)
@@ -89,7 +89,7 @@ std::vector<rapidxml::xml_node<char>*> system_xml::get_all_cores() {
   return result;
 }
 
-std::vector<rapidxml::xml_node<char>*> system_xml::get_all_threads() {
+std::vector<node*> dove::xml::system::get_all_threads() {
   dove::xdebug("Getting all threads from system.xml");
   xml_node_vector result;
   xml_node_vector cores = get_all_cores();
@@ -97,8 +97,8 @@ std::vector<rapidxml::xml_node<char>*> system_xml::get_all_threads() {
   for (it = cores.begin();
       it != cores.end();
       ++it) {
-    rapidxml::xml_node<char>* core = *it;
-    for (rapidxml::xml_node<char>* hwth = core->first_node();
+    node* core = *it;
+    for (node* hwth = core->first_node();
         hwth;
         hwth = hwth->next_sibling()) {
       if (strcmp(hwth->name(), "pu")==0)
@@ -109,7 +109,7 @@ std::vector<rapidxml::xml_node<char>*> system_xml::get_all_threads() {
   return result;
 }
 
-long system_xml::get_routing_delay(int from, int to, int lfrom, int lto) {
+long dove::xml::system::get_routing_delay(int from, int to, int lfrom, int lto) {
   rapidxml::xml_node<>* system = xml->first_node("system");
   //if (system != 0)
   //  info("Got system");
@@ -119,7 +119,7 @@ long system_xml::get_routing_delay(int from, int to, int lfrom, int lto) {
   if (delays == 0)
     dove::info("Delays does not exist, expect segfaults next!");
 
-  for (rapidxml::xml_node<char> *delay = 
+  for (node *delay = 
         delays->first_node(); 
         delay; 
         delay = delay->next_sibling()) {
@@ -145,7 +145,7 @@ long system_xml::get_routing_delay(int from, int to, int lfrom, int lto) {
   throw "No route was found between the two id's";
 }
 
-void deployment_xml::create(const char* algorithm_name,
+void dove::xml::deployment::create(const char* algorithm_name,
     const char* algorithm_desc) {
   xml = new rapidxml::xml_document<char>();
   node *root = xml->allocate_node(rapidxml::node_element,
@@ -159,7 +159,7 @@ void deployment_xml::create(const char* algorithm_name,
   root->append_node(deployments);
 }
 
-void deployment_xml::complete(const char* filename) {
+void dove::xml::deployment::complete(const char* filename) {
   dove::xdebug("Complete was called on deployment_optimization");
   std::ofstream output(filename, std::ios::out | std::ios::trunc);
   if (output.is_open())
