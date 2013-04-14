@@ -26,9 +26,18 @@ char* dove::xml::s(int unsafe) {
 }
 
 void dove::xml::system::create(const char* path) {
- xmldata = new rapidxml::file<char>(path);
- xml = new rapidxml::xml_document<char>();
- xml->parse<0>(xmldata->data());
+  try {
+    info("Trying to parse the following xml file:");
+    info(path);
+    xmldata = new rapidxml::file<char>(path);
+    xml = new rapidxml::xml_document<char>();
+    xml->parse<0>(xmldata->data());
+  } catch (rapidxml::parse_error err) {
+    std::cout << "Could not parse XML file. Error was: " << std::endl;
+    std::cout << err.what() << std::endl;
+    throw "Unable to parse XML.";
+  }
+
 }
 
 dove::xml::system::~system() {
