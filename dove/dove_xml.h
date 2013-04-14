@@ -30,6 +30,22 @@ namespace dove {
     char* s(int unsafe);
     char* s(std::string unsafe);
 
+    class inner {
+      private:
+        node* node_;
+      public:
+        node* get_node() { return node_; }
+        void set_node(node* node) { node_ = node; }
+    };
+    class processor: public inner {
+    };
+
+    class core: public inner {
+    };
+
+    class hardware_thread: public inner {
+    };
+
     class system {
       private:
         file* xmldata;
