@@ -34,6 +34,7 @@ namespace dove {
       private:
         file* xmldata;
       public:
+        ~system();
         doc* xml;
         void create(const char* path);
         std::vector<node*> get_all_hosts();
@@ -47,6 +48,7 @@ namespace dove {
       private:
       public:
         doc* xml;
+        ~deployment();
         void create(const char* algorithm_name, const char* algorithm_desc);
 
         // An algorithm must inform dove of each deployment. This
