@@ -299,7 +299,7 @@ std::string dove::build_rankline(rapidxml::xml_document<char> &system,
 // TODO add in a strategy for choosing specific hardware 
 // components e.g. ones on the same machine, etc
 dove::hwprofile::hwprofile(hwcom_type type, int compute_units, 
-    dove::xml::system system) {
+    dove::xml::system* const system) {
   xdebug("Creating new hardware profile");
  
   system_ = system;
@@ -315,7 +315,7 @@ dove::hwprofile::hwprofile(hwcom_type type, int compute_units,
       break;
     case CORE:
       info("Getting all cores");
-      nodes = system_.get_all_cores();
+      nodes = system_->get_all_cores();
       info("Done getting cores");
       break;
     case HW_THREAD:
@@ -384,7 +384,7 @@ long dove::hwprofile::get_routing_delay(int from, int to) {
 //     }
 //   }
 //   throw "No route was found between the two id's";
-  return system_.get_routing_delay(from, to, lfrom, lto);
+  return system_->get_routing_delay(from, to, lfrom, lto);
 }
       
 // char* dove::deployment::s(const char* unsafe) {
@@ -402,7 +402,8 @@ long dove::hwprofile::get_routing_delay(int from, int to) {
 // } 
 
 dove::deployment::deployment(hwprofile* prof, 
-    dove::xml::system system, dove::xml::deployment deployment) {
+    const dove::xml::system* system,
+    const dove::xml::deployment* deployment) {
   //xdebug("Creating new deployment");
   profile = prof;
   system_ = system;
@@ -411,18 +412,18 @@ dove::deployment::deployment(hwprofile* prof,
 
 node* dove::deployment::get_xml() {
   //xdebug("Getting XML for deployment");
-  node* deployment_xml = system_.xml->allocate_node(rapidxml::node_element,
+  node* deployment_xml = system_->xml->allocate_node(rapidxml::node_element,
       dove::xml::s("deployment"));
   
   std::vector<std::pair<int, int> >::iterator it;
   for (it = plan.begin();
       it != plan.end();
       it++) {
-    node* deploy = deployments_.xml->allocate_node(rapidxml::node_element, 
+    node* deploy = deployments_->xml->allocate_node(rapidxml::node_element, 
         dove::xml::s("deploy"));
-    attr* task = deployments_.xml->allocate_attribute(
+    attr* task = deployments_->xml->allocate_attribute(
       dove::xml::s("t"), dove::xml::s((*it).first));
-    attr* unit = deployments_.xml->allocate_attribute(
+    attr* unit = deployments_->xml->allocate_attribute(
       dove::xml::s("u"), dove::xml::s((*it).second));
     deploy->append_attribute(task);
     deploy->append_attribute(unit);
@@ -433,11 +434,11 @@ node* dove::deployment::get_xml() {
   for (it2 = metrics.begin();
       it2 != metrics.end();
       it2++) {
-    node* metric = deployments_.xml->allocate_node(rapidxml::node_element, 
+    node* metric = deployments_->xml->allocate_node(rapidxml::node_element, 
         dove::xml::s("metric"));
-    attr* name = deployments_.xml->allocate_attribute(
+    attr* name = deployments_->xml->allocate_attribute(
       dove::xml::s("name"), dove::xml::s(it2->first));
-    attr* value = deployments_.xml->allocate_attribute(
+    attr* value = deployments_->xml->allocate_attribute(
       dove::xml::s("value"), dove::xml::s(it2->second));
     metric->append_attribute(name);
     metric->append_attribute(value);
@@ -501,12 +502,12 @@ dove::validator::validator(int tasks,
 //   xmldata = new rapidxml::file<char>(system_xml_path);
 //   system_ = new system_xml();
 //   system_->parse<0>(xmldata->data());
-  system_.create(system_xml_path);
+  system_->create(system_xml_path);
   info("Storing system.xml into system_");
   profile = new hwprofile(compute_type, compute_units, system_);
   
   info("Creating header for deployments");
-  deployment_.create(algorithm_name, algorithm_desc);
+  deployment_->create(algorithm_name, algorithm_desc);
   xdebug("Done creating deployment_optimization");
 }
 
@@ -520,13 +521,13 @@ dove::deployment dove::validator::get_empty_deployment() {
 
 // TODO: This one's tricky to place in another class.
 void dove::validator::add_deployment(deployment d) {
-  node* deps = deployment_.xml->first_node("optimization")->
+  node* deps = deployment_->xml->first_node("optimization")->
     first_node("deployments");
   node* deployment = d.get_xml();
   std::stringstream idtochar;
   idtochar << number_deployments_;
   number_deployments_++;
-  attr* id = deployment_.xml->allocate_attribute(
+  attr* id = deployment_->xml->allocate_attribute(
       dove::xml::s("id"), 
       dove::xml::s(idtochar.str().c_str()));
   deployment->append_attribute(id);
@@ -534,5 +535,5 @@ void dove::validator::add_deployment(deployment d) {
 }
 
 void dove::validator::complete() {
-  deployment_.complete(deployment_filename.c_str());
+  deployment_->complete(deployment_filename.c_str());
 }
