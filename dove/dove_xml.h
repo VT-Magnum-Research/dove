@@ -64,6 +64,6 @@ namespace dove {
         attr* add_deployment(node* node, int num_deployments);
         void complete(const char* filename);
     };
-    }
+  }
 }
 #endif
