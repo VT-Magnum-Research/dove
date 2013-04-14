@@ -49,7 +49,7 @@ namespace dove {
         // determine how many iterations should be run before the 
         // deployment will terminate
         rapidxml::xml_attribute<char>*
-        add_deployment(rapidxml::xml_node<char>* node, int num_deployments);
+        add_deployment(node* node, int num_deployments);
         void complete(const char* filename);
     };
     }
