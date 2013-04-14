@@ -527,8 +527,7 @@ void dove::validator::add_deployment(deployment d) {
   idtochar << number_deployments_;
   number_deployments_++;
   attr* id = deployment_.xml->allocate_attribute(
-      string_pool->allocate_string("id"), 
-      string_pool->allocate_string(idtochar.str().c_str()));
+      dove::xml::s("id"), dove::xml::s(idtochar.str().c_str()));
   deployment->append_attribute(id);
   deps->append_node(deployment);
 }

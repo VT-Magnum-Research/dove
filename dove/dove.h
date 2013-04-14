@@ -7,7 +7,7 @@ namespace rapidxml {
   template <typename T> class xml_attribute;
   template <typename T> class xml_document;
   template <typename T> class file;
-  template <typename T> class memory_pool;
+//   template <typename T> class memory_pool;
 }
 
 #include <iostream>
@@ -62,7 +62,7 @@ namespace dove {
     std::string sys;
   };
 
-  rapidxml::memory_pool<char>* string_pool;
+//   rapidxml::memory_pool<char>* string_pool;
 
   // Given a TCLAP CmdLine pointer, `add_tclap` adds dove's command
   // line options and returns the parsed filepath, dep, and sys.
@@ -153,13 +153,13 @@ namespace dove {
       std::vector<std::pair<int, int> > plan;
       std::map<std::string, std::string> metrics;
       xml::system system_;
-      xml::deployment deployments_; // TODO: Why is this plural?
+      xml::deployment deployments_;
       hwprofile* profile;
       
       // Builds a 'safe' string for rapidxml
-      char* s(const char* unsafe);
-      char* s(int unsafe);
-      char* s(std::string unsafe);
+//       char* s(const char* unsafe);
+//       char* s(int unsafe);
+//       char* s(std::string unsafe);
 
     public:
       deployment(hwprofile* prof, 
@@ -229,7 +229,7 @@ namespace dove {
       std::string deployment_filename;
       
       // Builds a 'safe' string for rapidxml
-      char* s(const char* unsafe);
+//       char* s(const char* unsafe);
 
     public:
       validator(int tasks, 
