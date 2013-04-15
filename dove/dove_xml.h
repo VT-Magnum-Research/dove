@@ -58,6 +58,8 @@ namespace dove {
         std::vector<node*> get_all_cores();
         std::vector<node*> get_all_threads();
         long get_routing_delay(int from, int to, int lfrom, int lto);
+        std::string add_routing_delay(
+          int fromid, int toid, std::string result, bool dry_run = false);
     };
 
     class deployment {

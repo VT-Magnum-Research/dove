@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <cstring> // strcmp
 #include <fstream> // basic_ofstream
-// #include <sstream>
+#include <sstream> // ostringstream
 // #include <iostream>
 
 #include "rapidxml.hpp"
@@ -173,6 +173,50 @@ long dove::xml::system::get_routing_delay(int from, int to, int lfrom, int lto) 
   }
 
   throw "No route was found between the two id's";
+}
+
+// Create and, if `dry_run` is false, append the routing delay
+// to the system xml file.
+std::string dove::xml::system::add_routing_delay(
+    int fromid, int toid, std::string result, bool dry_run) {
+  std::ostringstream ssFrom; std::ostringstream ssTo;
+  ssFrom << fromid; ssTo << toid;
+
+  node* delayNode = xml->allocate_node(rapidxml::node_element, "d");
+  rapidxml::xml_attribute<> *fattr = xml->allocate_attribute("f", 
+      dove::xml::s(ssFrom.str().c_str()));
+  rapidxml::xml_attribute<> *tattr = xml->allocate_attribute("t", 
+      dove::xml::s(ssTo.str().c_str()));
+  rapidxml::xml_attribute<> *vattr = xml->allocate_attribute("v", 
+      dove::xml::s(result.c_str()));
+  delayNode->append_attribute(fattr);
+  delayNode->append_attribute(tattr);
+  delayNode->append_attribute(vattr);
+
+  if (!dry_run) {
+    // Find the right place in the XML
+    // TODO Change to wrapper.
+    rapidxml::xml_node<char>* system = xml->first_node("system");
+    if (system == 0)
+    {
+      error("Unable to find system!");
+      error("Printing all XML so we can debug....");
+      rapidxml::print(std::cerr, *xml, 0);
+      error("Now to segfault...");
+    }
+    rapidxml::xml_node<char>* delays = system->first_node("routing_delays");
+    if (delays == 0) {
+      delays = xml->allocate_node(
+        rapidxml::node_element, "routing_delays");
+      xml->first_node("system")->append_node(delays);
+    }
+  
+    delays->append_node(delayNode);
+  }
+
+  std::string s;
+  rapidxml::print(std::back_inserter(s), *delayNode, 0);
+  return s;
 }
 
 void dove::xml::deployment::create(const char* algorithm_name,

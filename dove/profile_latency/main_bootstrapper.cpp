@@ -46,7 +46,7 @@ static void parse_options(int argc, char *argv[]);
 
 // XML file used describe the system we are testing
 // rapidxml::xml_document<char>* xml;
-dove::xml::system system_;
+dove::xml::system* system_;
 std::string xml_filepath;
 // rapidxml::file<char>* xml_file;
 
@@ -124,7 +124,7 @@ int main(int argc, char** argv) {
   calculate_latency(cores);
 
   if (!dry_run) {
-    output << *system_.xml;
+    output << *(system_->xml);
     output.close();
   }
 
@@ -178,42 +178,42 @@ std::string write_latency(int to, int from) {
     remove(rankfile.c_str());
 
     // TODO Change to wrapper.
-    rapidxml::xml_node<char>* delay = system_.xml->
-      allocate_node(rapidxml::node_element, "d");
-    rapidxml::xml_attribute<> *fattr = system_.xml->allocate_attribute("f", 
-        dove::xml::s(to_string((long long) from).c_str()));
-    rapidxml::xml_attribute<> *tattr = system_.xml->allocate_attribute("t", 
-        dove::xml::s(to_string((long long) to).c_str()));
-    rapidxml::xml_attribute<> *vattr = system_.xml->allocate_attribute("v", 
-        dove::xml::s(result.c_str()));
-    delay->append_attribute(fattr);
-    delay->append_attribute(tattr);
-    delay->append_attribute(vattr);
+//     rapidxml::xml_node<char>* delay = system_.xml->
+//       allocate_node(rapidxml::node_element, "d");
+//     rapidxml::xml_attribute<> *fattr = system_.xml->allocate_attribute("f", 
+//         dove::xml::s(to_string((long long) from).c_str()));
+//     rapidxml::xml_attribute<> *tattr = system_.xml->allocate_attribute("t", 
+//         dove::xml::s(to_string((long long) to).c_str()));
+//     rapidxml::xml_attribute<> *vattr = system_.xml->allocate_attribute("v", 
+//         dove::xml::s(result.c_str()));
+//     delay->append_attribute(fattr);
+//     delay->append_attribute(tattr);
+//     delay->append_attribute(vattr);
 
-    if (!dry_run) {
-      // Find the right place in the XML
-      // TODO Change to wrapper.
-      rapidxml::xml_node<char>* system = system_.xml->first_node("system");
-      if (system == 0)
-      {
-        error("Unable to find system!");
-        error("Printing all XML so we can debug....");
-        rapidxml::print(std::cerr, *system_.xml, 0);
-        error("Now to segfault...");
-      }
-      rapidxml::xml_node<char>* delays = system->first_node("routing_delays");
-      if (delays == 0) {
-        delays = system_.xml->allocate_node(rapidxml::node_element, "routing_delays");
-        system_.xml->first_node("system")->append_node(delays);
-      }
-    
-      delays->append_node(delay);
-    }
+//     if (!dry_run) {
+//       // Find the right place in the XML
+//       // TODO Change to wrapper.
+//       rapidxml::xml_node<char>* system = system_->xml->first_node("system");
+//       if (system == 0)
+//       {
+//         error("Unable to find system!");
+//         error("Printing all XML so we can debug....");
+//         rapidxml::print(std::cerr, *system_->xml, 0);
+//         error("Now to segfault...");
+//       }
+//       rapidxml::xml_node<char>* delays = system->first_node("routing_delays");
+//       if (delays == 0) {
+//         delays = system_->xml->allocate_node(rapidxml::node_element, "routing_delays");
+//         system_->xml->first_node("system")->append_node(delays);
+//       }
+//     
+//       delays->append_node(delay);
+//     }
 
     // Print to string using output iterator
-    std::string s;
+//     std::string s;
 //     rapidxml::print(std::back_inserter(s), *delay, 0);
-    return s;
+    return system_->add_routing_delay(from, to, result, dry_run);
 }
 
 void calculate_latency(std::vector<int> ids) {
@@ -256,28 +256,28 @@ void build_main_filter(bool all, bool host, bool socket, bool core,
   typedef std::vector<xml_node*> xml_node_vector; 
 
   if (all || host) {
-    xml_node_vector xhosts = system_.get_all_hosts();
+    xml_node_vector xhosts = system_->get_all_hosts();
     for (xml_node_vector::iterator it = xhosts.begin();
         it != xhosts.end();
         ++it)
     hosts.push_back(atoi((*it)->first_attribute("id")->value()));
   }
   if (all || socket) {
-    xml_node_vector xprocs = system_.get_all_processors();
+    xml_node_vector xprocs = system_->get_all_processors();
     for (xml_node_vector::iterator it = xprocs.begin();
         it != xprocs.end();
         ++it)
     sockets.push_back(atoi((*it)->first_attribute("id")->value()));
   }
   if (all || core) {
-    xml_node_vector xcores = system_.get_all_cores();
+    xml_node_vector xcores = system_->get_all_cores();
     for (xml_node_vector::iterator it = xcores.begin();
         it != xcores.end();
         ++it)
     cores.push_back(atoi((*it)->first_attribute("id")->value()));
   }
   if (all || thread) {
-    xml_node_vector xhw = system_.get_all_threads();
+    xml_node_vector xhw = system_->get_all_threads();
     for (xml_node_vector::iterator it = xhw.begin();
         it != xhw.end();
         ++it)
@@ -382,7 +382,7 @@ static void parse_options(int argc, char *argv[]) {
   cmd.parse(argc, argv);
 
   // Ensure that the given XML path is accessible by rapidxml
-  system_.create(xml_arg.getValue().c_str());
+  system_->create(xml_arg.getValue().c_str());
 //   try {
 //     info("Trying to parse the following xml file:");
 //     xml_filepath = xml_arg.getValue();
@@ -408,9 +408,9 @@ static void parse_options(int argc, char *argv[]) {
       info("Refusing to clear XML due to this being a dry run");
     else {
       rapidxml::xml_node<char>* delays = 
-        system_.xml->first_node("system")->first_node("routing_delays");
+        system_->xml->first_node("system")->first_node("routing_delays");
       if (delays != 0) {
-        system_.xml->first_node("system")->remove_node(delays);
+        system_->xml->first_node("system")->remove_node(delays);
         info("Removed the routing_delays node from the xml");
       }
     }
