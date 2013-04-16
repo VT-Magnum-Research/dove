@@ -360,6 +360,9 @@ int main(int argc, char *argv[]) {
   } catch (TCLAP::ArgException &e) {
     std::cerr << "error: " << e.error() << " for arg " << e.argId() << std::endl;
     exit(EXIT_SUCCESS);
+  } catch (dove::parse_error &e) {
+    std::cerr << "error: " << e.what() << std::endl;
+    exit(EXIT_SUCCESS);
   }
   
   // TODO potentially make DOVE internally contain all of the options to 

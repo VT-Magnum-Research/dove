@@ -35,7 +35,8 @@ void dove::xml::system::create(const char* path) {
   } catch (rapidxml::parse_error err) {
     std::cout << "Could not parse XML file. Error was: " << std::endl;
     std::cout << err.what() << std::endl;
-    throw "Unable to parse XML.";
+    throw dove::parse_error(
+      std::string("Unable to parse XML. Error: ") + err.what());
   }
 
 }

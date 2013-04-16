@@ -14,6 +14,7 @@ namespace rapidxml {
 #include <vector>
 #include <string>
 #include <map>
+#include <stdexcept> // std::runtime_error
 
 #include "libs/tclap/CmdLine.h"
 #include "dove_xml.h"
@@ -24,6 +25,10 @@ typedef std::vector<xml_node*> xml_node_vector;
 typedef rapidxml::xml_attribute<char> attr;
 
 namespace dove {
+  class parse_error : public std::runtime_error {
+    public:
+      parse_error(std::string msg) : std::runtime_error(msg) { }
+  };
 
   // Hardware component types
   enum hwcom_type { 
