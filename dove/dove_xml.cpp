@@ -222,7 +222,17 @@ dove::xml::deployment::~deployment() {
 //   delete xml;
 }
 
+attr* dove::xml::deployment::allocate_attribute_safe(
+    std::string tag, int value) const {
+  std::stringstream valtochar;
+  valtochar << value;
+  allocate_attribute_safe(tag, valtochar.str());
+}
 
+attr* dove::xml::deployment::allocate_attribute_safe(
+    std::string tag, std::string value) const {
+  xml->allocate_attribute(dove::xml::s(tag), s(value));
+}
 
 void dove::xml::deployment::complete(const char* filename) {
   dove::xdebug("Complete was called on deployment_optimization");

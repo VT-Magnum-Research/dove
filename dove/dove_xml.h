@@ -80,6 +80,8 @@ namespace dove {
         // determine how many iterations should be run before the 
         // deployment will terminate
         attr* add_deployment(node* node, int num_deployments);
+        attr* allocate_attribute_safe(std::string tag, int value) const;
+        attr* allocate_attribute_safe(std::string tag, std::string value) const;
         void complete(const char* filename);
     };
   }

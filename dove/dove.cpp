@@ -421,10 +421,12 @@ node* dove::deployment::get_xml() {
       it++) {
     node* deploy = deployments_->xml->allocate_node(rapidxml::node_element, 
         dove::xml::s("deploy"));
-    attr* task = deployments_->xml->allocate_attribute(
-      dove::xml::s("t"), dove::xml::s((*it).first));
-    attr* unit = deployments_->xml->allocate_attribute(
-      dove::xml::s("u"), dove::xml::s((*it).second));
+//     attr* task = deployments_->xml->allocate_attribute(
+//       dove::xml::s("t"), dove::xml::s((*it).first));
+//     attr* unit = deployments_->xml->allocate_attribute(
+//       dove::xml::s("u"), dove::xml::s((*it).second));
+    attr* task = deployments_->allocate_attribute_safe("t", (*it).first);
+    attr* unit = deployments_->allocate_attribute_safe("u", (*it).second);
     deploy->append_attribute(task);
     deploy->append_attribute(unit);
     deployment_xml->append_node(deploy);
@@ -436,10 +438,12 @@ node* dove::deployment::get_xml() {
       it2++) {
     node* metric = deployments_->xml->allocate_node(rapidxml::node_element, 
         dove::xml::s("metric"));
-    attr* name = deployments_->xml->allocate_attribute(
-      dove::xml::s("name"), dove::xml::s(it2->first));
-    attr* value = deployments_->xml->allocate_attribute(
-      dove::xml::s("value"), dove::xml::s(it2->second));
+//     attr* name = deployments_->xml->allocate_attribute(
+//       dove::xml::s("name"), dove::xml::s(it2->first));
+//     attr* value = deployments_->xml->allocate_attribute(
+//       dove::xml::s("value"), dove::xml::s(it2->second));
+    attr* name = deployments_->allocate_attribute_safe("name", it2->first);
+    attr* value = deployments_->allocate_attribute_safe("value", it2->second);
     metric->append_attribute(name);
     metric->append_attribute(value);
     deployment_xml->append_node(metric);
@@ -524,12 +528,13 @@ void dove::validator::add_deployment(deployment d) {
   node* deps = deployment_->xml->first_node("optimization")->
     first_node("deployments");
   node* deployment = d.get_xml();
-  std::stringstream idtochar;
-  idtochar << number_deployments_;
-  number_deployments_++;
-  attr* id = deployment_->xml->allocate_attribute(
-      dove::xml::s("id"), 
-      dove::xml::s(idtochar.str().c_str()));
+//   std::stringstream idtochar;
+//   idtochar << number_deployments_;
+//   number_deployments_++;
+//   attr* id = deployment_->xml->allocate_attribute(
+//       dove::xml::s("id"), 
+//       dove::xml::s(idtochar.str().c_str()));
+  attr* id = deployment_->allocate_attribute_safe("id", number_deployments_);
   deployment->append_attribute(id);
   deps->append_node(deployment);
 }
