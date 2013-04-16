@@ -4,7 +4,7 @@ DOVE_ROOT ?= $(CURDIR)/..
 XML_ROOT  ?= $(CURDIR)/../libs/rapidxml-1.13
 INC       := -I$(DOVE_ROOT) -I$(XML_ROOT)
 LIBS      := -L$(DOVE_ROOT) -ldove 
-CXXFLAGS  += -g -std=c++0x -Wl,--allow-multiple-definition
+CXXFLAGS  += -g -Wl,--allow-multiple-definition
 # TODO: `-Wl,--allow-multiple-definition` is entirely suboptimal...
 
 EXE=generate_latency
