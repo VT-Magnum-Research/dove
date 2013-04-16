@@ -5,7 +5,7 @@
 // put it back in dove.cpp.
 // I'm just keeping it simple because it's easy to change.
 
-// #include <memory> // auto_ptr
+#include <memory> // auto_ptr
 
 // Forward-declare what we can
 namespace rapidxml {
@@ -48,10 +48,10 @@ namespace dove {
 
     class system {
       private:
-        file* xmldata;
+        std::auto_ptr<file> xmldata;
       public:
         ~system();
-        doc* xml;
+        std::auto_ptr<doc> xml;
         void create(const char* path);
         std::vector<node*> get_all_hosts();
         std::vector<node*> get_all_processors();
@@ -65,7 +65,7 @@ namespace dove {
     class deployment {
       private:
       public:
-        doc* xml;
+        std::auto_ptr<doc> xml;
         ~deployment();
         void create(const char* algorithm_name, const char* algorithm_desc);
 

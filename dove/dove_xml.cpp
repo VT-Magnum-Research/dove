@@ -29,8 +29,8 @@ void dove::xml::system::create(const char* path) {
   try {
     info("Trying to parse the following xml file:");
     info(path);
-    xmldata = new rapidxml::file<char>(path);
-    xml = new rapidxml::xml_document<char>();
+    xmldata = std::auto_ptr<file>(new rapidxml::file<char>(path));
+    xml = std::auto_ptr<doc>(new rapidxml::xml_document<char>());
     xml->parse<0>(xmldata->data());
   } catch (rapidxml::parse_error err) {
     std::cout << "Could not parse XML file. Error was: " << std::endl;
@@ -42,24 +42,8 @@ void dove::xml::system::create(const char* path) {
 }
 
 dove::xml::system::~system() {
-  // TODO: Switching to auto_ptr caused weird errors elsewhere?
-  //   src/acomps.cpp: In function ‘void run_entire_aco(DirectedAcyclicGraph*, SymmetricMatrix<unsigned int>*, Matrix<unsigned int>*, std::vector<unsigned int>*)’:
-  // src/acomps.cpp:290:68: error: no matching function for call to ‘dove::deployment::deployment(dove::deployment)’
-  //    dove::deployment deployment = validation->get_empty_deployment();
-  //                                                                   ^
-  // src/acomps.cpp:290:68: note: candidates are:
-  // In file included from src/acomps.cpp:13:0:
-  // /home/brandon/Documents/Research/Magnum/programs/cores/optimizations/ant_colony/../../dove/dove.h:165:7: note: dove::deployment::deployment(dove::hwprofile*, dove::xml::system, dove::xml::deployment)
-  //      deployment(hwprofile* prof, 
-  //      ^
-  // /home/brandon/Documents/Research/Magnum/programs/cores/optimizations/ant_colony/../../dove/dove.h:165:7: note:   candidate expects 3 arguments, 1 provided
-  // /home/brandon/Documents/Research/Magnum/programs/cores/optimizations/ant_colony/../../dove/dove.h:149:9: note: dove::deployment::deployment(dove::deployment&)
-  //  class deployment {
-  //        ^
-  // /home/brandon/Documents/Research/Magnum/programs/cores/optimizations/ant_colony/../../dove/dove.h:149:9: note:   no known conversion for argument 1 from ‘dove::deployment’ to ‘dove::deployment&’
-  // make: *** [bin/AntHybrid] Error 1
-  delete xmldata;
-  delete xml;
+//   delete xmldata;
+//   delete xml;
 }
 
 // TODO consider creating dove::xml and moving all of my 
@@ -222,7 +206,7 @@ std::string dove::xml::system::add_routing_delay(
 
 void dove::xml::deployment::create(const char* algorithm_name,
     const char* algorithm_desc) {
-  xml = new rapidxml::xml_document<char>();
+  xml = std::auto_ptr<doc>(new rapidxml::xml_document<char>());
   node *root = xml->allocate_node(rapidxml::node_element,
     s("optimization"));
   xml->append_node(root);
@@ -235,9 +219,10 @@ void dove::xml::deployment::create(const char* algorithm_name,
 }
 
 dove::xml::deployment::~deployment() {
-  // TODO: auto_ptrs
-  delete xml;
+//   delete xml;
 }
+
+
 
 void dove::xml::deployment::complete(const char* filename) {
   dove::xdebug("Complete was called on deployment_optimization");
