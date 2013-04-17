@@ -1,0 +1,3 @@
+Make makefile search for STG environment variable and print out error message if it's not there
+
+Ensure that the LD_LIBRARY_PATH contains the /usr/local/lib before running
