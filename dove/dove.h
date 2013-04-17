@@ -29,6 +29,11 @@ namespace dove {
     public:
       parse_error(std::string msg) : std::runtime_error(msg) { }
   };
+  
+  void xlog(const char* msg, int level); 
+  void xdebug(const char* msg);
+  void info(const char* msg); 
+  void error(const char* msg);
 
   // Hardware component types
   enum hwcom_type { 
@@ -61,18 +66,19 @@ namespace dove {
         ip(""), type(UNKNOWN) { }
   };
 
-  struct dove_config {
+  struct config {
     std::string stg_filepath;
     std::string deps;
     std::string sys;
-  };
+  } config_;
 
 //   rapidxml::memory_pool<char>* string_pool;
 
   // Given a TCLAP CmdLine pointer, `add_tclap` adds dove's command
-  // line options and returns the parsed filepath, dep, and sys.
-  dove_config add_tclap(TCLAP::CmdLine* cmd);
-
+  // line options and returns a completed configuration. Note that this
+  // replaces the TCLAP::CmdLine::parse
+  config use_tclap(TCLAP::CmdLine &cmd, int argc, char * argv[]);
+  
   // Given the system.xml and the logical ID of a tag within the system.xml, 
   // this returns all identifiers needed to uniquely identify the hardware 
   // component referenced by that tag. A component could be a host, processor, 
@@ -198,10 +204,6 @@ namespace dove {
       // values
   };
 
-  void xlog(const char* msg, int level); 
-  void xdebug(const char* msg);
-  void info(const char* msg); 
-  void error(const char* msg);
 
   // Interfaces the DOVE validation suite with an optimization 
   // algorithm. An algorithm creates a deployment_optimization

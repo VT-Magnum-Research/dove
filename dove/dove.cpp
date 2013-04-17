@@ -72,10 +72,13 @@ void dove::info(const char* msg) { xlog(msg, LOG_INFO); }
 void dove::error(const char* msg) { xlog(msg, LOG_ERROR); }
 void dove::xdebug(const char* msg) { xlog(msg, LOG_DEBUG); }
 
-dove::dove_config dove::add_tclap(TCLAP::CmdLine* cmd) {
-  dove::dove_config config;
-  TCLAP::ValueArg<std::string>* dove_arg =
-    new TCLAP::ValueArg<std::string>("d", "dove", "Path to DOVE directory. "  
+dove::config dove::use_tclap(TCLAP::CmdLine &cmd, int argc, char *argv[]) {
+  info("Entering add_tclap");
+  // TODO remove any short option flags (f/d) to avoid TCLAP conflicts for 
+  // other projects
+  info("Constructor done");
+  TCLAP::ValueArg<std::string> dove_dir_arg =
+    TCLAP::ValueArg<std::string>("d", "dove", "Path to DOVE directory. "  
       "Provide this if you want to use the deployment optimization validation "
       "engine to validate that your arguments + this algorithm are in fact "
       "resulting in optimizations on a real system."
@@ -85,36 +88,45 @@ dove::dove_config dove::add_tclap(TCLAP::CmdLine* cmd) {
       "<dove>/software.stg - the software STG model.\n" 
       "The <dove>/deployments.xml file will be created as this algorithm is " 
       "executed. ", false, "", "dirpath");
-  TCLAP::ValueArg<std::string>* filepath_arg = 
-    new TCLAP::ValueArg<std::string>
+  // TODO if we are going to be providing this argument, then the STG parser should
+  // be part of the dove framework, perhaps under dove::parsers::stg
+  TCLAP::ValueArg<std::string> stg_path_arg =
+    TCLAP::ValueArg<std::string>
     ("f", "stg", "path to the input STG file", true, "", "filepath");
   std::vector<TCLAP::Arg *> stg_variants;
-  stg_variants.push_back(dove_arg);
-  stg_variants.push_back(filepath_arg);
-  cmd->xorAdd(stg_variants);
+  stg_variants.push_back(&dove_dir_arg);
+  stg_variants.push_back(&stg_path_arg);
+  info("Arguments addedi");
+  cmd.xorAdd(stg_variants);
 
-  // If DOVE is requested, set it up
-  std::string dove = dove_arg->getValue();
-  config.sys = dove;
-  config.sys.append("system.xml");
+  cmd.parse(argc, argv);
+  info("Returning...");
+ 
+  std::string dove = dove_dir_arg.getValue();
+  info("Dove string is...");
+  info(dove.c_str());
+  config_.sys = dove;
+  config_.sys.append("system.xml");
   std::string stg = dove;
   stg.append("software.stg");
-  config.deps = dove;
-  config.deps.append("deployments.xml");
+  config_.deps = dove;
+  config_.deps.append("deployments.xml");
   if (dove.compare("") != 0)
   {
-    std::ifstream ifile(config.sys.c_str());
+    std::ifstream ifile(config_.sys.c_str());
     if (!ifile) 
       throw TCLAP::ArgException("<dove>/system.xml not found");
     std::ifstream ifile2(stg.c_str());
     if (!ifile2)
       throw TCLAP::ArgException("<dove>/software.stg not found"); 
 
-    config.stg_filepath = stg;
+    config_.stg_filepath = stg;
   } else {
-    config.stg_filepath = filepath_arg->getValue();
+    config_.stg_filepath = stg_path_arg.getValue();
   }
-  return config;
+  info("Returning...");
+  info(config_.stg_filepath.c_str());
+  return config_;
 }
 
 // TODO make this set type on hardware component

@@ -39,7 +39,7 @@ static double acs_q0 = 0.5;
 static double acs_xi = 0.1;
 
 // Arguments for deployment optimization
-static dove::dove_config config;
+static dove::config config;
 // static std::string stg_filepath;
 static unsigned int cores_used = 2;
 //static unsigned int processor_heterogenity = 1;
@@ -68,7 +68,6 @@ static void parse_options(int argc, char *argv[]) {
   allowed.push_back(0);
   allowed.push_back(1);
   TCLAP::ValuesConstraint<unsigned int> allowed_values( allowed );
-  config = dove::add_tclap(&cmd);
   TCLAP::ValueArg<unsigned int> cores_used_arg("c", "cores", "number of homogeneous processing cores. Defaults to 2", false, 2, "positive integer", cmd);
 //  TCLAP::ValueArg<unsigned int> processor_h_arg("","core_heter", "Processor heterogeneity. 1 specifies homogeneous processors, <int> specifies a limit on processor upper bound that is randomly queried to build a set of heterogeneous processors. Default is 1", false, 1, "positive integer", cmd);
   TCLAP::SwitchArg              print_tour_arg("o", "printord", "print best elimination ordering in iteration");
@@ -112,7 +111,7 @@ static void parse_options(int argc, char *argv[]) {
   //cmd.add(routing_def_arg);
   //cmd.add(task_harg);
 
-  cmd.parse(argc, argv);
+  config = dove::use_tclap(cmd, argc, argv);
   
   ants = ants_arg.getValue();
   iterations = iterations_arg.getValue();
