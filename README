@@ -1,0 +1,6 @@
+Currently everything is run automatically by using a target in the Makefile. 
+
+The targets also (obviously) clean and build the system.
+This command will list all targets for you: 
+    make -qp | awk -F':' '/^[a-zA-Z0-9][^$#\/\t=]*:([^=]|$)/ {split($1,A,/ /);for(i in A)print A[i]}'     
+
