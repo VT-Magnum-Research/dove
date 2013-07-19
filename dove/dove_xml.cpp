@@ -29,9 +29,24 @@ void dove::xml::system::create(const char* path) {
   try {
     info("Trying to parse the following xml file:");
     info(path);
-    xmldata = std::auto_ptr<file>(new rapidxml::file<char>(path));
+    info("Creating new rapidXML file");
+    rapidxml::file<char>* fp = new rapidxml::file<char>(path);
+    info("Created rapidxml file");
+    std::auto_ptr<rapidxml::file<char> > filep(fp);
+    info("Created autoptr");
+    std::cout << "Size of file is " << filep.get()->size() << std::endl;
+    info("Retrieved autoptr");
+    xmldata = filep;
+    info("Copied");
     xml = std::auto_ptr<doc>(new rapidxml::xml_document<char>());
     xml->parse<0>(xmldata->data());
+  } catch (std::runtime_error e) {
+    std::cout << "Unable to access XML for loading: " << path << std::endl;
+    std::cout << "Error was: " << std::endl;
+    std::cout << e.what() << std::endl;
+    throw dove::parse_error(
+        std::string("Unable to access XML file. Does it exist and have proper permissions? Error: ") 
+        + e.what());
   } catch (rapidxml::parse_error err) {
     std::cout << "Could not parse XML file. Error was: " << std::endl;
     std::cout << err.what() << std::endl;
@@ -48,7 +63,7 @@ dove::xml::system::~system() {
 
 // TODO consider creating dove::xml and moving all of my 
 // helper functions into that namespace to keep it clean
-std::vector<node*> dove::xml::system::get_all_hosts() {
+std::vector<node*> dove::xml::system::get_all_hosts() const {
   dove::xdebug("Getting all hosts from system.xml");
   rapidxml::xml_node<>* nodes = xml->first_node("system")->
     first_node("nodes");
@@ -64,7 +79,7 @@ std::vector<node*> dove::xml::system::get_all_hosts() {
   return result;
 }
 
-std::vector<node*> dove::xml::system::get_all_processors() {
+std::vector<node*> dove::xml::system::get_all_processors() const {
   dove::xdebug("Getting all processors from system.xml");
   std::vector<node*> result;
   std::vector<node*> hosts = get_all_hosts();
@@ -84,7 +99,7 @@ std::vector<node*> dove::xml::system::get_all_processors() {
   return result;
 }
 
-std::vector<node*> dove::xml::system::get_all_cores() {
+std::vector<node*> dove::xml::system::get_all_cores() const {
   dove::xdebug("Getting all cores from system.xml");
   xml_node_vector result;
   xml_node_vector procs = get_all_processors();
@@ -104,7 +119,7 @@ std::vector<node*> dove::xml::system::get_all_cores() {
   return result;
 }
 
-std::vector<node*> dove::xml::system::get_all_threads() {
+std::vector<node*> dove::xml::system::get_all_threads() const {
   dove::xdebug("Getting all threads from system.xml");
   xml_node_vector result;
   xml_node_vector cores = get_all_cores();
@@ -124,7 +139,10 @@ std::vector<node*> dove::xml::system::get_all_threads() {
   return result;
 }
 
-long dove::xml::system::get_routing_delay(int from, int to, int lfrom, int lto) {
+// TODO why is this taking from and to as inputs? At the system.xml level there 
+// should only be logical ids. Also it looks like int from,to is being 
+// redeclared internally e.g. this is only using the logicalid parameters
+long dove::xml::system::get_routing_delay(int from, int to, int lfrom, int lto) const {
   rapidxml::xml_node<>* system = xml->first_node("system");
   //if (system != 0)
   //  info("Got system");

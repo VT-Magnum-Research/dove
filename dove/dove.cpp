@@ -311,7 +311,7 @@ std::string dove::build_rankline(rapidxml::xml_document<char> &system,
 // TODO add in a strategy for choosing specific hardware 
 // components e.g. ones on the same machine, etc
 dove::hwprofile::hwprofile(hwcom_type type, int compute_units, 
-    dove::xml::system* const system) {
+    dove::xml::system* system) {
   xdebug("Creating new hardware profile");
  
   system_ = system;
@@ -352,13 +352,16 @@ dove::hwprofile::hwprofile(hwcom_type type, int compute_units,
   }
 }
 
-int dove::hwprofile::get_logical_id(int id) {
+int dove::hwprofile::get_logical_id(int id) const {
   if (id >= ids_.size() || id < 0)
     throw "Invalid ID passed to get_logical_id";
-  return ids_[id];
+  
+  if (ids_.find(id) != ids_.end())
+    return ids_.find(id)->second;
+  throw "ID not found in map";
 }
 
-long dove::hwprofile::get_routing_delay(int from, int to) {
+long dove::hwprofile::get_routing_delay(int from, int to) const {
   int lfrom = get_logical_id(from);
   int lto = get_logical_id(to);
   if (lfrom == lto)
@@ -527,7 +530,7 @@ dove::validator::validator(int tasks,
   xdebug("Done creating deployment_optimization");
 }
 
-long dove::validator::get_routing_delay(int from, int to) {
+long dove::validator::get_routing_delay(int from, int to) const {
   return profile->get_routing_delay(from, to);
 }
 
