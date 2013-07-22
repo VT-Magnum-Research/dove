@@ -15,6 +15,15 @@ chown vagrant:vagrant /home/vagrant/code
 apt-get install -y git vim screen git
 
 # Setup gitconfig
+git clone https://github.com/hamiltont/dotfiles.git /home/vagrant/.dotfiles
+cp /home/vagrant/.dotfiles/.gitconfig /home/vagrant/.gitconfig
+
+# Merge .hostssh and .ssh folders so we have all of the private keys available
+# Only works because 1) we sync host ~/.ssh to VM ~/.hostssh and 2) vagrant sets 
+# up the synced folders before it runs the shell provider
+cp -R /home/vagrant/.hostssh /tmp/.hostssh
+cat /home/vagrant/.ssh/authorized_keys >> /tmp/.hostssh/authorized_keys
+mv /tmp/.hostssh/* /home/vagrant/.ssh
 
 # Setup vim plugins
 apt-get install -y curl

@@ -30,3 +30,4 @@ generator/bin/*
 *.a
 .vagrant
 .DS_Store
+vagrant

@@ -22,6 +22,6 @@ Vagrant.configure("2") do |config|
   # Provision using our shell script
   config.vm.provision :shell, :path => "Vagrant-provision.sh"
   
-  config.ssh.forward_agent = true
+  config.vm.synced_folder "~/.ssh/", "/home/vagrant/.hostssh"
   
 end
