@@ -24,6 +24,7 @@ cp /home/vagrant/.dotfiles/.gitconfig /home/vagrant/.gitconfig
 cp -R /home/vagrant/.hostssh /tmp/.hostssh
 cat /home/vagrant/.ssh/authorized_keys >> /tmp/.hostssh/authorized_keys
 mv /tmp/.hostssh/* /home/vagrant/.ssh
+chown vagrant:vagrant -R /home/vagrant/.ssh
 
 # Setup vim plugins
 apt-get install -y curl
@@ -65,3 +66,6 @@ set nobackup      \" I hate swp files
 set noswapfile
 set pastetoggle=<F2>   \" press f2 to enable pasting without smart indention
 set mouse=a       \" enable the mouse" >> /home/vagrant/.vimrc
+
+# Just to be sure we didn't leave any files under root
+chown vagrant:vagrant -R /home/vagrant/
