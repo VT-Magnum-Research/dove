@@ -1,6 +1,3 @@
-
-
-
 CFLAGS := -g 
 INC    :=-Ilibs/rapidxml-1.13
  

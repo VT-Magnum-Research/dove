@@ -1,9 +1,9 @@
 CFLAGS= -g
-LIBS = -L/usr/local/lib -lpapi -lrt 
+LIBS = -L/usr/local/lib -lrt 
 INC= -Ilibs/rapidxml
 
 all:
-	g++ $(CFLAGS) $(LIBS) $(INC) -o runner runner.cpp
+	g++ $(CFLAGS) $(INC) -o runner runner.cpp $(LIBS)
 clean:
 	rm -f runner
 
