@@ -19,6 +19,30 @@ typedef rapidxml::xml_node<char> node;
 typedef std::vector<xml_node*> xml_node_vector; 
 typedef rapidxml::xml_attribute<char> attr;
 
+// The dove namespace wraps domain-specific data container, utliity functions,
+// 
+// The dove framework uses XML files to communicate between different components. 
+// While these are visible to the user on the file system, they should not have to 
+// interact with these XML files for typical usage of dove--internally the rapidxml
+// library is used to write and parse all XML files. Files of interest: 
+//   - system.xml : Provides a mapping between the fully unique logical IDs dove uses 
+//                  to refer to hardware components such as cores and the physical 
+//                  IDs that are used when performing OpenMPI processor affinity
+//   - deployment.xml: The collection of deployment solutions that an optimization 
+//                     algorithm has generated. Used dove's logical IDs for the 
+//                     hardware components 
+//
+//   - 
+//
+// Classes in the dove namespace:
+//
+//   - validator: An optimization algorithm builds a dove::validator when building its
+//                solution, and the validator can later perform the actual validation. 
+//                This is one of the main entry points into dove and therefore controls
+//                a good portion of the memory
+//
+//   TODO Build dove::config object(singleton?) that can be passed around to access the configuration
+//   of the system (access to various XML files...)
 namespace dove {
 
   // Hardware component types
@@ -33,10 +57,10 @@ namespace dove {
     UNKNOWN   = 0
   };
 
-  // Describes a hardware component as completely as 
-  // possible. For identifying a high-level hardware construct, 
-  // like a host, this will obviously have no information on
-  // processor/core
+  // Describes a hardware component using physical machine-specific IDs
+  //
+  // For high-level hardware construct such as host, there will be no 
+  // information on processor/core
   struct hwcom {
       int node_pid;
       int proc_pid; 
@@ -52,18 +76,15 @@ namespace dove {
         ip(""), type(UNKNOWN) { }
   };
 
-  // Given the system.xml and the logical ID of a tag within the system.xml, 
-  // this returns all identifiers needed to uniquely identify the hardware 
-  // component referenced by that tag. A component could be a host, processor, 
-  // core, or hardware thread. 
+  // Extracts physical IDs from the system.xml file for a logical hardware
+  // component ID. 
   //
-  // For higher-level components e.g. processor, there will be no returned 
-  // values for the lower-level components contained within the higher-level
-  // component. For example, passing a logical ID that corresponds to a 
-  // core will return physical identifiers for the host, processor, and 
-  // core, but will return no identifying information about a hardware 
-  // thread. 
-  //
+  // Provides the minimal information needed to uniquely 
+  // identify that logical component (e.g. a if the logical_id is a processor, 
+  // no information on cores/threads will be provided)
+  // TODO move this into XML handling area
+  hwcom parse_pids(rapidxml::xml_document<char> &system, 
+      std::string logical_id);
   void parse_pids(rapidxml::xml_document<char> &system, 
       std::string logical_id,
       int &node_pid, 
@@ -72,26 +93,26 @@ namespace dove {
       int &hwth_pid, 
       std::string &hostname, 
       std::string &ip);
-  hwcom parse_pids(rapidxml::xml_document<char> &system, 
-      std::string logical_id);
   
-  std::string build_rankline_core(int task, 
-      std::string host, int procpid, int corepid);
   
-  // Code to build rankfile lines from all different kinds of logical IDs 
+  // Returns a configuration string that will assign a task to a physical core
+  //
+  // Returns: One line of an OpenMPI rankfile
   std::string build_rankline_core(int task, hwcom com);
-
-  // Given a hardware component logical ID, the task number, and 
-  // the system.XML file, this will build the rankline to 
-  // properly deploy that task onto that hardware component. 
+  std::string build_rankline_core(int task, std::string host, int procpid, int corepid);
+  
+  // Builds one line of the OpenMPI configuration (rankfile) to map the 
+  // provided taskid onto the provided logical hardware component 
   // 
-  // Automatically detects if the ID is for a core, hardware thread,
-  // or processor, and builds the rankline appropriately. If for an 
-  // entire host, then the rankline simply lists that the task can be 
+  // Specifically, this automatically detects the type of hardware component 
+  // represented by the logical ID (e.g.  core, hardware thread,
+  // or processor) and builds the rankline appropriately. If the ID is for an 
+  // entire host, then the rankline lists that the task can be 
   // bound to any available processor on that host
   std::string build_rankline(rapidxml::xml_document<char> &system,
       int taskid, 
-      std::string id);
+      std::string logical_id);
+
   std::vector<rapidxml::xml_node<char>*> get_all_hosts(
       rapidxml::xml_document<char> &system);
   std::vector<rapidxml::xml_node<char>*> get_all_processors(
@@ -101,13 +122,16 @@ namespace dove {
   std::vector<rapidxml::xml_node<char>*> get_all_threads(
       rapidxml::xml_document<char> &system);
 
-  // Allows an external codebase to request a number N of 
-  // hardware components and the routing delay between these
-  // components. HW components are referencable by 0...N-1. 
-  // The routing delays come from the system.xml file. 
-  // This class maintains the list of mappings from logicalids
-  // (used in the system.xml) and the 0...N-1 count of "compute
-  // units" that are traditionally used in optimization problems
+  // Represents a collection of hardware components. Used by algorithms to 
+  // request N hardware components, where the components can be N cores, 
+  // N processors, N machines, etc. 
+  //
+  // Internally this uses a strategy to choose which of the available 
+  // physical components (e.g. out of all components listed in the 
+  // system.xml file) will be exposed to the optimization algorithm. 
+  // The algorithm then uses this class to request information about the 
+  // created hardware profile, such as querying the routing time between
+  // two hardware components or the execution time. 
   class hwprofile {
     hwcom_type type_;
     // Maps from 0...N to the actual logical ID
@@ -199,11 +223,10 @@ namespace dove {
     private:
       hwprofile* profile;
       int task_count;
+      // TODO look up C++ singleton and use it here for dove::configuration or
+      // dove::xml_config. The next 4 variables are all configuration items,
+      // along with a ton of other items in this class
       rapidxml::xml_document<char>* system_;
-
-      // Keeps track of the number of times add_deployment has
-      // been called, so that we can append an ID to each deployment
-      int number_deployments_;
 
       // Must keep source text around for rapidxml
       rapidxml::file<char>* xmldata;
@@ -212,8 +235,15 @@ namespace dove {
       // So that it can eventually be printed into this
       std::string deployment_filename;
       
-      // Builds a 'safe' string for rapidxml
+      // Builds a 'safe' string for rapidxmli
+      // TODO why is this here? It should only be in dove::xml
+      // and should be used inside of all of those methods (e.g. to 
+      // be hidden from the dove::xml user)
       char* s(const char* unsafe);
+      
+      // Keeps track of the number of times add_deployment has
+      // been called, so that we can append an ID to each deployment
+      int number_deployments_;
 
     public:
       validator(int tasks, 
@@ -244,6 +274,10 @@ namespace dove {
       // that automatically set DEBUG_LEVEL properly and then internally
       // call log(const char*, int)
 
+      // TODO can this provide a score function, using a set of assumptions
+      // when calculating the score so that we can easily modify the mechanism
+      // for which it's calculated? 
+      
       // Dove allocates [0...compute_units] computation units 
       // when created. This function returns the real routing delay
       // from one unit to another
